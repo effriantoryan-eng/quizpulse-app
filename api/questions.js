@@ -84,6 +84,8 @@ app.http('questions', {
         const question = {
           id: require('crypto').randomUUID(),
           teacherId,
+          authorId: teacherId,
+          visibility: 'private',
           text: text.trim(),
           options: options.map(o => o.trim()),
           correctIndex,
