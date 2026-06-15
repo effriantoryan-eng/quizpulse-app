@@ -148,6 +148,15 @@ cd api
 func azure functionapp publish quizpulse-app-api-av5z18
 ```
 
+> **⚠️ Deploy the API only from Node 20 or 22 — never Node 24.** `func azure functionapp publish`
+> writes the **local** Node major version into the remote `linuxFxVersion`. Deploying from Node 24
+> sets an unsupported `Node|24` worker stack on the Function App (runtime `~4` supports 18/20/22),
+> the worker never starts, and the **whole app + SCM/Kudu go to 503 with zero telemetry** (this
+> exact outage happened on the v1.2.0 deploy, 2026-06-15). The Function App currently runs
+> `NODE|22`. If a deploy ever bumps it, fix with:
+> `az functionapp config set -g quizpulse-app-rg -n quizpulse-app-api-av5z18 --linux-fx-version '"NODE|22"'`
+> then restart. No `nvm` is installed locally — install nvm-windows and `nvm use 22` before deploying.
+
 ---
 
 ## Sprint roadmap (summary)
@@ -400,6 +409,15 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
    replaced by Azure API Management in Sprint 6.
 3. **Cosmos DB IP restriction skipped** — Consumption plan lacks static outbound IPs. Deferred.
 4. **Function App must be deployed separately** — GitHub Actions deploys frontend only.
+5. **`func publish` bumps the remote Node runtime to the local Node major version.** Deploy only
+   from Node 20/22. See the ⚠️ note under Deploy. App runs `NODE|22`.
+6. **Key Vault references break if the closing `)` is dropped.** Setting a
+   `@Microsoft.KeyVault(...)` value in **cmd.exe** mangles the `( ) ;` chars; a reference missing
+   its `)` silently does NOT resolve — Azure passes the literal string to the app (this caused
+   `/api/vapid-public-key` to return the raw reference string on 2026-06-15). Set such values from
+   **PowerShell** wrapped as `'"NAME=@Microsoft.KeyVault(...)"'` (single-quoted outer, double-quoted
+   inner) so `az.cmd` receives one literal token, or paste into the Azure Portal. The Function App
+   managed identity holds **Key Vault Secrets User** on `quizpulse-app-kv-av5z18`.
 
 ---
 

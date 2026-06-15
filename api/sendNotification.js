@@ -22,7 +22,7 @@ let vapidConfigured = false;
 function ensureVapid() {
   if (vapidConfigured) return;
   webpush.setVapidDetails(
-    `mailto:${process.env.VAPID_SUBJECT || 'admin@quizpulse.app'}`,
+    process.env.VAPID_SUBJECT || 'mailto:admin@quizpulse.app',
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY,
   );
