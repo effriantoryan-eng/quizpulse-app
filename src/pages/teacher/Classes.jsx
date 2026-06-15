@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import API_BASE from '../../api'
 
 const CLASS_NAME_MAX = 80
@@ -232,6 +233,12 @@ function Classes() {
                   Code: <span style={{ fontFamily: 'monospace', letterSpacing: '0.5px', color: '#555' }}>{c.joinCode}</span>
                 </div>
               </div>
+              <Link
+                to={`/teacher/roster?classId=${c.id}`}
+                style={{ padding: '5px 12px', background: 'white', color: '#534AB7', border: '1px solid #C5C0F0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0, textDecoration: 'none' }}
+              >
+                Roster
+              </Link>
               <button
                 data-testid={`class-edit-${c.id}`}
                 onClick={() => { setEditingId(c.id); setEditName(c.name); setEditStudentCount(String(c.studentCount ?? '')); setEditError(null) }}

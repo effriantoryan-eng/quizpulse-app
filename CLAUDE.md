@@ -19,10 +19,11 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 1 (v1.0.0) complete.** Teachers sign in via Microsoft Entra External ID (CIAM)
-(Microsoft or Google), complete a one-time onboarding to associate a school, manage real classes
-(CRUD), build quizzes, send them, and view simulated analytics. Simulated responses are still
-used until Sprint 4. The PWA build (below) replaces the simulated parts with the real thing.
+**[CURRENT] state of the app — Sprint 2 (v1.1.0) in progress.** Sprint 1 (v1.0.0) complete:
+teachers sign in via Microsoft Entra External ID (CIAM), complete onboarding, manage real
+classes (CRUD), build quizzes, send them, and view simulated analytics. Sprint 2 adds student
+join requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
+management. Simulated responses still used until Sprint 4.
 
 ---
 
@@ -34,12 +35,12 @@ used until Sprint 4. The PWA build (below) replaces the simulated parts with the
 | Hosting | Azure Static Web Apps (free tier → Standard in Sprint 6) | [CURRENT] |
 | Backend | Azure Functions — Node.js v4, HTTP-triggered, serverless | [CURRENT] |
 | Database | Azure Cosmos DB (NoSQL, serverless mode) | [CURRENT] |
-| Auth | Microsoft Entra External ID — CIAM (Microsoft provider; Google in Sprint 2; Apple ID in Sprint 6) | [CURRENT] (Sprint 1 complete) |
+| Auth | Microsoft Entra External ID — CIAM (Microsoft provider; Google in Sprint 3; Apple ID in Sprint 6) | [CURRENT] (Sprint 1 complete) |
 | Secrets | Azure Key Vault — managed identity references | [CURRENT] |
 | Logging | Azure Application Insights | [CURRENT] |
 | Push | Web Push API + VAPID (service worker, no native SDK) | [PLANNED — Sprint 3] |
-| Fuzzy match | fuse.js (name-list validation, server-side) | [PLANNED — Sprint 2] |
-| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 1 suite live (23/23 unit pass) |
+| Fuzzy match | fuse.js (name-list validation, server-side) | [CURRENT] — Sprint 2 complete |
+| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 2 suite live (44/44 unit pass) |
 | Rate limiting | in-memory per-instance → Azure API Management | [CURRENT] → [PLANNED — Sprint 6] |
 | CI/CD | GitHub Actions — develop → PR → main → SWA auto-deploy | [CURRENT] |
 
@@ -54,6 +55,7 @@ used until Sprint 4. The PWA build (below) replaces the simulated parts with the
 - Tests: `tests/` (mirrors src/ and api/ structure)
 - Test reports: `tests/reports/sprintN-report.html`
 - Sprint 1 report: `tests/reports/sprint1-report.html`
+- Sprint 2 report: `tests/reports/sprint2-report.html`
 - Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
 
@@ -361,7 +363,8 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
 | Community tab placeholder (locked) | [CURRENT] Sprint 1 complete |
 | Azure spending controls ($100 budget, runbook, throttling) | [CURRENT] Sprint 1 complete |
 | Sprint 1 test suite (23/23 unit, integration, E2E scaffolding) | [CURRENT] Sprint 1 complete |
-| Student join + approval + name list | [PLANNED — Sprint 2] |
+| Sprint 2 test suite (44/44 unit, integration, E2E scaffolding) | [CURRENT] Sprint 2 complete |
+| Student join + approval + name list | [CURRENT] Sprint 2 complete |
 | PWA shell + service worker | [PLANNED — Sprint 3] |
 | Web Push notifications | [PLANNED — Sprint 3] |
 | Real student quiz flow | [PLANNED — Sprint 4] |
