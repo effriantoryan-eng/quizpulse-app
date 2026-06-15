@@ -19,10 +19,10 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app:** A teacher-only demo. Teachers create questions, build quizzes,
-send them to a preset class, and view analytics. Student responses are *simulated* on send — no
-real student flow, no push notifications yet. The PWA build (below) replaces the simulated parts
-with the real thing.
+**[CURRENT] state of the app — Sprint 1 (v1.0.0) complete.** Teachers sign in via Azure AD B2C
+(Microsoft or Google), complete a one-time onboarding to associate a school, manage real classes
+(CRUD), build quizzes, send them, and view simulated analytics. Simulated responses are still
+used until Sprint 4. The PWA build (below) replaces the simulated parts with the real thing.
 
 ---
 
@@ -34,12 +34,12 @@ with the real thing.
 | Hosting | Azure Static Web Apps (free tier → Standard in Sprint 6) | [CURRENT] |
 | Backend | Azure Functions — Node.js v4, HTTP-triggered, serverless | [CURRENT] |
 | Database | Azure Cosmos DB (NoSQL, serverless mode) | [CURRENT] |
-| Auth | Azure AD B2C (multi-provider: Microsoft, Google, Apple ID) | [PLANNED — Sprint 1] (currently Easy Auth / Entra ID) |
+| Auth | Azure AD B2C (multi-provider: Microsoft, Google, Apple ID) | [CURRENT] (Sprint 1 complete; Apple ID in Sprint 6) |
 | Secrets | Azure Key Vault — managed identity references | [CURRENT] |
 | Logging | Azure Application Insights | [CURRENT] |
 | Push | Web Push API + VAPID (service worker, no native SDK) | [PLANNED — Sprint 3] |
 | Fuzzy match | fuse.js (name-list validation, server-side) | [PLANNED — Sprint 2] |
-| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [PLANNED — Sprint 1 onward] |
+| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 1 suite live (23/23 unit pass) |
 | Rate limiting | in-memory per-instance → Azure API Management | [CURRENT] → [PLANNED — Sprint 6] |
 | CI/CD | GitHub Actions — develop → PR → main → SWA auto-deploy | [CURRENT] |
 
@@ -47,22 +47,26 @@ with the real thing.
 
 ## Local paths
 
-- Project root: `C:\Users\Ryan\quizpulse\`
+- Project root: `C:\Users\Ryan\quizpulse - PWA\`
 - Frontend source: `src/`
 - Azure Functions: `api/`
 - Built output: `dist/`
-- Tests: `tests/` (mirrors src/ and api/ structure) **[PLANNED — Sprint 1]**
-- Test reports: `tests/reports/sprintN-report.html` **[PLANNED — Sprint 1]**
+- Tests: `tests/` (mirrors src/ and api/ structure)
+- Test reports: `tests/reports/sprintN-report.html`
+- Sprint 1 report: `tests/reports/sprint1-report.html`
+- Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
 
 ---
 
 ## Live URLs
 
-- Production site: `https://mango-meadow-0a5aa7410.7.azurestaticapps.net`
-- Function App (direct): `https://quizpulse-api-b5bvbvgzdph6dyas.australiaeast-01.azurewebsites.net/api`
-- GitHub repo: `https://github.com/effriantoryan-eng/quizpulse`
+- Production site: `https://nice-field-0127b5b00.7.azurestaticapps.net` (SWA in East Asia)
+- Function App (direct): `https://quizpulse-app-api-av5z18.azurewebsites.net/api`
+- GitHub repo: `https://github.com/effriantoryan-eng/quizpulse-app` (private)
 - Spike repo: `https://github.com/effriantoryan-eng/quizpulse-pwa-test` (private)
+- Resource group: `quizpulse-app-rg` (Australia East)
+- Unique suffix: `av5z18` (all resource names use this suffix)
 
 ---
 
@@ -72,16 +76,20 @@ Three terminals required:
 
 ```powershell
 # Terminal 1 — React dev server
-cd C:\Users\Ryan\quizpulse
+cd "C:\Users\Ryan\quizpulse - PWA"
 npm run dev        # -> localhost:5173
 
 # Terminal 2 — Azure Functions
-cd C:\Users\Ryan\quizpulse\api
+cd "C:\Users\Ryan\quizpulse - PWA\api"
 func start         # -> localhost:7071
 
 # Terminal 3 — Azurite storage emulator
 azurite --silent
 ```
+
+**B2C local dev:** `api/local.settings.json` must have `B2C_ALLOW_UNVERIFIED_DEV=true` for JWT
+decode-only mode. Replace the `REPLACE_WITH_*` placeholders with real B2C values before testing
+against the live tenant (see `docs/azure/B2C_SETUP.md`).
 
 **Important:** Do not use `&&` in PowerShell — run commands on separate lines.
 
@@ -95,10 +103,14 @@ release branch merges to `develop`, then to `main` on production release.
 ```
 main                          (production — tagged releases only)
 └── develop                   (integration)
-    ├── release/v1.0-sprint1  ← cut from develop
-    │   ├── feat/s1-b2c-auth
-    │   └── feat/s1-school-identity-model
-    ├── release/v1.1-sprint2
+    ├── release/v1.0-sprint1  ← merged to develop after v1.0.0-rc1 tag
+    │   ├── feat/s1-b2c-auth            (merged)
+    │   ├── feat/s1-school-identity-model (merged)
+    │   ├── feat/s1-classes-crud          (merged)
+    │   ├── feat/s1-community-placeholder (merged)
+    │   ├── feat/s1-azure-spending-controls (merged)
+    │   └── feat/s1-tests                (merged)
+    ├── release/v1.1-sprint2  ← next sprint
     └── hotfix/v1.0.1-description  ← from main when needed
 ```
 
@@ -125,10 +137,10 @@ main                          (production — tagged releases only)
 ### Deploy
 
 ```powershell
-# Frontend — push to develop, PR to main → GitHub Actions auto-deploys
+# Frontend — push to develop, PR to main → GitHub Actions auto-deploys to SWA
 # API — must be deployed separately every time api/ changes:
 cd api
-func azure functionapp publish quizpulse-api
+func azure functionapp publish quizpulse-app-api-av5z18
 ```
 
 ---
@@ -157,17 +169,15 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 
 ### [CURRENT] containers
 
-- `questions` — { id, teacherId, text, options[], correctIndex, topic, createdAt }
+- `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
 - `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt }
 - `responses` — { id, quizId, questionIndex, selectedIndex, simulated, createdAt }
-- `classes` — static preset list (to be replaced by real CRUD in Sprint 1)
+- `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
+- `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
+- `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt } (pk `/teacherId`)
 
 ### [PLANNED] new/changed containers
 
-- **`schools`** [Sprint 1] (pk `/id`) — { id, name, status: "unvalidated|validated", sector,
-  suburb, state, mergedIntoId, createdAt, validatedAt }
-- **`classes`** [Sprint 1] (real, replaces preset) — adds schoolId, studentCount, joinCode,
-  nameList[], nameListEnabled, cap (40)
 - **`join_requests`** [Sprint 2] (pk `/classId`) — { id, classId, schoolId, teacherId,
   studentName, deviceId, status: "pending|approved|rejected|queued", matchedName, matchScore, createdAt }
 - **`subscriptions`** [Sprint 3] (pk `/classId`) — { id, classId, schoolId, studentId, deviceId,
@@ -176,9 +186,9 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 
 ### Field additions to existing documents
 
-- [Sprint 1] `schoolId` + `schoolStatus` (denormalised) on teacher, class, question, quiz, response
-- [Sprint 1] `visibility: "private|school|public"` + `authorId` on questions
-- [Sprint 1] `role: "teacher|school_admin|super_admin"` on teacher (set in Sprint 5)
+- ~~[Sprint 1] `schoolId` + `schoolStatus` (denormalised) on teacher, class~~ — **DONE** (on teacher and class docs)
+- ~~[Sprint 1] `visibility: "private|school|public"` + `authorId` on questions~~ — **DONE** (visibility='private', authorId=oid)
+- ~~[Sprint 1] `role: "teacher|school_admin|super_admin"` on teacher~~ — **DONE** (role='teacher'; super_admin set in Sprint 5)
 - [Sprint 4] `closedAt` on quizzes
 - [Sprint 6] `upvotes`, `usageCount` on questions
 
@@ -195,26 +205,30 @@ directly and add its origin to the CSP `connect-src` directive.
 ```js
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:7071/api'
-  : 'https://quizpulse-api-b5bvbvgzdph6dyas.australiaeast-01.azurewebsites.net/api'
+  : 'https://quizpulse-app-api-av5z18.azurewebsites.net/api'
 ```
 
 **Do not revert to `/api` in production** — it breaks all writes. **This is removed in Sprint 6**
 when SWA upgrades to Standard tier with a proper linked backend (breaking change → v3.0.0).
 
-### Auth [CURRENT → Sprint 1]
+### Auth [CURRENT — Sprint 1 complete]
 
-Currently Azure SWA Easy Auth with Entra ID. Sprint 1 replaces this with Azure AD B2C as a
-multi-provider broker (Microsoft + Google in Sprint 1; Apple ID in Sprint 6). `AuthContext.jsx`
-keeps the same `{ user, teacherId, loading }` interface so no downstream components change.
+Azure AD B2C with MSAL (`@azure/msal-browser` + `@azure/msal-react`). B2C tenant:
+`quizpulseb2c.onmicrosoft.com`; sign-up/sign-in policy: `B2C_1_signupsignin`. Microsoft and
+Google providers live. Apple ID in Sprint 6. `teacherId` = B2C `oid` claim (stable across
+providers). `AuthContext.jsx` exposes `{ user, teacherId, loading, isAuthenticated, login, logout }`.
+`src/msalInstance.js` patches `window.fetch` to attach bearer tokens to all API calls silently.
+New teachers are gated through `/onboarding` (`GET /api/me` → `onboarded: false` → redirect).
+See `docs/azure/B2C_SETUP.md` for manual tenant configuration steps.
 
 ### Key Vault [CURRENT]
 
 Cosmos DB key stored as a Key Vault secret, referenced via managed identity:
-`@Microsoft.KeyVault(VaultName=quizpulse-kv;SecretName=COSMOS-KEY)`. The Function App
+`@Microsoft.KeyVault(VaultName=quizpulse-app-kv-av5z18;SecretName=COSMOS-KEY)`. The Function App
 system-assigned managed identity holds Key Vault Secrets User role. VAPID keys join Key Vault in
 Sprint 3 following the same pattern.
 
-### School identity & merge [PLANNED — Sprints 1 & 5]
+### School identity & merge [CURRENT for Sprint 1 part; PLANNED — Sprint 5 for merge]
 
 Two adoption paths. Individual teachers create an **unvalidated** school (free-text name).
 Institutions create a **validated** school (manually verified by super admin). When a school is
@@ -281,7 +295,7 @@ The `context.log.*` sub-methods don't exist in v4 and throw, turning intended er
 
 ---
 
-## Testing [PLANNED — Sprint 1 onward]
+## Testing [CURRENT — Sprint 1 suite live]
 
 Three tiers, run in sequence on PR. No sprint is "done" until its test checklist passes and the
 HTML report is generated.
@@ -298,7 +312,7 @@ summary comment. Maintain `SPRINT_TEST_CHECKLIST.md` per sprint.
 
 ---
 
-## Azure spending controls [PLANNED — Sprint 1]
+## Azure spending controls [CURRENT — Sprint 1 complete]
 
 Hard limit **$100 USD/month**.
 
@@ -306,8 +320,9 @@ Hard limit **$100 USD/month**.
 - 100% threshold fires an Action Group → Automation runbook (`scripts/azure/disable-on-budget.ps1`)
   that disables the Function App and swaps the Cosmos connection string to a dummy value (API → 503).
   SWA frontend stays up. Re-enabled manually after review.
-- Resource caps: Cosmos per-container RU cap; Function App daily execution quota (host.json);
-  App Insights daily data cap 1 GB.
+- Resource caps: Cosmos per-container RU cap; Function App daily execution quota (host.json:
+  `functionTimeout=5min`, `maxConcurrentRequests=100`); App Insights daily data cap 1 GB.
+- Full setup steps: `docs/azure/SPENDING_CONTROLS.md`.
 
 ---
 
@@ -332,13 +347,15 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
 | Build Quiz / Send Quiz | [CURRENT] Working |
 | Simulated responses (`/api/simulate`) | [CURRENT] Working — **retired in Sprint 4** |
 | Analytics (from simulated data) | [CURRENT] Working — real data in Sprint 4 |
-| Preset classes (3 hardcoded) | [CURRENT] — **replaced by real CRUD in Sprint 1** |
-| Teacher auth (Entra ID Easy Auth) | [CURRENT] — **replaced by B2C in Sprint 1** |
+| Preset classes (3 hardcoded) | [RETIRED] — replaced by real CRUD in Sprint 1 |
+| Teacher auth (Entra ID Easy Auth) | [RETIRED] — replaced by B2C in Sprint 1 |
 | App Insights logging | [CURRENT] Working |
-| Multi-provider auth (B2C) | [PLANNED — Sprint 1] |
-| School identity model | [PLANNED — Sprint 1] |
-| Real classes CRUD | [PLANNED — Sprint 1] |
-| Azure spending controls | [PLANNED — Sprint 1] |
+| Multi-provider auth (B2C — Microsoft + Google) | [CURRENT] Sprint 1 complete |
+| School identity model (unvalidated, /api/me, /api/onboarding) | [CURRENT] Sprint 1 complete |
+| Real classes CRUD (/api/classes, Classes page) | [CURRENT] Sprint 1 complete |
+| Community tab placeholder (locked) | [CURRENT] Sprint 1 complete |
+| Azure spending controls ($100 budget, runbook, throttling) | [CURRENT] Sprint 1 complete |
+| Sprint 1 test suite (23/23 unit, integration, E2E scaffolding) | [CURRENT] Sprint 1 complete |
 | Student join + approval + name list | [PLANNED — Sprint 2] |
 | PWA shell + service worker | [PLANNED — Sprint 3] |
 | Web Push notifications | [PLANNED — Sprint 3] |
