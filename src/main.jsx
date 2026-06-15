@@ -21,4 +21,11 @@ msalInstance.initialize().then(() => {
       </MsalProvider>
     </StrictMode>,
   )
+
+  // Register the service worker after React mounts so the initial render is never blocked.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('SW registration failed:', err)
+    })
+  }
 })

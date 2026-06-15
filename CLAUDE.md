@@ -19,11 +19,13 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 2 (v1.1.0) in progress.** Sprint 1 (v1.0.0) complete:
+**[CURRENT] state of the app — Sprint 3 (v1.2.0).** Sprint 1 (v1.0.0) complete:
 teachers sign in via Microsoft Entra External ID (CIAM), complete onboarding, manage real
 classes (CRUD), build quizzes, send them, and view simulated analytics. Sprint 2 adds student
 join requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
-management. Simulated responses still used until Sprint 4.
+management. Sprint 3 adds PWA shell (manifest + service worker), approval-gated push
+subscriptions, send-notification endpoint, and iOS install guide. Simulated responses still
+used until Sprint 4.
 
 ---
 
@@ -38,9 +40,9 @@ management. Simulated responses still used until Sprint 4.
 | Auth | Microsoft Entra External ID — CIAM (Microsoft provider; Google in Sprint 3; Apple ID in Sprint 6) | [CURRENT] (Sprint 1 complete) |
 | Secrets | Azure Key Vault — managed identity references | [CURRENT] |
 | Logging | Azure Application Insights | [CURRENT] |
-| Push | Web Push API + VAPID (service worker, no native SDK) | [PLANNED — Sprint 3] |
+| Push | Web Push API + VAPID (service worker, no native SDK) | [CURRENT] — Sprint 3 complete |
 | Fuzzy match | fuse.js (name-list validation, server-side) | [CURRENT] — Sprint 2 complete |
-| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 2 suite live (44/44 unit pass) |
+| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 3 suite live (53/53 unit pass) |
 | Rate limiting | in-memory per-instance → Azure API Management | [CURRENT] → [PLANNED — Sprint 6] |
 | CI/CD | GitHub Actions — develop → PR → main → SWA auto-deploy | [CURRENT] |
 
@@ -56,6 +58,7 @@ management. Simulated responses still used until Sprint 4.
 - Test reports: `tests/reports/sprintN-report.html`
 - Sprint 1 report: `tests/reports/sprint1-report.html`
 - Sprint 2 report: `tests/reports/sprint2-report.html`
+- Sprint 3 report: `tests/reports/sprint3-report.html`
 - Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
 
@@ -182,8 +185,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 
 - **`join_requests`** [Sprint 2] (pk `/classId`) — { id, classId, schoolId, teacherId,
   studentName, deviceId, status: "pending|approved|rejected|queued", matchedName, matchScore, createdAt }
-- **`subscriptions`** [Sprint 3] (pk `/classId`) — { id, classId, schoolId, studentId, deviceId,
-  endpoint, keys: { p256dh, auth }, createdAt }
+- **`subscriptions`** ~~[Sprint 3]~~ **[CURRENT — Sprint 3 complete]** (pk `/classId`) — { id, classId, deviceId, endpoint, keys: { p256dh, auth }, createdAt, updatedAt }
 - **`question_upvotes`** [Sprint 6] (pk `/questionId`) — { id, questionId, teacherId, createdAt }
 
 ### Field additions to existing documents
@@ -228,12 +230,22 @@ Bearer token is the MSAL ID token (RS256, signed by CIAM); backend validates via
 New teachers are gated through `/onboarding` (`GET /api/me` → `onboarded: false` → redirect).
 See `docs/azure/B2C_SETUP.md` for manual tenant configuration steps.
 
+### Service worker [CURRENT — Sprint 3]
+
+`public/sw.js` handles `push` (showNotification) and `notificationclick` (navigates to
+`/quiz?quizId=`). Registered in `src/main.jsx` after React mounts via
+`navigator.serviceWorker.register('/sw.js')`. `SWUpdateBanner` in App.jsx detects a waiting SW
+and shows a "Refresh" prompt. SW calls `skipWaiting()` on install and `clients.claim()` on
+activate for immediate takeover.
+
 ### Key Vault [CURRENT]
 
 Cosmos DB key stored as a Key Vault secret, referenced via managed identity:
 `@Microsoft.KeyVault(VaultName=quizpulse-app-kv-av5z18;SecretName=COSMOS-KEY)`. The Function App
-system-assigned managed identity holds Key Vault Secrets User role. VAPID keys join Key Vault in
-Sprint 3 following the same pattern.
+system-assigned managed identity holds Key Vault Secrets User role. VAPID keys use the same
+pattern — `VAPID-PUBLIC-KEY` and `VAPID-PRIVATE-KEY` secrets in Key Vault, referenced as
+`@Microsoft.KeyVault(...)` in Function App config. Generate keys once with
+`npx web-push generate-vapid-keys`. `VAPID_SUBJECT` is `mailto:admin@quizpulse.app`.
 
 ### School identity & merge [CURRENT for Sprint 1 part; PLANNED — Sprint 5 for merge]
 
@@ -365,8 +377,10 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
 | Sprint 1 test suite (23/23 unit, integration, E2E scaffolding) | [CURRENT] Sprint 1 complete |
 | Sprint 2 test suite (44/44 unit, integration, E2E scaffolding) | [CURRENT] Sprint 2 complete |
 | Student join + approval + name list | [CURRENT] Sprint 2 complete |
-| PWA shell + service worker | [PLANNED — Sprint 3] |
-| Web Push notifications | [PLANNED — Sprint 3] |
+| Sprint 3 test suite (53/53 unit, integration, E2E scaffolding) | [CURRENT] Sprint 3 complete |
+| PWA shell (manifest, sw.js, SW update banner, iOS install guide) | [CURRENT] Sprint 3 complete |
+| Push subscriptions (approval-gated, /api/subscribe, /api/vapid-public-key) | [CURRENT] Sprint 3 complete |
+| Send-notification endpoint (/api/send-notification, idempotency, stale pruning) | [CURRENT] Sprint 3 complete |
 | Real student quiz flow | [PLANNED — Sprint 4] |
 | Offline resilience (Background Sync) | [PLANNED — Sprint 4] |
 | Quiz scheduling | [PLANNED — Sprint 4] |

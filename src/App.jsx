@@ -22,6 +22,9 @@ import ClassRoster from './pages/teacher/ClassRoster'
 import ClassSettings from './pages/teacher/ClassSettings'
 import { usePageView } from './hooks/usePageView'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
+import SWUpdateBanner from './components/SWUpdateBanner'
+import IosInstallBanner from './components/IosInstallBanner'
+import Subscribe from './pages/student/Subscribe'
 
 // Used only for the /onboarding route: confirms sign-in but doesn't check onboarding state
 // (otherwise the gate would redirect before the teacher can complete onboarding).
@@ -92,11 +95,14 @@ function AppRoutes() {
         <Route path="/teacher/analytics/:quizId" element={<RequireTeacher><Analytics /></RequireTeacher>} />
         <Route path="/admin/log" element={<RequireTeacher><AdminLog /></RequireTeacher>} />
         <Route path="/join" element={<JoinClass />} />
+        <Route path="/student/subscribe" element={<Subscribe />} />
         <Route path="/teacher/pending-requests" element={<RequireTeacher><PendingRequests /></RequireTeacher>} />
         <Route path="/teacher/roster" element={<RequireTeacher><ClassRoster /></RequireTeacher>} />
         <Route path="/teacher/classes/settings" element={<RequireTeacher><ClassSettings /></RequireTeacher>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <SWUpdateBanner />
+      <IosInstallBanner />
     </>
   )
 }
