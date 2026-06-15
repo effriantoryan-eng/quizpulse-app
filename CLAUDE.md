@@ -19,7 +19,7 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 1 (v1.0.0) complete.** Teachers sign in via Azure AD B2C
+**[CURRENT] state of the app — Sprint 1 (v1.0.0) complete.** Teachers sign in via Microsoft Entra External ID (CIAM)
 (Microsoft or Google), complete a one-time onboarding to associate a school, manage real classes
 (CRUD), build quizzes, send them, and view simulated analytics. Simulated responses are still
 used until Sprint 4. The PWA build (below) replaces the simulated parts with the real thing.
@@ -34,7 +34,7 @@ used until Sprint 4. The PWA build (below) replaces the simulated parts with the
 | Hosting | Azure Static Web Apps (free tier → Standard in Sprint 6) | [CURRENT] |
 | Backend | Azure Functions — Node.js v4, HTTP-triggered, serverless | [CURRENT] |
 | Database | Azure Cosmos DB (NoSQL, serverless mode) | [CURRENT] |
-| Auth | Azure AD B2C (multi-provider: Microsoft, Google, Apple ID) | [CURRENT] (Sprint 1 complete; Apple ID in Sprint 6) |
+| Auth | Microsoft Entra External ID — CIAM (Microsoft provider; Google in Sprint 2; Apple ID in Sprint 6) | [CURRENT] (Sprint 1 complete) |
 | Secrets | Azure Key Vault — managed identity references | [CURRENT] |
 | Logging | Azure Application Insights | [CURRENT] |
 | Push | Web Push API + VAPID (service worker, no native SDK) | [PLANNED — Sprint 3] |
@@ -87,9 +87,9 @@ func start         # -> localhost:7071
 azurite --silent
 ```
 
-**B2C local dev:** `api/local.settings.json` must have `B2C_ALLOW_UNVERIFIED_DEV=true` for JWT
-decode-only mode. Replace the `REPLACE_WITH_*` placeholders with real B2C values before testing
-against the live tenant (see `docs/azure/B2C_SETUP.md`).
+**Auth local dev:** `api/local.settings.json` must have `B2C_ALLOW_UNVERIFIED_DEV=true` for JWT
+decode-only mode (no signature verification). Real tenant values (`AUTH_TENANT_SUBDOMAIN`,
+`AUTH_TENANT_ID`, `AUTH_CLIENT_ID`) are already set in `local.settings.json`. See `docs/azure/B2C_SETUP.md`.
 
 **Important:** Do not use `&&` in PowerShell — run commands on separate lines.
 
@@ -150,7 +150,7 @@ func azure functionapp publish quizpulse-app-api-av5z18
 Full spec lives in `QuizPulse_PWA_Development_Plan.docx`. Sprints 1–4 are a complete pilot-ready
 product; 5–6 add institution machinery and can be funded from pilot revenue.
 
-1. **v1.0.0 — Foundation.** B2C multi-provider auth, school identity model, real classes CRUD,
+1. **v1.0.0 — Foundation.** Entra External ID auth (Microsoft), school identity model, real classes CRUD,
    community bank placeholder field, Azure $100 spending controls.
 2. **v1.1.0 — Student join & approval.** Join requests, teacher approval UI (individual + batch),
    optional name-list validation with fuzzy matching.
@@ -213,10 +213,15 @@ when SWA upgrades to Standard tier with a proper linked backend (breaking change
 
 ### Auth [CURRENT — Sprint 1 complete]
 
-Azure AD B2C with MSAL (`@azure/msal-browser` + `@azure/msal-react`). B2C tenant:
-`quizpulseb2c.onmicrosoft.com`; sign-up/sign-in policy: `B2C_1_signupsignin`. Microsoft and
-Google providers live. Apple ID in Sprint 6. `teacherId` = B2C `oid` claim (stable across
-providers). `AuthContext.jsx` exposes `{ user, teacherId, loading, isAuthenticated, login, logout }`.
+Microsoft Entra External ID (CIAM) with MSAL (`@azure/msal-browser` + `@azure/msal-react`).
+Tenant: `quizpulseid.onmicrosoft.com` (tenant ID `19567cd0-0f52-46f7-9ac5-699538443ed1`);
+app registration client ID `bf3647a0-e091-42ef-b0c7-dc423d5dc5f3`. Microsoft provider live;
+Google in Sprint 2 (requires Google Cloud OAuth setup); Apple ID in Sprint 6.
+Authority: `https://quizpulseid.ciamlogin.com/{tenantId}` — no policy name (unlike B2C).
+Bearer token is the MSAL ID token (RS256, signed by CIAM); backend validates via JWKS at
+`https://quizpulseid.ciamlogin.com/{tenantId}/discovery/v2.0/keys`.
+`teacherId` = `oid` claim (stable across providers). `AuthContext.jsx` exposes
+`{ user, teacherId, loading, isAuthenticated, login, logout }`.
 `src/msalInstance.js` patches `window.fetch` to attach bearer tokens to all API calls silently.
 New teachers are gated through `/onboarding` (`GET /api/me` → `onboarded: false` → redirect).
 See `docs/azure/B2C_SETUP.md` for manual tenant configuration steps.
@@ -348,9 +353,9 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
 | Simulated responses (`/api/simulate`) | [CURRENT] Working — **retired in Sprint 4** |
 | Analytics (from simulated data) | [CURRENT] Working — real data in Sprint 4 |
 | Preset classes (3 hardcoded) | [RETIRED] — replaced by real CRUD in Sprint 1 |
-| Teacher auth (Entra ID Easy Auth) | [RETIRED] — replaced by B2C in Sprint 1 |
+| Teacher auth (Entra ID Easy Auth) | [RETIRED] — replaced by Entra External ID in Sprint 1 |
 | App Insights logging | [CURRENT] Working |
-| Multi-provider auth (B2C — Microsoft + Google) | [CURRENT] Sprint 1 complete |
+| Auth (Entra External ID — Microsoft provider) | [CURRENT] Sprint 1 complete |
 | School identity model (unvalidated, /api/me, /api/onboarding) | [CURRENT] Sprint 1 complete |
 | Real classes CRUD (/api/classes, Classes page) | [CURRENT] Sprint 1 complete |
 | Community tab placeholder (locked) | [CURRENT] Sprint 1 complete |
