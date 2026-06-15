@@ -2,6 +2,7 @@ const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
+const { authenticateTeacher, extractBearer } = require('./auth');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -25,7 +26,15 @@ app.http('getQuizById', {
 
     try {
       const id = request.params.id;
-      const teacherId = new URL(request.url).searchParams.get('teacherId');
+
+      // If a teacher token is present, validate it and enforce ownership. Student quiz-taking
+      // (no token, Sprint 4) is allowed through to read the quiz.
+      let teacherId = null
+      if (extractBearer(request)) {
+        const auth = await authenticateTeacher(request)
+        if (auth.error) return respond(auth.status, { error: auth.error })
+        teacherId = auth.teacherId
+      }
 
       const { resources } = await container.items.query({
         query: 'SELECT * FROM c WHERE c.id = @id',
@@ -38,9 +47,7 @@ app.http('getQuizById', {
 
       const quiz = resources[0];
 
-      // Ownership check — only enforced for teacher requests (teacherId present).
-      // Student requests via TakeQuiz do not send a teacherId and are allowed through.
-      if (teacherId && quiz.teacherId !== teacherId.trim()) {
+      if (teacherId && quiz.teacherId !== teacherId) {
         return respond(403, { error: 'You do not have access to this quiz' }, teacherId)
       }
 
@@ -66,16 +73,14 @@ app.http('quizzes', {
     }
 
     try {
+      const auth = await authenticateTeacher(request)
+      if (auth.error) return respond(auth.status, { error: auth.error })
+      const teacherId = auth.teacherId
+
       if (method === 'GET') {
-        const teacherId = new URL(request.url).searchParams.get('teacherId');
-
-        if (!teacherId || !teacherId.trim()) {
-          return respond(400, { error: 'teacherId is required' })
-        }
-
         const { resources } = await container.items.query({
           query: 'SELECT * FROM c WHERE c.teacherId = @teacherId',
-          parameters: [{ name: '@teacherId', value: teacherId.trim() }]
+          parameters: [{ name: '@teacherId', value: teacherId }]
         }).fetchAll();
 
         return respond(200, resources, teacherId)
@@ -98,7 +103,7 @@ app.http('quizzes', {
           return respond(400, { error: 'Request body must be a JSON object' })
         }
 
-        const { name, questionIds, classIds, classSize, teacherId, status, sentAt } = body;
+        const { name, questionIds, classIds, classSize, status, sentAt } = body;
         const ALLOWED_STATUSES = ['draft', 'sent', 'scheduled'];
 
         if (typeof name !== 'string' || !name.trim()) {
@@ -125,7 +130,7 @@ app.http('quizzes', {
 
         const quiz = {
           id: require('crypto').randomUUID(),
-          teacherId: typeof teacherId === 'string' ? teacherId.trim().slice(0, 100) : 'anonymous',
+          teacherId,
           name: name.trim(),
           questionIds: questionIds.map(id => id.trim()),
           classIds: Array.isArray(classIds) ? classIds.map(id => String(id).trim().slice(0, 100)) : [],
