@@ -5,6 +5,7 @@ const STATIC_PAGES = [
   { label: '🏠 Home',              path: '/'                  },
   { label: '✏️ Create Question',  path: '/teacher/create'    },
   { label: '🗂 Question Bank',    path: '/teacher/bank'      },
+  { label: '🏫 Classes',          path: '/teacher/classes'   },
   { label: '🔧 Build Quiz',       path: '/teacher/build'     },
   { label: '📤 Send Quiz',        path: '/teacher/send'      },
   { label: '📊 My Quizzes',       path: '/teacher/quizzes'   },
