@@ -193,6 +193,126 @@ app.http('classesUpdate', {
   },
 });
 
+// PUT /api/classes/{id}/regenerate-code — generate a new join code for a class.
+app.http('classesRegenerateCode', {
+  methods: ['PUT'],
+  authLevel: 'anonymous',
+  route: 'classes/{id}/regenerate-code',
+  handler: async (request, context) => {
+    const start = Date.now();
+    const classId = request.params.id;
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: `classes/${classId}/regenerate-code`, method: 'PUT', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const { teacherId } = auth;
+
+      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      let existing;
+      try {
+        const { resource } = await classesContainer.item(classId, teacherId).read();
+        existing = resource;
+      } catch (err) {
+        if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
+      }
+      if (!existing || existing.teacherId !== teacherId) {
+        return respond(403, { error: 'Forbidden' }, teacherId);
+      }
+
+      existing.joinCode = generateJoinCode();
+      const { resource: updated } = await classesContainer.item(classId, teacherId).replace(existing);
+      return respond(200, updated, teacherId);
+    } catch (err) {
+      context.error('classesRegenerateCode error:', err.message);
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
+// DELETE /api/classes/{id}/students/{studentId} — remove an approved student.
+// studentId is the join_request document id. Decrements studentCount and promotes
+// the oldest queued request to pending.
+app.http('classesRemoveStudent', {
+  methods: ['DELETE'],
+  authLevel: 'anonymous',
+  route: 'classes/{id}/students/{studentId}',
+  handler: async (request, context) => {
+    const start = Date.now();
+    const classId = request.params.id;
+    const studentId = request.params.studentId;
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: `classes/${classId}/students/${studentId}`, method: 'DELETE', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const { teacherId } = auth;
+
+      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      let existing;
+      try {
+        const { resource } = await classesContainer.item(classId, teacherId).read();
+        existing = resource;
+      } catch (err) {
+        if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
+      }
+      if (!existing || existing.teacherId !== teacherId) {
+        return respond(403, { error: 'Forbidden' }, teacherId);
+      }
+
+      const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
+
+      // Read the join request to verify it is approved and belongs to this class
+      let joinReq;
+      try {
+        const { resource } = await joinRequestsContainer.item(studentId, classId).read();
+        joinReq = resource;
+      } catch (err) {
+        if (err.code === 404) return respond(404, { error: 'Student not found' }, teacherId);
+        throw err;
+      }
+      if (!joinReq || joinReq.classId !== classId || joinReq.status !== 'approved') {
+        return respond(404, { error: 'Student not found or not approved' }, teacherId);
+      }
+
+      // Delete the join request (remove the student)
+      await joinRequestsContainer.item(studentId, classId).delete();
+
+      // Decrement studentCount (floor at 0)
+      existing.studentCount = Math.max(0, (existing.studentCount || 0) - 1);
+      await classesContainer.item(classId, teacherId).replace(existing);
+
+      // Promote the oldest queued request to pending
+      const { resources: queued } = await joinRequestsContainer.items.query({
+        query: "SELECT * FROM c WHERE c.classId = @cid AND c.status = 'queued' ORDER BY c.createdAt ASC OFFSET 0 LIMIT 1",
+        parameters: [{ name: '@cid', value: classId }],
+      }).fetchAll();
+      if (queued.length > 0) {
+        const promote = queued[0];
+        promote.status = 'pending';
+        await joinRequestsContainer.item(promote.id, classId).replace(promote);
+      }
+
+      return respond(200, { removed: true, id: studentId }, teacherId);
+    } catch (err) {
+      context.error('classesRemoveStudent error:', err.message);
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
 // DELETE /api/classes/{id} — delete a class (ownership enforced via partition key).
 app.http('classesDelete', {
   methods: ['DELETE'],
