@@ -17,22 +17,20 @@ msalInstance.addEventCallback((event) => {
   }
 })
 
-// Acquires an API access token silently for the active account, or null if not signed in.
-// Falls back to an interactive redirect only when the refresh token has expired.
+// Acquires the ID token silently for the active account, or null if not signed in.
+// The ID token is a signed RS256 JWT (oid claim = teacherId) validated by Azure Functions.
 export async function getApiToken() {
   const account = msalInstance.getActiveAccount()
   if (!account) return null
   try {
     const result = await msalInstance.acquireTokenSilent({ ...apiRequest, account })
-    return result.accessToken
+    return result.idToken
   } catch {
-    // Silent acquisition failed (e.g. expired session) — let the next user action trigger
-    // an interactive login rather than redirecting mid-request.
     return null
   }
 }
 
-// Transparently attaches the B2C bearer token to same-API fetch calls so existing pages
+// Transparently attaches the Entra External ID bearer token to same-API fetch calls so existing pages
 // (which call fetch(`${API_BASE}/...`) directly) need no changes. Installed once at startup.
 export function installAuthenticatedFetch(apiBase) {
   if (typeof window === 'undefined' || window.__quizpulseFetchPatched) return

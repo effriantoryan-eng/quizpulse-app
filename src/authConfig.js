@@ -1,26 +1,23 @@
-// MSAL configuration for Azure AD B2C.
+// MSAL configuration for Microsoft Entra External ID (CIAM).
+// Replaces Azure AD B2C, which was retired for new tenants in May 2025.
+// Tenant: quizpulseid.ciamlogin.com — external (customer-facing) type.
 //
-// Values come from Vite env vars (VITE_*), which are populated AFTER the B2C tenant is
-// created manually in the portal — see docs/azure/B2C_SETUP.md. Until then these resolve
-// to placeholders and sign-in will not succeed (the rest of the app still loads).
-//
-// Microsoft and Google are configured as identity providers inside the single B2C
-// sign-up/sign-in user flow, so one authority drives both — the hosted B2C page shows
-// a button for each provider. domain_hint (see Login.jsx) can jump straight to one.
+// Values come from Vite env vars (VITE_*) — public build-time constants, never secrets.
+// See docs/azure/B2C_SETUP.md for portal setup steps.
 
-const tenantName = import.meta.env.VITE_B2C_TENANT_NAME || 'quizpulseb2c'
-const policy = import.meta.env.VITE_B2C_POLICY || 'B2C_1_signupsignin'
-const clientId = import.meta.env.VITE_B2C_CLIENT_ID || '00000000-0000-0000-0000-000000000000'
-const apiScope =
-  import.meta.env.VITE_B2C_API_SCOPE ||
-  `https://${tenantName}.onmicrosoft.com/api/access_as_teacher`
-const redirectUri = import.meta.env.VITE_B2C_REDIRECT_URI || window.location.origin
+const tenantSubdomain = import.meta.env.VITE_TENANT_SUBDOMAIN || 'quizpulseid'
+const tenantId = import.meta.env.VITE_TENANT_ID || '19567cd0-0f52-46f7-9ac5-699538443ed1'
+const clientId = import.meta.env.VITE_CLIENT_ID || 'bf3647a0-e091-42ef-b0c7-dc423d5dc5f3'
+const redirectUri = import.meta.env.VITE_REDIRECT_URI || window.location.origin
+
+// Entra External ID uses ciamlogin.com — no policy name in the URL (unlike B2C).
+const authority = `https://${tenantSubdomain}.ciamlogin.com/${tenantId}`
 
 export const msalConfig = {
   auth: {
     clientId,
-    authority: `https://${tenantName}.b2clogin.com/${tenantName}.onmicrosoft.com/${policy}`,
-    knownAuthorities: [`${tenantName}.b2clogin.com`],
+    authority,
+    knownAuthorities: [`${tenantSubdomain}.ciamlogin.com`],
     redirectUri,
     postLogoutRedirectUri: redirectUri,
     navigateToLoginRequestUrl: false,
@@ -31,14 +28,13 @@ export const msalConfig = {
   },
 }
 
-// Scopes requested at login. openid/offline_access yield an ID token + refresh token;
-// the API scope yields an access token whose `aud` is the API app registration — that is
-// what the Azure Functions validate (see api/auth.js).
+// openid + offline_access yield a signed ID token + refresh token.
+// The ID token (RS256, contains oid claim) is used as the bearer to Azure Functions.
+// TODO Sprint 3: expose an API scope in the portal and switch to an access token.
 export const loginRequest = {
-  scopes: ['openid', 'offline_access', apiScope],
+  scopes: ['openid', 'offline_access'],
 }
 
-// Used for silent access-token acquisition before each API call.
 export const apiRequest = {
-  scopes: [apiScope],
+  scopes: ['openid', 'offline_access'],
 }

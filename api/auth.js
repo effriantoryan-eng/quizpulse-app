@@ -1,31 +1,27 @@
-// Azure AD B2C JWT validation for the QuizPulse API.
+// Microsoft Entra External ID (CIAM) JWT validation for the QuizPulse API.
+// Replaces Azure AD B2C, retired for new tenants in May 2025.
 //
-// Teacher/admin endpoints must derive the teacher identity from a validated B2C access token
-// rather than trusting a client-supplied teacherId. This replaces the previous model where
-// teacherId was just a localStorage UUID passed in the query string / body.
+// Teacher/admin endpoints validate the bearer token (an ID token from Entra External ID)
+// and derive teacherId from the `oid` claim. The token is never trusted from the client body.
 //
-// In production: the bearer token is verified against the B2C JWKS (signature, issuer,
-// audience, expiry) and teacherId is taken from the `oid` (or `sub`) claim.
-//
-// For local development and integration tests (no live tenant), set
-// B2C_ALLOW_UNVERIFIED_DEV=true. The token is then DECODED but not signature-verified, so
-// tests can mint their own tokens. This flag must never be set in production.
+// In production: verified against the CIAM JWKS endpoint (signature, issuer, audience, expiry).
+// For local development and integration tests: set AUTH_ALLOW_UNVERIFIED_DEV=true to decode
+// without signature verification so tests can mint their own tokens. Never set in production.
 
 const jwt = require('jsonwebtoken');
 const { JwksClient } = require('jwks-rsa');
 
-const TENANT_NAME = process.env.B2C_TENANT_NAME;
-const TENANT_ID = process.env.B2C_TENANT_ID;
-const POLICY = process.env.B2C_POLICY || 'B2C_1_signupsignin';
-const AUDIENCE = process.env.B2C_CLIENT_ID;
+const TENANT_SUBDOMAIN = process.env.AUTH_TENANT_SUBDOMAIN;
+const TENANT_ID = process.env.AUTH_TENANT_ID;
+const AUDIENCE = process.env.AUTH_CLIENT_ID;
 const DEV_MODE = process.env.B2C_ALLOW_UNVERIFIED_DEV === 'true';
 
-// B2C v2 issuer is keyed by tenant id; JWKS lives under the user-flow discovery endpoint.
+// Entra External ID CIAM issuer and JWKS — no policy name in the URL.
 const ISSUER = TENANT_ID
-  ? `https://${TENANT_NAME}.b2clogin.com/${TENANT_ID}/v2.0/`
+  ? `https://${TENANT_SUBDOMAIN}.ciamlogin.com/${TENANT_ID}/v2.0`
   : null;
-const JWKS_URI = TENANT_NAME
-  ? `https://${TENANT_NAME}.b2clogin.com/${TENANT_NAME}.onmicrosoft.com/${POLICY}/discovery/v2.0/keys`
+const JWKS_URI = TENANT_ID
+  ? `https://${TENANT_SUBDOMAIN}.ciamlogin.com/${TENANT_ID}/discovery/v2.0/keys`
   : null;
 
 let jwks;
@@ -67,7 +63,7 @@ function verifyToken(token) {
   }
 
   if (!ISSUER || !AUDIENCE || !JWKS_URI) {
-    return Promise.reject(new Error('B2C is not configured (B2C_TENANT_NAME / B2C_TENANT_ID / B2C_CLIENT_ID)'));
+    return Promise.reject(new Error('Entra External ID not configured (AUTH_TENANT_SUBDOMAIN / AUTH_TENANT_ID / AUTH_CLIENT_ID)'));
   }
 
   return new Promise((resolve, reject) => {

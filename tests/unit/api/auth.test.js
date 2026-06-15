@@ -1,11 +1,10 @@
 // Unit tests for api/auth.js — JWT extraction, claim parsing, and DEV_MODE verification.
 // B2C_ALLOW_UNVERIFIED_DEV=true must be set BEFORE requiring the module (it's read at load time).
 
-process.env.B2C_ALLOW_UNVERIFIED_DEV = 'true';
-process.env.B2C_TENANT_NAME = 'testb2c';
-process.env.B2C_TENANT_ID  = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
-process.env.B2C_CLIENT_ID  = 'ffffffff-0000-1111-2222-333333333333';
-process.env.B2C_POLICY     = 'B2C_1_signupsignin';
+process.env.B2C_ALLOW_UNVERIFIED_DEV  = 'true';
+process.env.AUTH_TENANT_SUBDOMAIN     = 'quizpulseid';
+process.env.AUTH_TENANT_ID            = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+process.env.AUTH_CLIENT_ID            = 'ffffffff-0000-1111-2222-333333333333';
 
 const jwt = require('jsonwebtoken');
 const { authenticateTeacher, verifyToken, teacherIdFromClaims, extractBearer } = require('../../../api/auth');
