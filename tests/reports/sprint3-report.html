@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizPulse Sprint 3 Test Report — v1.2.0</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .meta { font-size: 13px; color: #666; margin-bottom: 32px; }
+  h2 { font-size: 16px; border-bottom: 2px solid #534AB7; padding-bottom: 6px; margin-top: 32px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 24px; }
+  th { background: #534AB7; color: white; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafafa; }
+  .pass { color: #085041; font-weight: 600; }
+  .skip { color: #888; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-pass { background: #E1F5EE; color: #085041; }
+  .badge-skip { background: #f0f0f0; color: #888; }
+  .summary { display: flex; gap: 16px; margin-bottom: 24px; }
+  .stat { padding: 14px 20px; border-radius: 8px; background: #f5f4fb; }
+  .stat .n { font-size: 28px; font-weight: 700; color: #534AB7; }
+  .stat .l { font-size: 12px; color: #666; }
+</style>
+</head>
+<body>
+<h1>QuizPulse Sprint 3 Test Report</h1>
+<div class="meta">Version v1.2.0-rc1 &nbsp;·&nbsp; Generated 2026-06-15 &nbsp;·&nbsp; Branch release/v1.2-sprint3</div>
+
+<div class="summary">
+  <div class="stat"><div class="n">53</div><div class="l">Unit tests pass</div></div>
+  <div class="stat"><div class="n">9</div><div class="l">New Sprint 3 unit tests</div></div>
+  <div class="stat"><div class="n">5</div><div class="l">Integration tests (skip without local stack)</div></div>
+  <div class="stat"><div class="n">3</div><div class="l">E2E scenarios</div></div>
+</div>
+
+<h2>Unit — subscribe.js (4 tests)</h2>
+<table>
+  <tr><th>Test</th><th>Expected</th><th>Result</th></tr>
+  <tr><td>Unapproved device → 403</td><td>HTTP 403</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>Approved device → 201</td><td>HTTP 201</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>Missing subscription keys → 400</td><td>HTTP 400</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>20 attempts from same deviceId → 429</td><td>HTTP 429</td><td><span class="badge badge-pass">PASS</span></td></tr>
+</table>
+
+<h2>Unit — sendNotification.js (5 tests)</h2>
+<table>
+  <tr><th>Test</th><th>Expected</th><th>Result</th></tr>
+  <tr><td>Duplicate quizId (notificationSentAt set) → 409</td><td>HTTP 409</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>First send → 200, notificationSentAt set</td><td>HTTP 200 + field written</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>Second call after first → 409</td><td>HTTP 409</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>Wrong teacher → 403</td><td>HTTP 403</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>5 sends/min exhausted → 429</td><td>HTTP 429</td><td><span class="badge badge-pass">PASS</span></td></tr>
+</table>
+
+<h2>Unit — all suites (53 total, 7 suites)</h2>
+<table>
+  <tr><th>Suite</th><th>Tests</th><th>Result</th></tr>
+  <tr><td>auth.test.js</td><td>Existing</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>fuzzyMatch.test.js</td><td>Existing</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>joinBruteForce.test.js</td><td>Existing</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>namelistSanitize.test.js</td><td>Existing</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>rateLimit.test.js</td><td>Existing</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>subscribe.test.js (Sprint 3)</td><td>4 new</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td>sendNotification.test.js (Sprint 3)</td><td>5 new</td><td><span class="badge badge-pass">PASS</span></td></tr>
+</table>
+
+<h2>Integration — push.test.js (5 tests, requires local stack)</h2>
+<table>
+  <tr><th>Test</th><th>Expected</th><th>Result</th></tr>
+  <tr><td>GET /api/vapid-public-key → shape check</td><td>200 + publicKey string</td><td><span class="badge badge-skip">SKIP (no stack)</span></td></tr>
+  <tr><td>POST /api/subscribe — unapproved device</td><td>403</td><td><span class="badge badge-skip">SKIP (no stack)</span></td></tr>
+  <tr><td>POST /api/subscribe — missing subscription</td><td>400</td><td><span class="badge badge-skip">SKIP (no stack)</span></td></tr>
+  <tr><td>POST /api/send-notification — no token</td><td>401</td><td><span class="badge badge-skip">SKIP (no stack)</span></td></tr>
+  <tr><td>POST /api/send-notification — nonexistent quiz smoke test</td><td>404</td><td><span class="badge badge-skip">SKIP (no stack)</span></td></tr>
+</table>
+
+<h2>E2E — sprint3.spec.js (3 scenarios)</h2>
+<table>
+  <tr><th>Test</th><th>Expected</th><th>Result</th></tr>
+  <tr><td>Desktop: no iOS install banner shown</td><td>Banner absent</td><td><span class="badge badge-skip">SKIP (requires dev server)</span></td></tr>
+  <tr><td>Simulated iOS Safari: banner shows + can be dismissed + localStorage persists</td><td>Banner visible → dismissed → gone on reload</td><td><span class="badge badge-skip">SKIP (requires dev server)</span></td></tr>
+  <tr><td>Subscribe page: empty class ID shows inline error</td><td>'Class ID is required' message</td><td><span class="badge badge-skip">SKIP (requires dev server)</span></td></tr>
+</table>
+
+<h2>Manual verification checklist</h2>
+<table>
+  <tr><th>Item</th><th>Status</th></tr>
+  <tr><td>manifest.json served at /manifest.json with correct name "QuizPulse"</td><td><span class="badge badge-skip">Pending deploy</span></td></tr>
+  <tr><td>SW registers at /sw.js (DevTools → Application → Service Workers)</td><td><span class="badge badge-skip">Pending deploy</span></td></tr>
+  <tr><td>SW update banner appears when a new SW is waiting</td><td><span class="badge badge-skip">Pending deploy</span></td></tr>
+  <tr><td>VAPID keys added to Key Vault and wired to Function App config</td><td><span class="badge badge-skip">Pending Key Vault config</span></td></tr>
+  <tr><td>Subscriptions container created in Cosmos (partition key /classId)</td><td><span class="badge badge-skip">Pending infra</span></td></tr>
+  <tr><td>Push notification received on device after teacher sends quiz</td><td><span class="badge badge-skip">Pending real device test</span></td></tr>
+</table>
+</body>
+</html>

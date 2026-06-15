@@ -82,6 +82,22 @@ function SendQuiz() {
       if (!quizRes.ok) throw new Error(`Quiz save failed (${quizRes.status})`)
       const quiz = await quizRes.json()
 
+      // Send push notifications to subscribed students (best-effort — failures don't block).
+      setSimulatingMsg('Sending push notifications…')
+      try {
+        await fetch(`${API_BASE}/send-notification`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quizId: quiz.id,
+            quizTitle: quizName,
+            questionCount: questionIds.length,
+          }),
+        })
+      } catch {
+        // Push delivery is best-effort; don't fail the whole send flow.
+      }
+
       setSimulatingMsg(`Simulating ${totalStudents} student responses…`)
       const simRes = await fetch(`${API_BASE}/simulate`, {
         method: 'POST',
