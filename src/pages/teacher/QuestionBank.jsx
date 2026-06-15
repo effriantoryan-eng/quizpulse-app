@@ -24,6 +24,7 @@ function QuestionBank() {
   const [selected, setSelected] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [activeTab, setActiveTab] = useState('my')
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState(BLANK_FORM)
   const [saving, setSaving] = useState(false)
@@ -119,7 +120,41 @@ function QuestionBank() {
         />
       )}
 
-      {questions.length === 0 ? (
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid #eee', marginBottom: '20px' }}>
+        {[
+          { key: 'my', label: 'My Questions' },
+          { key: 'community', label: '🌐 Community', locked: true },
+        ].map(tab => (
+          <button
+            key={tab.key}
+            data-testid={`tab-${tab.key}`}
+            onClick={() => !tab.locked && setActiveTab(tab.key)}
+            style={{
+              padding: '8px 18px', background: 'none', border: 'none', borderBottom: activeTab === tab.key ? '2px solid #534AB7' : '2px solid transparent',
+              color: tab.locked ? '#bbb' : activeTab === tab.key ? '#534AB7' : '#666',
+              fontSize: '13px', fontWeight: activeTab === tab.key ? '600' : '400',
+              cursor: tab.locked ? 'not-allowed' : 'pointer', marginBottom: '-1px',
+              display: 'flex', alignItems: 'center', gap: '6px',
+            }}
+          >
+            {tab.label}
+            {tab.locked && <span style={{ fontSize: '10px', background: '#f0f0f0', color: '#aaa', padding: '1px 5px', borderRadius: '4px', fontWeight: '400' }}>Soon</span>}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'community' && (
+        <div style={{ textAlign: 'center', padding: '48px 24px', color: '#aaa', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🌐</div>
+          <div style={{ fontWeight: '500', color: '#888', marginBottom: '8px' }}>Community question bank</div>
+          <div style={{ fontSize: '13px', maxWidth: '320px', margin: '0 auto' }}>
+            Browse and upvote questions shared by teachers at your school and across the network. Coming in Sprint 6.
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'my' && (questions.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px' }}>
           No questions yet. Go to Create Question to add some.
         </div>
@@ -274,7 +309,7 @@ function QuestionBank() {
             </div>
           )}
         </>
-      )}
+      ))}
     </div>
   )
 }

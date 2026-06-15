@@ -2,6 +2,7 @@ const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
+const { authenticateTeacher } = require('./auth');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -24,16 +25,15 @@ app.http('questions', {
     }
 
     try {
+      // Identity comes from the validated B2C token, not from client input.
+      const auth = await authenticateTeacher(request)
+      if (auth.error) return respond(auth.status, { error: auth.error })
+      const teacherId = auth.teacherId
+
       if (method === 'GET') {
-        const teacherId = new URL(request.url).searchParams.get('teacherId');
-
-        if (!teacherId || !teacherId.trim()) {
-          return respond(400, { error: 'teacherId is required' })
-        }
-
         const { resources } = await container.items.query({
           query: 'SELECT * FROM c WHERE c.teacherId = @teacherId',
-          parameters: [{ name: '@teacherId', value: teacherId.trim() }]
+          parameters: [{ name: '@teacherId', value: teacherId }]
         }).fetchAll();
 
         return respond(200, resources, teacherId)
@@ -56,7 +56,7 @@ app.http('questions', {
           return respond(400, { error: 'Request body must be a JSON object' })
         }
 
-        const { text, options, correctIndex, topic, teacherId } = body;
+        const { text, options, correctIndex, topic } = body;
         const ALLOWED_TOPICS = ['Science', 'History', 'Mathematics', 'English', 'Geography'];
 
         if (typeof text !== 'string' || !text.trim()) {
@@ -83,7 +83,9 @@ app.http('questions', {
 
         const question = {
           id: require('crypto').randomUUID(),
-          teacherId: typeof teacherId === 'string' ? teacherId.trim().slice(0, 100) : 'anonymous',
+          teacherId,
+          authorId: teacherId,
+          visibility: 'private',
           text: text.trim(),
           options: options.map(o => o.trim()),
           correctIndex,
@@ -120,21 +122,20 @@ app.http('questionById', {
     }
 
     try {
-      if (method === 'DELETE') {
-        const teacherId = new URL(request.url).searchParams.get('teacherId')
-        if (!teacherId || !teacherId.trim()) {
-          return respond(400, { error: 'teacherId is required' })
-        }
+      const auth = await authenticateTeacher(request)
+      if (auth.error) return respond(auth.status, { error: auth.error })
+      const teacherId = auth.teacherId
 
+      if (method === 'DELETE') {
         const { resources } = await container.items.query({
           query: 'SELECT * FROM c WHERE c.id = @id',
           parameters: [{ name: '@id', value: id }]
         }).fetchAll()
 
         if (resources.length === 0) return respond(404, { error: 'Question not found' }, teacherId)
-        if (resources[0].teacherId !== teacherId.trim()) return respond(403, { error: 'You do not have access to this question' }, teacherId)
+        if (resources[0].teacherId !== teacherId) return respond(403, { error: 'You do not have access to this question' }, teacherId)
 
-        await container.item(id, teacherId.trim()).delete()
+        await container.item(id, teacherId).delete()
         return respond(204, null, teacherId)
       }
 
@@ -154,10 +155,9 @@ app.http('questionById', {
           return respond(400, { error: 'Request body must be a JSON object' })
         }
 
-        const { text, options, correctIndex, topic, teacherId } = body
+        const { text, options, correctIndex, topic } = body
         const ALLOWED_TOPICS = ['Science', 'History', 'Mathematics', 'English', 'Geography']
 
-        if (!teacherId || !teacherId.trim()) return respond(400, { error: 'teacherId is required' }, teacherId)
         if (typeof text !== 'string' || !text.trim()) return respond(400, { error: 'text is required and must be a string' }, teacherId)
         if (text.trim().length > 500) return respond(400, { error: 'text must be 500 characters or fewer' }, teacherId)
         if (!Array.isArray(options) || options.length !== 4) return respond(400, { error: 'options must be an array of exactly 4 items' }, teacherId)
@@ -172,7 +172,7 @@ app.http('questionById', {
         }).fetchAll()
 
         if (resources.length === 0) return respond(404, { error: 'Question not found' }, teacherId)
-        if (resources[0].teacherId !== teacherId.trim()) return respond(403, { error: 'You do not have access to this question' }, teacherId)
+        if (resources[0].teacherId !== teacherId) return respond(403, { error: 'You do not have access to this question' }, teacherId)
 
         const updated = {
           ...resources[0],

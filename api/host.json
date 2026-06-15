@@ -1,14 +1,18 @@
 {
   "version": "2.0",
+  "functionTimeout": "00:05:00",
   "extensions": {
     "http": {
-      "routePrefix": "api"
+      "routePrefix": "api",
+      "maxOutstandingRequests": 200,
+      "maxConcurrentRequests": 100,
+      "dynamicThrottlesEnabled": true
     }
   },
   "cors": {
     "allowedOrigins": [
       "http://localhost:5173",
-      "https://mango-meadow-0a5aa7410.7.azurestaticapps.net"
+      "https://nice-field-0127b5b00.7.azurestaticapps.net"
     ],
     "supportCredentials": false
   }

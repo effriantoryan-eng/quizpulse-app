@@ -1,5 +1,16 @@
 local.settings.json
+
+# Azurite local storage emulator data
+AzuriteConfig/
+__azurite_db_*.json
+__blobstorage__/
+__queuestorage__/
 .claude/settings.local.json
+
+# Local Azure provisioning scratch (may contain secrets — never commit)
+.azure-suffix.txt
+.azure-cosmos.json
+.azure-appsettings.json
 
 # Env files (VITE_ public config may be committed via .env.production; secrets must not)
 .env

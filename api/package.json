@@ -5,13 +5,16 @@
   "main": "*.js",
   "scripts": {
     "start": "func start",
-    "test": "echo \"No tests yet...\""
+    "test": "jest --config ../jest.config.cjs ../../tests/unit/api"
   },
   "dependencies": {
     "@azure/cosmos": "^4.9.3",
-    "@azure/functions": "^4.0.0"
+    "@azure/functions": "^4.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^3.2.2"
   },
   "devDependencies": {
-    "azure-functions-core-tools": "^4.x"
+    "azure-functions-core-tools": "^4.x",
+    "jest": "^30.4.2"
   }
 }
