@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "extensions": {
+    "http": {
+      "routePrefix": "api"
+    }
+  },
+  "cors": {
+    "allowedOrigins": [
+      "http://localhost:5173",
+      "https://mango-meadow-0a5aa7410.7.azurestaticapps.net"
+    ],
+    "supportCredentials": false
+  }
+}
