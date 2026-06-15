@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import DemoGallery from './pages/DemoGallery'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
+import Classes from './pages/teacher/Classes'
 import CreateQuestion from './pages/teacher/CreateQuestion'
 import QuestionBank from './pages/teacher/QuestionBank'
 import BuildQuiz from './pages/teacher/BuildQuiz'
@@ -78,6 +79,7 @@ function AppRoutes() {
         <Route path="/demo" element={<DemoGallery />} />
         <Route path="/login" element={<Login />} />
         <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+        <Route path="/teacher/classes" element={<RequireTeacher><Classes /></RequireTeacher>} />
         <Route path="/teacher/create" element={<RequireTeacher><CreateQuestion /></RequireTeacher>} />
         <Route path="/teacher/bank" element={<RequireTeacher><QuestionBank /></RequireTeacher>} />
         <Route path="/teacher/build" element={<RequireTeacher><BuildQuiz /></RequireTeacher>} />

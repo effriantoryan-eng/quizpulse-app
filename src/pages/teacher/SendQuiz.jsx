@@ -1,34 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
 
-const PRESET_CLASSES = [
-  { id: 'yr9-sci',  name: 'Year 9 Science',  students: 28, topic: 'Science'     },
-  { id: 'yr10-mth', name: 'Year 10 Maths',   students: 25, topic: 'Mathematics' },
-  { id: 'yr7-eng',  name: 'Year 7 English',  students: 22, topic: 'English'     },
-]
-
-const TOPIC_COLORS = {
-  Science:     { bg: '#E1F5EE', color: '#085041' },
-  Mathematics: { bg: '#E6F1FB', color: '#0C447C' },
-  English:     { bg: '#FEF3E2', color: '#7A4100' },
-}
-
 function SendQuiz() {
-  const { teacherId } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('send')
   const { quizName = '', questionIds = [], questions = [] } = location.state || {}
 
-  const [selectedClasses, setSelectedClasses] = useState([PRESET_CLASSES[0].id])
+  const [classes, setClasses] = useState([])
+  const [classesLoading, setClassesLoading] = useState(true)
+  const [classesError, setClassesError] = useState(null)
+  const [selectedClasses, setSelectedClasses] = useState([])
   const [sending, setSending] = useState(false)
   const [simulatingMsg, setSimulatingMsg] = useState('')
   const [sentResult, setSentResult] = useState(null) // { quizId, generated }
   const [error, setError] = useState(null)
+
+  useEffect(() => {
+    async function fetchClasses() {
+      try {
+        const res = await fetch(`${API_BASE}/classes`)
+        if (!res.ok) throw new Error(`Server error ${res.status}`)
+        const data = await res.json()
+        setClasses(data)
+      } catch (err) {
+        setClassesError(err.message)
+      } finally {
+        setClassesLoading(false)
+      }
+    }
+    fetchClasses()
+  }, [])
 
   if (!quizName || questionIds.length === 0) {
     return (
@@ -53,21 +58,19 @@ function SendQuiz() {
     )
   }
 
-  const totalStudents = PRESET_CLASSES
+  const totalStudents = classes
     .filter(c => selectedClasses.includes(c.id))
-    .reduce((sum, c) => sum + c.students, 0)
+    .reduce((sum, c) => sum + (c.studentCount || 0), 0)
 
   async function handleSend() {
     setError(null)
     setSending(true)
     try {
-      // 1. Save the quiz
       setSimulatingMsg('Saving quiz…')
       const quizRes = await fetch(`${API_BASE}/quizzes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          teacherId,
           name: quizName,
           questionIds,
           classIds: selectedClasses,
@@ -79,7 +82,6 @@ function SendQuiz() {
       if (!quizRes.ok) throw new Error(`Quiz save failed (${quizRes.status})`)
       const quiz = await quizRes.json()
 
-      // 2. Simulate responses server-side
       setSimulatingMsg(`Simulating ${totalStudents} student responses…`)
       const simRes = await fetch(`${API_BASE}/simulate`, {
         method: 'POST',
@@ -127,7 +129,6 @@ function SendQuiz() {
       </div>
 
       {sentResult ? (
-        /* Success state */
         <div style={{ background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: '10px', padding: '24px' }}>
           <div style={{ fontSize: '22px', marginBottom: '10px' }}>🎉</div>
           <div style={{ fontSize: '16px', fontWeight: '600', color: '#085041', marginBottom: '8px' }}>Quiz sent!</div>
@@ -152,12 +153,33 @@ function SendQuiz() {
         </div>
       ) : (
         <>
-          {/* Class selector */}
           <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>Send to class</div>
 
-          {PRESET_CLASSES.map(c => {
+          {classesLoading && (
+            <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center' }}>Loading classes…</div>
+          )}
+
+          {classesError && (
+            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: '8px', marginBottom: '16px' }}>
+              Failed to load classes: {classesError}
+            </div>
+          )}
+
+          {!classesLoading && !classesError && classes.length === 0 && (
+            <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
+              No classes yet.{' '}
+              <span
+                style={{ color: '#534AB7', cursor: 'pointer', textDecoration: 'underline' }}
+                onClick={() => navigate('/teacher/classes')}
+              >
+                Create a class first
+              </span>
+              .
+            </div>
+          )}
+
+          {classes.map(c => {
             const isSelected = selectedClasses.includes(c.id)
-            const topicStyle = TOPIC_COLORS[c.topic] || { bg: '#EEEDFE', color: '#3C3489' }
             return (
               <div
                 key={c.id}
@@ -181,27 +203,19 @@ function SendQuiz() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: '500' }}>{c.name}</div>
-                  <div style={{ fontSize: '12px', color: '#888' }}>{c.students} students</div>
+                  <div style={{ fontSize: '12px', color: '#888' }}>{c.studentCount || 0} students</div>
                 </div>
-                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color }}>{c.topic}</span>
               </div>
             )
           })}
 
-          {/* Timing — send now only; schedule is post-MVP */}
           <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }}></div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '24px' }}>
-            <div style={{
-              padding: '14px', textAlign: 'center', borderRadius: '8px',
-              border: '2px solid #534AB7', background: '#EEEDFE22',
-            }}>
+            <div style={{ padding: '14px', textAlign: 'center', borderRadius: '8px', border: '2px solid #534AB7', background: '#EEEDFE22' }}>
               <div style={{ fontSize: '20px', marginBottom: '6px' }}>📤</div>
               <div style={{ fontSize: '13px', fontWeight: '500', color: '#534AB7' }}>Send now</div>
             </div>
-            <div style={{
-              padding: '14px', textAlign: 'center', borderRadius: '8px',
-              border: '1px solid #e0e0e0', background: '#fafafa', opacity: 0.5,
-            }}>
+            <div style={{ padding: '14px', textAlign: 'center', borderRadius: '8px', border: '1px solid #e0e0e0', background: '#fafafa', opacity: 0.5 }}>
               <div style={{ fontSize: '20px', marginBottom: '6px' }}>🕐</div>
               <div style={{ fontSize: '13px', fontWeight: '500', color: '#aaa' }}>Schedule</div>
               <div style={{ fontSize: '11px', color: '#bbb' }}>Coming soon</div>
@@ -210,7 +224,7 @@ function SendQuiz() {
 
           {sending && simulatingMsg && (
             <div style={{ padding: '10px 14px', background: '#EEEDFE', border: '1px solid #c5c0f0', borderRadius: '8px', fontSize: '13px', color: '#534AB7', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
+              <span>⏳</span>
               {simulatingMsg}
             </div>
           )}
