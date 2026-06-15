@@ -1,9 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 const STATIC_PAGES = [
   { label: '🏠 Home',              path: '/'                  },
   { label: '✏️ Create Question',  path: '/teacher/create'    },
   { label: '🗂 Question Bank',    path: '/teacher/bank'      },
+  { label: '🏫 Classes',          path: '/teacher/classes'   },
   { label: '🔧 Build Quiz',       path: '/teacher/build'     },
   { label: '📤 Send Quiz',        path: '/teacher/send'      },
   { label: '📊 My Quizzes',       path: '/teacher/quizzes'   },
@@ -12,6 +14,7 @@ const STATIC_PAGES = [
 export default function DemoNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { isAuthenticated, user, login, logout } = useAuth()
   const pages = [
     ...STATIC_PAGES,
     { label: '🖼 Preview', path: '/demo' },
@@ -72,6 +75,34 @@ export default function DemoNav() {
           </button>
         )
       })}
+
+      {/* Auth control */}
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {isAuthenticated ? (
+          <>
+            {user?.email && (
+              <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                {user.email}
+              </span>
+            )}
+            <button
+              data-testid="logout"
+              onClick={() => logout()}
+              style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              Sign out
+            </button>
+          </>
+        ) : (
+          <button
+            data-testid="nav-signin"
+            onClick={() => login()}
+            style={{ padding: '5px 12px', borderRadius: '6px', border: 'none', background: '#534AB7', color: 'white', fontSize: '12px', fontWeight: '500', cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            Sign in
+          </button>
+        )}
+      </div>
     </div>
   )
 }
