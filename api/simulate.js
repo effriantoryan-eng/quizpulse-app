@@ -2,6 +2,7 @@ const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
+const { authenticateTeacher } = require('./auth');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -25,6 +26,9 @@ app.http('simulate', {
     }
 
     try {
+      const auth = await authenticateTeacher(request)
+      if (auth.error) return respond(auth.status, { error: auth.error })
+
       const ip = getClientIp(request);
       // Dedicated rate limit for simulation: 10 calls/minute per IP
       if (!rateLimit(`simulate:${ip}`, 10, 60000)) {
