@@ -11,6 +11,66 @@ const CORRECT_BORDER = '#3B6D11'
 
 const POLL_INTERVAL_MS = 3000
 
+// SVG line chart showing cumulative responses over time since quiz was sent.
+function TimelineChart({ timeline, classSize }) {
+  if (timeline.length < 2) return null
+
+  const W = 580, H = 100, PAD_L = 36, PAD_B = 24, PAD_T = 8, PAD_R = 12
+  const chartW = W - PAD_L - PAD_R
+  const chartH = H - PAD_B - PAD_T
+
+  const maxMinutes = timeline[timeline.length - 1].minutesElapsed || 1
+  const maxCount = Math.max(classSize || 1, timeline[timeline.length - 1].cumulativeCount || 1)
+
+  function tx(minutes) { return PAD_L + (minutes / maxMinutes) * chartW }
+  function ty(count) { return PAD_T + chartH - (count / maxCount) * chartH }
+
+  const points = timeline.map(p => `${tx(p.minutesElapsed)},${ty(p.cumulativeCount)}`).join(' ')
+  const areaPoints = [
+    `${tx(0)},${ty(0)}`,
+    ...timeline.map(p => `${tx(p.minutesElapsed)},${ty(p.cumulativeCount)}`),
+    `${tx(maxMinutes)},${ty(0)}`
+  ].join(' ')
+
+  // X-axis tick labels (every ~30 minutes, max 6 labels)
+  const tickInterval = Math.ceil(maxMinutes / 6 / 30) * 30 || 5
+  const xTicks = []
+  for (let m = 0; m <= maxMinutes; m += tickInterval) xTicks.push(m)
+
+  return (
+    <div style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+      <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
+        Response timeline
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        {/* Y gridlines */}
+        {[0, 0.5, 1].map(frac => (
+          <line key={frac} x1={PAD_L} y1={ty(maxCount * frac)} x2={W - PAD_R} y2={ty(maxCount * frac)}
+            stroke="#f0f0f0" strokeWidth="1" />
+        ))}
+        {/* Y-axis labels */}
+        <text x={PAD_L - 4} y={ty(maxCount) + 4} fontSize="9" fill="#bbb" textAnchor="end">{maxCount}</text>
+        <text x={PAD_L - 4} y={ty(maxCount * 0.5) + 4} fontSize="9" fill="#bbb" textAnchor="end">{Math.round(maxCount * 0.5)}</text>
+        <text x={PAD_L - 4} y={ty(0) + 1} fontSize="9" fill="#bbb" textAnchor="end">0</text>
+        {/* Area fill */}
+        <polygon points={areaPoints} fill="#534AB7" opacity="0.08" />
+        {/* Line */}
+        <polyline points={points} fill="none" stroke="#534AB7" strokeWidth="1.5" strokeLinejoin="round" />
+        {/* X-axis ticks */}
+        {xTicks.map(m => (
+          <g key={m}>
+            <line x1={tx(m)} y1={PAD_T + chartH} x2={tx(m)} y2={PAD_T + chartH + 4} stroke="#ddd" strokeWidth="1" />
+            <text x={tx(m)} y={H - 4} fontSize="9" fill="#bbb" textAnchor="middle">{m}m</text>
+          </g>
+        ))}
+        {/* Axis lines */}
+        <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + chartH} stroke="#e0e0e0" strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD_T + chartH} x2={W - PAD_R} y2={PAD_T + chartH} stroke="#e0e0e0" strokeWidth="1" />
+      </svg>
+    </div>
+  )
+}
+
 function Analytics() {
   const { quizId } = useParams()
   const navigate = useNavigate()
@@ -20,6 +80,7 @@ function Analytics() {
   const [totalResponses, setTotalResponses] = useState(0)
   const [questions, setQuestions] = useState([])
   const [nonResponders, setNonResponders] = useState([])
+  const [timeline, setTimeline] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [exporting, setExporting] = useState(false)
@@ -43,6 +104,7 @@ function Analytics() {
         setTotalResponses(data.totalResponses)
         setQuestions(data.questions)
         setNonResponders(data.nonResponders || [])
+        setTimeline(data.timeline || [])
         setError(null)
       } catch (err) {
         if (!cancelled) setError(err.message)
@@ -139,6 +201,11 @@ function Analytics() {
           <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Questions in quiz</div>
         </div>
       </div>
+
+      {/* Response timeline chart */}
+      {timeline.length > 1 && (
+        <TimelineChart timeline={timeline} classSize={classSize} />
+      )}
 
       {/* Per question breakdown */}
       {questions.length === 0 && (
