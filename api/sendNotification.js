@@ -29,6 +29,76 @@ function ensureVapid() {
   vapidConfigured = true;
 }
 
+// Shared send logic used by both the manual send-notification endpoint and the
+// scheduled-quiz timer trigger. Mutates and persists notificationSentAt on the quiz.
+// Returns { sent, total } on success, or throws/returns { error, status } on failure.
+async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount } = {}) {
+  if (quiz.notificationSentAt) {
+    return { error: 'Notifications already sent for this quiz', status: 409 };
+  }
+
+  const title = quizTitle || quiz.name;
+  const count = typeof questionCount === 'number' ? questionCount : (quiz.questionIds || []).length;
+
+  const payload = JSON.stringify({
+    title: 'New quiz from your teacher',
+    body: `${title} · ${count} question${count !== 1 ? 's' : ''} · ~1 min`,
+    url: `/quiz?quizId=${quiz.id}`,
+  });
+
+  if (Buffer.byteLength(payload, 'utf8') > NOTIFICATION_PAYLOAD_MAX) {
+    return { error: 'Notification payload exceeds 3 KB limit', status: 413 };
+  }
+
+  ensureVapid();
+
+  const classIds = quiz.classIds || [];
+  if (!classIds.length) {
+    return { error: 'Quiz has no target classes', status: 400 };
+  }
+
+  const classIdParams = classIds.map((id, i) => ({ name: `@cid${i}`, value: id }));
+  const classIdList = classIdParams.map(p => p.name).join(', ');
+  const { resources: subs } = await subscriptionsContainer.items.query({
+    query: `SELECT * FROM c WHERE c.classId IN (${classIdList})`,
+    parameters: classIdParams,
+  }).fetchAll();
+
+  let sent = 0;
+  const stale = [];
+
+  await Promise.all(
+    subs.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: sub.keys },
+          payload,
+        );
+        sent++;
+      } catch (err) {
+        if (err?.statusCode === 404 || err?.statusCode === 410) {
+          stale.push({ id: sub.id, classId: sub.classId });
+        } else {
+          context.warn(`push failed for ${sub.id}: ${err?.statusCode || err?.message}`);
+        }
+      }
+    }),
+  );
+
+  await Promise.all(
+    stale.map(({ id, classId }) =>
+      subscriptionsContainer.item(id, classId).delete().catch(() => {}),
+    ),
+  );
+  if (stale.length) context.log(`Pruned ${stale.length} stale subscription(s)`);
+
+  quiz.notificationSentAt = new Date().toISOString();
+  await quizzesContainer.items.upsert(quiz);
+
+  context.log(`Notification sent to ${sent}/${subs.length} subscriber(s) for quiz ${quiz.id}`);
+  return { sent, total: subs.length };
+}
+
 // POST /api/send-notification — push a quiz notification to all approved subscribers
 // for the quiz's target classes. Requires teacher auth and quiz ownership.
 app.http('sendNotification', {
@@ -74,77 +144,17 @@ app.http('sendNotification', {
 
       if (!quizzes.length) return respond(404, { error: 'Quiz not found' });
       const quiz = quizzes[0];
-      if (quiz.teacherId !== teacherId) return respond(403, { error: 'Not your quiz' });
+      if (quiz.teacherId !== teacherId) return respond(404, { error: 'Quiz not found' });
 
-      // Idempotency: if this quiz has already had notifications sent, reject with 409.
-      if (quiz.notificationSentAt) {
-        return respond(409, { error: 'Notifications already sent for this quiz' });
-      }
+      const result = await sendNotificationForQuiz(quiz, context, { quizTitle, questionCount });
+      if (result.error) return respond(result.status, { error: result.error });
 
-      // Build the notification payload and enforce 3 KB max.
-      const payload = JSON.stringify({
-        title: 'New quiz from your teacher',
-        body: `${quizTitle} · ${questionCount} question${questionCount !== 1 ? 's' : ''} · ~1 min`,
-        url: `/quiz?quizId=${quizId}`,
-      });
-
-      if (Buffer.byteLength(payload, 'utf8') > NOTIFICATION_PAYLOAD_MAX) {
-        return respond(413, { error: 'Notification payload exceeds 3 KB limit' });
-      }
-
-      ensureVapid();
-
-      // Fetch subscriptions for all target classes.
-      const classIds = quiz.classIds || [];
-      if (!classIds.length) {
-        return respond(400, { error: 'Quiz has no target classes' });
-      }
-
-      const classIdParams = classIds.map((id, i) => ({ name: `@cid${i}`, value: id }));
-      const classIdList = classIdParams.map(p => p.name).join(', ');
-      const { resources: subs } = await subscriptionsContainer.items.query({
-        query: `SELECT * FROM c WHERE c.classId IN (${classIdList})`,
-        parameters: classIdParams,
-      }).fetchAll();
-
-      let sent = 0;
-      const stale = [];
-
-      await Promise.all(
-        subs.map(async (sub) => {
-          try {
-            await webpush.sendNotification(
-              { endpoint: sub.endpoint, keys: sub.keys },
-              payload,
-            );
-            sent++;
-          } catch (err) {
-            if (err?.statusCode === 404 || err?.statusCode === 410) {
-              stale.push({ id: sub.id, classId: sub.classId });
-            } else {
-              context.warn(`push failed for ${sub.id}: ${err?.statusCode || err?.message}`);
-            }
-          }
-        }),
-      );
-
-      // Prune dead subscriptions (partition key is classId).
-      await Promise.all(
-        stale.map(({ id, classId }) =>
-          subscriptionsContainer.item(id, classId).delete().catch(() => {}),
-        ),
-      );
-      if (stale.length) context.log(`Pruned ${stale.length} stale subscription(s)`);
-
-      // Mark quiz as notified for idempotency.
-      quiz.notificationSentAt = new Date().toISOString();
-      await quizzesContainer.items.upsert(quiz);
-
-      context.log(`Notification sent to ${sent}/${subs.length} subscriber(s) for quiz ${quizId}`);
-      return respond(200, { sent, total: subs.length });
+      return respond(200, result);
     } catch (err) {
       context.error('send-notification failed', err);
       return respond(500, { error: 'An unexpected error occurred' });
     }
   },
 });
+
+module.exports = { sendNotificationForQuiz };

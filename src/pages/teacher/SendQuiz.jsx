@@ -8,16 +8,19 @@ function SendQuiz() {
   const location = useLocation()
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('send')
-  const { quizName = '', questionIds = [], questions = [] } = location.state || {}
+  const { quizName = '', questionIds = [] } = location.state || {}
 
   const [classes, setClasses] = useState([])
   const [classesLoading, setClassesLoading] = useState(true)
   const [classesError, setClassesError] = useState(null)
   const [selectedClasses, setSelectedClasses] = useState([])
   const [sending, setSending] = useState(false)
-  const [simulatingMsg, setSimulatingMsg] = useState('')
-  const [sentResult, setSentResult] = useState(null) // { quizId, generated }
+  const [sendingMsg, setSendingMsg] = useState('')
+  const [sentResult, setSentResult] = useState(null) // { quizId, scheduled }
   const [error, setError] = useState(null)
+  const [mode, setMode] = useState('now') // 'now' | 'schedule'
+  const [durationMinutes, setDurationMinutes] = useState(30)
+  const [scheduledFor, setScheduledFor] = useState('')
 
   useEffect(() => {
     async function fetchClasses() {
@@ -64,59 +67,80 @@ function SendQuiz() {
 
   async function handleSend() {
     setError(null)
+
+    if (mode === 'now' && (!durationMinutes || durationMinutes < 5)) {
+      setError('Quiz duration must be at least 5 minutes.')
+      return
+    }
+    if (mode === 'schedule') {
+      if (!scheduledFor) {
+        setError('Pick a date and time to schedule this quiz.')
+        return
+      }
+      if (new Date(scheduledFor).getTime() <= Date.now()) {
+        setError('Scheduled time must be in the future.')
+        return
+      }
+    }
+
     setSending(true)
     try {
-      setSimulatingMsg('Saving quiz…')
+      setSendingMsg('Saving quiz…')
       const quizRes = await fetch(`${API_BASE}/quizzes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: quizName,
-          questionIds,
-          classIds: selectedClasses,
-          classSize: totalStudents,
-          status: 'sent',
-          sentAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(
+          mode === 'now'
+            ? {
+                name: quizName,
+                questionIds,
+                classIds: selectedClasses,
+                classSize: totalStudents,
+                status: 'sent',
+                sentAt: new Date().toISOString(),
+                durationMinutes,
+              }
+            : {
+                name: quizName,
+                questionIds,
+                classIds: selectedClasses,
+                classSize: totalStudents,
+                status: 'scheduled',
+                scheduledFor: new Date(scheduledFor).toISOString(),
+                durationMinutes,
+              }
+        ),
       })
-      if (!quizRes.ok) throw new Error(`Quiz save failed (${quizRes.status})`)
+      if (!quizRes.ok) {
+        const data = await quizRes.json().catch(() => ({}))
+        throw new Error(data.error || `Quiz save failed (${quizRes.status})`)
+      }
       const quiz = await quizRes.json()
 
-      // Send push notifications to subscribed students (best-effort — failures don't block).
-      setSimulatingMsg('Sending push notifications…')
-      try {
-        await fetch(`${API_BASE}/send-notification`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            quizId: quiz.id,
-            quizTitle: quizName,
-            questionCount: questionIds.length,
-          }),
-        })
-      } catch {
-        // Push delivery is best-effort; don't fail the whole send flow.
+      if (mode === 'now') {
+        // Send push notifications to subscribed students (best-effort — failures don't block).
+        setSendingMsg('Sending push notifications…')
+        try {
+          await fetch(`${API_BASE}/send-notification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quizId: quiz.id,
+              quizTitle: quizName,
+              questionCount: questionIds.length,
+            }),
+          })
+        } catch {
+          // Push delivery is best-effort; don't fail the whole send flow.
+        }
       }
 
-      setSimulatingMsg(`Simulating ${totalStudents} student responses…`)
-      const simRes = await fetch(`${API_BASE}/simulate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quizId: quiz.id,
-          questions: questions.map(q => ({ id: q.id, optionCount: q.options?.length ?? 4 })),
-          classSize: totalStudents,
-        }),
-      })
-      if (!simRes.ok) throw new Error(`Simulation failed (${simRes.status})`)
-      const sim = await simRes.json()
-
-      setSentResult({ quizId: quiz.id, generated: sim.generated })
+      setSentResult({ quizId: quiz.id, scheduled: mode === 'schedule' })
     } catch (err) {
       setError(err.message)
     } finally {
       setSending(false)
-      setSimulatingMsg('')
+      setSendingMsg('')
     }
   }
 
@@ -130,7 +154,7 @@ function SendQuiz() {
       </div>
       {hintVisible && (
         <HintBanner
-          text="Pick which class(es) to send to — student responses will be simulated automatically. Click Send to post the quiz and jump straight to analytics."
+          text="Pick which class(es) to send to, choose how long the quiz stays open, then send now or schedule it for later."
           onDismiss={dismissHint}
         />
       )}
@@ -146,13 +170,14 @@ function SendQuiz() {
 
       {sentResult ? (
         <div style={{ background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: '10px', padding: '24px' }}>
-          <div style={{ fontSize: '22px', marginBottom: '10px' }}>🎉</div>
-          <div style={{ fontSize: '16px', fontWeight: '600', color: '#085041', marginBottom: '8px' }}>Quiz sent!</div>
-          <div style={{ fontSize: '13px', color: '#085041', marginBottom: '6px' }}>
-            <strong>{sentResult.generated}</strong> simulated responses received.
+          <div style={{ fontSize: '22px', marginBottom: '10px' }}>{sentResult.scheduled ? '🕐' : '🎉'}</div>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: '#085041', marginBottom: '8px' }}>
+            {sentResult.scheduled ? 'Quiz scheduled!' : 'Quiz sent!'}
           </div>
           <div style={{ fontSize: '12px', color: '#3a7a65', marginBottom: '20px' }}>
-            Responses were automatically generated to simulate a real class submission.
+            {sentResult.scheduled
+              ? 'It will be sent automatically at the scheduled time.'
+              : 'Students will receive a push notification and analytics will update as they respond.'}
           </div>
           <button
             onClick={() => navigate(`/teacher/analytics/${sentResult.quizId}`)}
@@ -226,22 +251,60 @@ function SendQuiz() {
           })}
 
           <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }}></div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '24px' }}>
-            <div style={{ padding: '14px', textAlign: 'center', borderRadius: '8px', border: '2px solid #534AB7', background: '#EEEDFE22' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+            <div
+              onClick={() => setMode('now')}
+              style={{
+                padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
+                border: `2px solid ${mode === 'now' ? '#534AB7' : '#e0e0e0'}`,
+                background: mode === 'now' ? '#EEEDFE22' : '#fafafa',
+              }}
+            >
               <div style={{ fontSize: '20px', marginBottom: '6px' }}>📤</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: '#534AB7' }}>Send now</div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'now' ? '#534AB7' : '#888' }}>Send now</div>
             </div>
-            <div style={{ padding: '14px', textAlign: 'center', borderRadius: '8px', border: '1px solid #e0e0e0', background: '#fafafa', opacity: 0.5 }}>
+            <div
+              onClick={() => setMode('schedule')}
+              style={{
+                padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
+                border: `2px solid ${mode === 'schedule' ? '#534AB7' : '#e0e0e0'}`,
+                background: mode === 'schedule' ? '#EEEDFE22' : '#fafafa',
+              }}
+            >
               <div style={{ fontSize: '20px', marginBottom: '6px' }}>🕐</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: '#aaa' }}>Schedule</div>
-              <div style={{ fontSize: '11px', color: '#bbb' }}>Coming soon</div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'schedule' ? '#534AB7' : '#888' }}>Schedule</div>
             </div>
           </div>
 
-          {sending && simulatingMsg && (
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
+            Quiz stays open for (minutes)
+          </label>
+          <input
+            type="number"
+            min={5}
+            value={durationMinutes}
+            onChange={e => setDurationMinutes(Number(e.target.value))}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
+          />
+
+          {mode === 'schedule' && (
+            <>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
+                Send at
+              </label>
+              <input
+                type="datetime-local"
+                value={scheduledFor}
+                onChange={e => setScheduledFor(e.target.value)}
+                style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
+              />
+            </>
+          )}
+
+          {sending && sendingMsg && (
             <div style={{ padding: '10px 14px', background: '#EEEDFE', border: '1px solid #c5c0f0', borderRadius: '8px', fontSize: '13px', color: '#534AB7', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>⏳</span>
-              {simulatingMsg}
+              {sendingMsg}
             </div>
           )}
 
@@ -262,11 +325,15 @@ function SendQuiz() {
             }}
             onClick={handleSend}
           >
-            {sending ? 'Working…' : `Send to ${totalStudents} students →`}
+            {sending
+              ? 'Working…'
+              : mode === 'schedule'
+                ? `Schedule for ${totalStudents} students →`
+                : `Send to ${totalStudents} students →`}
           </button>
 
           <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', marginTop: '10px' }}>
-            Responses will be simulated automatically so you can view analytics right away.
+            Students will see live analytics update as they respond on the quiz.
           </p>
         </>
       )}

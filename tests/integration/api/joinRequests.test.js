@@ -139,10 +139,10 @@ describe('Sprint 2 integration: join request flow', () => {
       expect(data.length).toBeGreaterThan(0);
     });
 
-    it_int('returns 403 when a different teacher tries to list', async () => {
+    it_int('returns 404 when a different teacher tries to list (Sprint 5: 404, not 403 — see docs/security/SPRINT5_AUDIT.md)', async () => {
       const otherOid = `integ-other-${Date.now()}`;
       const res = await apiRequest('GET', `/join-requests?classId=${classId}`, null, otherOid);
-      expect(res.status).toBe(403);
+      expect(res.status).toBe(404);
     });
   });
 
@@ -161,10 +161,10 @@ describe('Sprint 2 integration: join request flow', () => {
       requestId = data.id;
     });
 
-    it_int('returns 403 when a different teacher tries to approve', async () => {
+    it_int('returns 404 when a different teacher tries to approve (Sprint 5: 404, not 403)', async () => {
       const otherOid = `integ-other-approve-${Date.now()}`;
       const res = await apiRequest('POST', `/join-requests/${requestId}/approve?classId=${classId}`, null, otherOid);
-      expect(res.status).toBe(403);
+      expect(res.status).toBe(404);
     });
 
     it_int('approves the request and increments studentCount', async () => {

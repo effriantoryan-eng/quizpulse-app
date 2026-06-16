@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 const STEPS = [
   { icon: '✏️', label: 'Create questions', desc: 'Build a question bank across topics and year levels.', path: '/teacher/create' },
   { icon: '🔧', label: 'Build a quiz',     desc: 'Pick questions, give the quiz a name, and arrange the order.', path: '/teacher/build' },
-  { icon: '📤', label: 'Send to a class',  desc: 'Choose a class — responses are simulated instantly.', path: '/teacher/send' },
+  { icon: '📤', label: 'Send to a class',  desc: 'Choose a class and push a quiz to students in real time.', path: '/teacher/send' },
   { icon: '📊', label: 'View analytics',   desc: 'See per-question breakdowns and participation rates.', path: null },
 ]
 
@@ -560,8 +560,8 @@ export default function Home() {
           </div>
           <p style={{ fontSize: '13px', color: '#5a5298', lineHeight: '1.6', margin: 0 }}>
             This demo runs entirely from the teacher's perspective. When you send a quiz,
-            student responses are automatically simulated so you can jump straight to analytics.
-            Student view, push notifications, and scheduling are shown as mockups in the{' '}
+            students receive a real push notification and analytics update live as they respond.
+            Some flows are shown as mockups in the{' '}
             <span
               onClick={() => navigate('/demo')}
               style={{ textDecoration: 'underline', cursor: 'pointer' }}

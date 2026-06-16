@@ -110,10 +110,10 @@ describe('PUT /api/classes/{id}', () => {
     expect(data.name).toBe('Updated Name');
   });
 
-  it_int('returns 403 when a different teacher tries to update', async () => {
+  it_int('returns 404 when a different teacher tries to update (Sprint 5: 404, not 403)', async () => {
     const otherOid = `integ-other-${Date.now()}`;
     const res = await apiRequest('PUT', `/classes/${classId}`, { name: 'Stolen Name' }, otherOid);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
 
   afterAll(async () => {
@@ -134,10 +134,10 @@ describe('DELETE /api/classes/{id}', () => {
     classId = data.id;
   });
 
-  it_int('returns 403 when a different teacher tries to delete', async () => {
+  it_int('returns 404 when a different teacher tries to delete (Sprint 5: 404, not 403)', async () => {
     const otherOid = `integ-other-del-${Date.now()}`;
     const res = await apiRequest('DELETE', `/classes/${classId}`, null, otherOid);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
 
   it_int('deletes the class and returns 200', async () => {

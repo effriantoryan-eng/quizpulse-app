@@ -9,65 +9,83 @@ const OPTION_BORDER = ['#185FA5', '#534AB7', '#633806', '#4B1528']
 const CORRECT_BG = '#EAF3DE'
 const CORRECT_BORDER = '#3B6D11'
 
+const POLL_INTERVAL_MS = 3000
+
 function Analytics() {
   const { quizId } = useParams()
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('analytics')
-  const [quiz, setQuiz] = useState(null)
+  const [quizName, setQuizName] = useState('')
   const [classSize, setClassSize] = useState(null)
+  const [totalResponses, setTotalResponses] = useState(0)
   const [questions, setQuestions] = useState([])
-  const [responses, setResponses] = useState([])
+  const [nonResponders, setNonResponders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState(null)
 
   useEffect(() => {
-    async function fetchData() {
+    let cancelled = false
+
+    async function fetchAnalytics() {
       try {
-        const quizRes = await fetch(`${API_BASE}/quizzes/${quizId}`)
-        if (quizRes.status === 404) throw new Error('Quiz not found')
-        if (!quizRes.ok) throw new Error(`Server error ${quizRes.status}`)
-        const quizData = await quizRes.json()
+        const res = await fetch(`${API_BASE}/analytics?quizId=${quizId}`)
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data.error || `Server error ${res.status}`)
+        }
+        const data = await res.json()
+        if (cancelled) return
 
-        const [responsesRes, questionsRes] = await Promise.all([
-          fetch(`${API_BASE}/responses?quizId=${quizId}`),
-          fetch(`${API_BASE}/questions?teacherId=${quizData.teacherId}`)
-        ])
-
-        if (!responsesRes.ok || !questionsRes.ok) throw new Error('Failed to load data')
-
-        const responsesData = await responsesRes.json()
-        const allQuestions = await questionsRes.json()
-        const quizQuestions = quizData.questionIds
-          .map(qid => allQuestions.find(q => q.id === qid))
-          .filter(Boolean)
-
-        setResponses(responsesData)
-        setQuestions(quizQuestions)
-        setClassSize(quizData.classSize || null)
-        setLoading(false)
+        setQuizName(data.quizName)
+        setClassSize(data.classSize ?? null)
+        setTotalResponses(data.totalResponses)
+        setQuestions(data.questions)
+        setNonResponders(data.nonResponders || [])
+        setError(null)
       } catch (err) {
-        setError(err.message)
-        setLoading(false)
+        if (!cancelled) setError(err.message)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
-    fetchData()
+
+    fetchAnalytics()
+    const intervalId = setInterval(fetchAnalytics, POLL_INTERVAL_MS)
+    return () => {
+      cancelled = true
+      clearInterval(intervalId)
+    }
   }, [quizId])
 
-  function getOptionCounts(questionId, optionCount) {
-    const counts = Array(optionCount).fill(0)
-    responses.forEach(r => {
-      const answer = r.answers?.find(a => a.questionId === questionId)
-      if (answer !== undefined && answer.selectedIndex >= 0) {
-        counts[answer.selectedIndex]++
+  async function handleExportCsv() {
+    setExporting(true)
+    setExportError(null)
+    try {
+      const res = await fetch(`${API_BASE}/analytics/export?quizId=${quizId}`)
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || `Export failed (${res.status})`)
       }
-    })
-    return counts
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${quizId}_responses.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setExportError(err.message)
+    } finally {
+      setExporting(false)
+    }
   }
 
   if (loading) return <div style={{ padding: '24px', color: '#888' }}>Loading analytics...</div>
   if (error) return <div style={{ padding: '24px', color: '#A32D2D' }}>{error}</div>
-
-  const totalResponses = responses.length
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px' }}>
@@ -81,20 +99,32 @@ function Analytics() {
           ← Back
         </button>
         <div style={{ flex: 1 }}>
-          <h2 style={{ margin: 0, fontSize: '20px' }}>Quiz Analytics</h2>
+          <h2 style={{ margin: 0, fontSize: '20px' }}>{quizName || 'Quiz Analytics'}</h2>
           <div style={{ fontSize: '13px', color: '#888', marginTop: '2px' }}>Quiz ID: {quizId}</div>
         </div>
+        <button
+          onClick={handleExportCsv}
+          disabled={exporting}
+          style={{ background: 'white', border: '1px solid #534AB7', color: '#534AB7', borderRadius: '8px', padding: '6px 12px', cursor: exporting ? 'not-allowed' : 'pointer', fontSize: '13px', flexShrink: 0 }}
+        >
+          {exporting ? 'Exporting…' : 'Export CSV'}
+        </button>
         {!hintVisible && (
           <button onClick={showHint} style={{ background: 'none', border: '1px solid #C5C0F0', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: '#7B6EDE', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>?</button>
         )}
       </div>
       {hintVisible && (
         <HintBanner
-          text="Each question shows how the class responded. The green bar is the correct answer. Use the question cards below to see the full breakdown."
+          text="Each question shows how the class responded. The green bar is the correct answer. Use the question cards below to see the full breakdown. This page updates automatically every few seconds."
           onDismiss={dismissHint}
         />
       )}
 
+      {exportError && (
+        <div style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
+          {exportError}
+        </div>
+      )}
 
       {/* Summary card */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '28px' }}>
@@ -118,7 +148,7 @@ function Analytics() {
       )}
 
       {questions.map((q, qi) => {
-        const counts = getOptionCounts(q.id, q.options.length)
+        const counts = q.counts
         const total = counts.reduce((a, b) => a + b, 0)
 
         return (
@@ -180,7 +210,20 @@ function Analytics() {
 
       {totalResponses === 0 && questions.length > 0 && (
         <div style={{ textAlign: 'center', padding: '24px', color: '#aaa', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
-          No responses yet. Share the quiz link with students to see results here.
+          No responses yet. Students will appear here as soon as they submit.
+        </div>
+      )}
+
+      {nonResponders.length > 0 && (
+        <div style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '20px', marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+            Haven't responded yet ({nonResponders.length})
+          </div>
+          {nonResponders.map((s, i) => (
+            <div key={i} style={{ fontSize: '13px', color: '#555', padding: '6px 0', borderBottom: i < nonResponders.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+              {s.studentName}
+            </div>
+          ))}
         </div>
       )}
     </div>

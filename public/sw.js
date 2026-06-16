@@ -29,6 +29,83 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification(title, options))
 })
 
+// --- Background Sync: flush quiz responses queued while offline ---
+// Mirrors the IndexedDB schema in src/offlineQueue.js (can't share an ES module with a
+// classic-script service worker), so keep the store name/shape in sync if either changes.
+
+const OFFLINE_DB_NAME = 'quizpulse-offline'
+const OFFLINE_STORE_NAME = 'pending-responses'
+
+function getApiBase() {
+  return self.location.hostname === 'localhost'
+    ? 'http://localhost:7071/api'
+    : 'https://quizpulse-app-api-av5z18.azurewebsites.net/api'
+}
+
+function openOfflineDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(OFFLINE_DB_NAME, 1)
+    req.onupgradeneeded = () => {
+      if (!req.result.objectStoreNames.contains(OFFLINE_STORE_NAME)) {
+        req.result.createObjectStore(OFFLINE_STORE_NAME, { keyPath: 'id' })
+      }
+    }
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function getAllPendingResponses() {
+  const db = await openOfflineDb()
+  const items = await new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_STORE_NAME, 'readonly')
+    const req = tx.objectStore(OFFLINE_STORE_NAME).getAll()
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+  db.close()
+  return items
+}
+
+async function deletePendingResponse(id) {
+  const db = await openOfflineDb()
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_STORE_NAME, 'readwrite')
+    tx.objectStore(OFFLINE_STORE_NAME).delete(id)
+    tx.oncomplete = resolve
+    tx.onerror = () => reject(tx.error)
+  })
+  db.close()
+}
+
+async function flushPendingResponses() {
+  const pending = await getAllPendingResponses()
+  const apiBase = getApiBase()
+
+  for (const item of pending) {
+    try {
+      const res = await fetch(`${apiBase}/responses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: item.quizId, studentId: item.studentId, answers: item.answers }),
+      })
+      // 201 = stored. 409 = another submission for this student/quiz already landed —
+      // either way there's nothing left to retry, so drop it from the queue.
+      if (res.ok || res.status === 409) {
+        await deletePendingResponse(item.id)
+      }
+    } catch {
+      // Still offline — leave it queued, the next sync event will retry.
+    }
+  }
+}
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-responses') {
+    event.waitUntil(flushPendingResponses())
+  }
+})
+
 // Deep-link into the quiz when the notification is clicked.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()

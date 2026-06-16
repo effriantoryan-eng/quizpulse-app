@@ -6,6 +6,7 @@ const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
 const crypto = require('crypto');
 const { runFuzzyMatch } = require('./fuzzyMatchHelper');
+const { assertScope, ScopeError } = require('./shared/authz');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -219,8 +220,11 @@ app.http('joinRequestsList', {
 
       // Verify teacher owns this class
       const cls = await getClassById(classId);
-      if (!cls || cls.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(cls, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       const { resources } = await joinRequestsContainer.items.query({
@@ -272,8 +276,11 @@ app.http('joinRequestApproveBatch', {
 
       // Verify teacher owns this class
       const cls = await getClassById(classId);
-      if (!cls || cls.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(cls, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       const results = { approved: [], skipped: [], errors: [] };
@@ -328,8 +335,11 @@ app.http('joinRequestApprove', {
 
       // Verify ownership
       const cls = await getClassById(classId);
-      if (!cls || cls.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(cls, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       const result = await approveRequest(reqId, classId, teacherId, context);
@@ -369,12 +379,29 @@ app.http('joinRequestReject', {
       if (!classId) return respond(400, { error: 'classId query parameter is required' }, teacherId);
 
       const cls = await getClassById(classId);
-      if (!cls || cls.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(cls, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
-      const { resource: joinReq } = await joinRequestsContainer.item(reqId, classId).read();
-      if (!joinReq) return respond(404, { error: 'Join request not found' }, teacherId);
+      let joinReq;
+      try {
+        const { resource } = await joinRequestsContainer.item(reqId, classId).read();
+        joinReq = resource;
+      } catch (err) {
+        if (err.code === 404) return respond(404, { error: 'Join request not found' }, teacherId);
+        throw err;
+      }
+      // Defense-in-depth: re-verify the loaded document belongs to this teacher, not just
+      // the class looked up above (Sprint 5 audit finding — approve already does this).
+      try {
+        assertScope(joinReq, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Join request not found' }, teacherId);
+        throw err;
+      }
       if (joinReq.status === 'rejected') return respond(200, { rejected: true, id: reqId }, teacherId);
 
       joinReq.status = 'rejected';
