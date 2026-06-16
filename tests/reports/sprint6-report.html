@@ -1,0 +1,316 @@
+<html><head><meta charset="utf-8"/><title>QuizPulse — Sprint 6 Test Report</title><style type="text/css">:root {
+  --text-primary: #111;
+  --text-secondary: #4f4f4f;
+  --success: #006633;
+  --success-bright: #80ffbf;
+  --danger: #cc071e;
+  --danger-bright: #fbdfe0;
+  --warning: #995c00;
+  --warning-bright: #ffeea8;
+  --panel: #eee;
+  --border: #949494;
+  --disabled: #6b6b6b;
+}
+
+html,
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+body {
+  padding: 2rem 1rem;
+}
+.jesthtml-content {
+  margin: 0 auto;
+  max-width: 70rem;
+}
+header {
+  display: flex;
+  align-items: center;
+}
+#title {
+  margin: 0;
+  flex-grow: 1;
+}
+#logo {
+  height: 4rem;
+}
+#timestamp {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+#metadata-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.additional-information-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/** SUMMARY */
+#summary {
+  color: var(--text-primary);
+  display: flex;
+  font-family: monospace;
+  font-size: 1rem;
+}
+#summary > div {
+  margin-right: 0.5rem;
+  background: var(--panel);
+  padding: 1rem;
+  min-width: 15rem;
+}
+#summary > div:last-child {
+  margin-right: 0;
+}
+@media only screen and (max-width: 720px) {
+  #summary {
+    flex-direction: column;
+  }
+  #summary > div {
+    margin-right: 0;
+    margin-top: 1rem;
+  }
+  #summary > div:first-child {
+    margin-top: 0;
+  }
+}
+
+.summary-total {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.summary-passed {
+  color: var(--success);
+  border-left: 0.4rem solid var(--success);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-failed,
+.summary-obsolete-snapshots {
+  color: var(--danger);
+  border-left: 0.4rem solid var(--danger);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-pending {
+  color: var(--warning);
+  border-left: 0.4rem solid var(--warning);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-empty {
+  color: var(--disabled);
+  border-left: 0.4rem solid var(--disabled);
+  margin-bottom: 0.15rem;
+}
+
+.test-result {
+  padding: 1rem;
+  margin-bottom: 0.25rem;
+}
+.test-result:last-child {
+  border: 0;
+}
+.test-result.passed {
+  background-color: var(--success-bright);
+  color: var(--success);
+}
+.test-result.failed {
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.test-result.pending {
+  background-color: var(--warning-bright);
+  color: var(--warning);
+}
+
+.test-info {
+  display: flex;
+  justify-content: space-between;
+}
+.test-suitename {
+  width: 20%;
+  text-align: left;
+  font-weight: bold;
+  word-break: break-word;
+}
+.test-title {
+  width: 40%;
+  text-align: left;
+  font-style: italic;
+}
+.test-status {
+  width: 20%;
+  text-align: right;
+}
+.test-duration {
+  width: 10%;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.failureMessages {
+  padding: 0 1rem;
+  margin-top: 1rem;
+  border-top: 1px dashed var(--danger);
+}
+.failureMessages.suiteFailure {
+  border-top: none;
+}
+.failureMsg {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+.suite-container {
+  margin-bottom: 1rem;
+}
+.suite-info {
+  padding: 1rem;
+  background-color: var(--panel);
+  color: var(--text-secondary);
+  border: 0.15rem solid;
+  border-color: var(--panel);
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.suite-info:hover {
+  border-color: var(--border);
+  cursor: pointer;
+}
+.suite-info .suite-path {
+  word-break: break-all;
+  flex-grow: 1;
+  font-family: monospace;
+  font-size: 1rem;
+}
+.suite-info .suite-time {
+  margin-left: 1rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.85rem;
+}
+.suite-info .suite-time.warn {
+  background-color: var(--danger);
+  color: #fff;
+}
+.suite-info:before {
+  content: "\2303";
+  display: inline-block;
+  margin-right: 1rem;
+  transform: rotate(180deg) translateY(0.15rem);
+}
+.suite-container[open] .suite-info:before {
+  transform: rotate(0deg) translateY(0.15rem);
+}
+
+/* CONSOLE LOGS */
+.suite-consolelog {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--panel);
+}
+.suite-consolelog-header {
+  font-weight: bold;
+}
+.suite-consolelog-item {
+  padding: 0.5rem;
+}
+.suite-consolelog-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-consolelog-item-origin {
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+.suite-consolelog-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* OBSOLETE SNAPSHOTS */
+.suite-obsolete-snapshots {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.suite-obsolete-snapshots-header {
+  font-weight: bold;
+}
+.suite-obsolete-snapshots-item {
+  padding: 0.5rem;
+}
+.suite-obsolete-snapshots-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-obsolete-snapshots-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+</style></head><body><main class="jesthtml-content"><header><h1 id="title">QuizPulse — Sprint 6 Test Report</h1></header><section id="metadata-container"><div id="timestamp">Started: 2026-06-17 08:30:01</div><div id="summary"><div id="suite-summary"><div class="summary-total">Suites (15)</div><div class="summary-passed ">15 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div><div id="test-summary"><div class="summary-total">Tests (130)</div><div class="summary-passed ">130 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div></div></section><details id="suite-1" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\joinBruteForce.test.js</div><div class="suite-time">1.165s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">join code brute-force limiter</div><div class="test-title">allows up to MAX attempts</div><div class="test-status">passed</div><div class="test-duration">0.021s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">join code brute-force limiter</div><div class="test-title">blocks the (MAX+1)th attempt within the window</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">join code brute-force limiter</div><div class="test-title">allows a fresh key independently</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">join code brute-force limiter</div><div class="test-title">different IPs are tracked independently</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-2" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\rateLimit.test.js</div><div class="suite-time">1.3s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">rateLimit (APIM no-op)</div><div class="test-title">always returns true regardless of call count</div><div class="test-status">passed</div><div class="test-duration">0.078s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">rateLimit (APIM no-op)</div><div class="test-title">returns true for any key, max, and windowMs combination</div><div class="test-status">passed</div><div class="test-duration">0.006s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">rateLimit (APIM no-op)</div><div class="test-title">returns true with no arguments (safe default)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getClientIp</div><div class="test-title">extracts the first IP from x-forwarded-for</div><div class="test-status">passed</div><div class="test-duration">0.037s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getClientIp</div><div class="test-title">returns a single IP when there is no comma</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getClientIp</div><div class="test-title">trims whitespace from the extracted IP</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getClientIp</div><div class="test-title">returns "unknown" when x-forwarded-for is absent</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-3" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\sendNotification.test.js</div><div class="suite-time">1.211s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">send-notification — idempotency</div><div class="test-title">returns 409 on duplicate quizId (quiz already has notificationSentAt)</div><div class="test-status">passed</div><div class="test-duration">0.017s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">send-notification — idempotency</div><div class="test-title">returns 200 and marks quiz on first send</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">send-notification — idempotency</div><div class="test-title">second call after first send returns 409</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">send-notification — idempotency</div><div class="test-title">returns 404 when teacherId does not own the quiz (Sprint 5: 404, not 403)</div><div class="test-status">passed</div><div class="test-duration">0.006s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">send-notification — idempotency</div><div class="test-title">payload over 3 KB returns 413</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-4" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\subscribe.test.js</div><div class="suite-time">1.229s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">subscribe — unapproved device</div><div class="test-title">returns 403 when no approved join request exists</div><div class="test-status">passed</div><div class="test-duration">0.012s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">subscribe — unapproved device</div><div class="test-title">returns 201 when an approved join request exists</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">subscribe — unapproved device</div><div class="test-title">returns 400 for missing subscription keys</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">subscribe — unapproved device</div><div class="test-title">returns 400 for missing deviceId</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-5" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\authz.test.js</div><div class="suite-time">1.404s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">getCallerScope</div><div class="test-title">derives teacherId from the oid claim</div><div class="test-status">passed</div><div class="test-duration">0.035s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getCallerScope</div><div class="test-title">falls back to sub when oid is absent</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getCallerScope</div><div class="test-title">defaults role to "teacher" when no role claim is present</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getCallerScope</div><div class="test-title">reads role from the claim when present</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getCallerScope</div><div class="test-title">defaults schoolId to null when no claim is present</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getCallerScope</div><div class="test-title">reads schoolId from the claim when present</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">getCallerScope</div><div class="test-title">never reads role/schoolId from anything but the claims object passed in</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">passes and returns the resource when teacherId matches</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">throws a ScopeError when teacherId does not match</div><div class="test-status">passed</div><div class="test-duration">0.052s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">the thrown ScopeError carries status 404, never 403</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">throws when the resource is missing/null</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">throws when caller has no teacherId (fails closed)</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">school_admin scope: passes when schoolId matches via ownerField</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">school_admin scope: throws when schoolId does not match (cross-school access)</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">school_admin scope fails closed when caller has no schoolId claim yet</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">privileged role "owner" bypasses the ownership check entirely</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">privileged role "support" bypasses the ownership check entirely</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">privileged role "platform_admin" bypasses the ownership check entirely</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">a non-privileged role is still scoped normally</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">mutate role "owner" bypasses the ownership check when mutate: true</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">mutate role "platform_admin" bypasses the ownership check when mutate: true</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertScope</div><div class="test-title">"support" is read-all but never bypasses a mutate check (read all, mutate none)</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">requireRole</div><div class="test-title">passes and returns the caller when role is in the allow-list</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">requireRole</div><div class="test-title">throws a ScopeError (404, never 403) when role is not in the allow-list</div><div class="test-status">passed</div><div class="test-duration">0.021s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">requireRole</div><div class="test-title">throws when caller is missing entirely (fails closed)</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-6" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\auditLog.test.js</div><div class="suite-time">0.267s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">writeAudit</div><div class="test-title">writes an entry with an id and createdAt timestamp</div><div class="test-status">passed</div><div class="test-duration">0.008s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">writeAudit</div><div class="test-title">defaults before/after/ip to null when not provided</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">audit_log append-only guarantee</div><div class="test-title">api/shared/auditLog.js exports only writeAudit — no update/delete/replace function</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-7" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\communityBank.test.js</div><div class="suite-time">0.435s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">teacher can read their own private question</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">teacher cannot read another teacher's private question</div><div class="test-status">passed</div><div class="test-duration">0.029s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">teacher can mutate their own school-visible question</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">teacher cannot mutate another teacher's school-visible question</div><div class="test-status">passed</div><div class="test-duration">0.027s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">platform_admin can read any question regardless of visibility</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">platform_admin can mutate any question (e.g. unpublish via visibility=private)</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">support can read any question but cannot mutate</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility scoping — assertScope</div><div class="test-title">owner can read and mutate any question</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">report queue — role gating</div><div class="test-title">support can access the report queue</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">report queue — role gating</div><div class="test-title">platform_admin can access the report queue</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">report queue — role gating</div><div class="test-title">plain teacher cannot access the report queue</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">upvote idempotency</div><div class="test-title">first upvote increments count and sets upvoted=true</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">upvote idempotency</div><div class="test-title">second upvote (toggle off) decrements count and sets upvoted=false</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">upvote idempotency</div><div class="test-title">count never goes below 0 on remove</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">upvote idempotency</div><div class="test-title">upvoteCount increments from a higher base</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility transitions</div><div class="test-title">all three visibility values are valid</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility transitions</div><div class="test-title">unknown visibility values are rejected</div><div class="test-status">passed</div><div class="test-duration">0.016s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility transitions</div><div class="test-title">MUTATE_ALL_ROLES includes platform_admin but not support</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">visibility transitions</div><div class="test-title">READ_ALL_ROLES includes support</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">null is valid (no year restriction)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">undefined is valid (not provided)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">7 is valid</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">12 is valid</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">6 is invalid</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">13 is invalid</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">string "9" is invalid</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">yearLevel validation</div><div class="test-title">float 9.5 is invalid</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-8" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\namelistSanitize.test.js</div><div class="suite-time">0.323s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">trims whitespace from each entry</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">removes blank entries</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">deduplicates entries (case-sensitive)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">deduplicates after trimming</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">throws when any entry exceeds STUDENT_NAME_MAX</div><div class="test-status">passed</div><div class="test-duration">0.069s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">allows entry at exactly STUDENT_NAME_MAX</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">throws when cleaned list exceeds NAME_LIST_MAX</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">allows exactly NAME_LIST_MAX entries</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">throws when input is not an array</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">nameList sanitization</div><div class="test-title">filters out non-string elements silently</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-9" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\stepUp.test.js</div><div class="suite-time">0.342s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertStepUp</div><div class="test-title">passes when auth_time is well within the window</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertStepUp</div><div class="test-title">passes when auth_time is just inside the window</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertStepUp</div><div class="test-title">throws when auth_time is just outside the window</div><div class="test-status">passed</div><div class="test-duration">0.034s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertStepUp</div><div class="test-title">falls back to iat when auth_time is absent</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertStepUp</div><div class="test-title">throws when neither auth_time nor iat is present (fails closed)</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">assertStepUp</div><div class="test-title">the thrown error carries status 401 and reauthRequired: true</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-10" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\responses.test.js</div><div class="suite-time">0.367s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — approval gate</div><div class="test-title">returns 403 when student has no approved join request for the quiz classes</div><div class="test-status">passed</div><div class="test-duration">0.005s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — approval gate</div><div class="test-title">returns 201 when student has an approved join request</div><div class="test-status">passed</div><div class="test-duration">0.004s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — duplicate submission</div><div class="test-title">returns 409 when a response already exists for this student + quiz</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — closed quiz</div><div class="test-title">returns 410 when quiz.closedAt is in the past</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — closed quiz</div><div class="test-title">returns 201 when quiz.closedAt is in the future</div><div class="test-status">passed</div><div class="test-duration">0.033s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — closed quiz</div><div class="test-title">returns 404 when the quiz does not exist</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-11" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\analytics.test.js</div><div class="suite-time">0.175s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">analytics — accuracy with 5 known responses</div><div class="test-title">computes correct per-option counts for each question</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">analytics — accuracy with 5 known responses</div><div class="test-title">total responses across all questions equals the response count</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">analytics — accuracy with 5 known responses</div><div class="test-title">non-responder is excluded from counts</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-12" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\fuzzyMatch.test.js</div><div class="suite-time">0.301s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">runFuzzyMatch</div><div class="test-title">exact match returns score 1</div><div class="test-status">passed</div><div class="test-duration">0.006s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">runFuzzyMatch</div><div class="test-title">near match returns a matched name and score ≥ 0.6</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">runFuzzyMatch</div><div class="test-title">no match returns null matchedName and score 0</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">runFuzzyMatch</div><div class="test-title">empty name list returns null matchedName</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">runFuzzyMatch</div><div class="test-title">null name list returns null matchedName</div><div class="test-status">passed</div><div class="test-duration">0.004s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">runFuzzyMatch</div><div class="test-title">matchScore is stored as similarity (1 = perfect, closer to 0 = no match)</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">runFuzzyMatch</div><div class="test-title">case-insensitive near match</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-13" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\offlineSync.test.js</div><div class="suite-time">0.219s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">offline sync — flush pending responses</div><div class="test-title">removes a response from the queue once it submits successfully</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">offline sync — flush pending responses</div><div class="test-title">removes a response from the queue if the server reports it as a duplicate (409)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">offline sync — flush pending responses</div><div class="test-title">keeps a response queued when the network is still unavailable</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">offline sync — flush pending responses</div><div class="test-title">flushes multiple queued responses independently</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div></div></details><details id="suite-14" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\metrics.test.js</div><div class="suite-time">2.038s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">buildStubbedMetrics</div><div class="test-title">echoes the requested range and flags the response as stubbed</div><div class="test-status">passed</div><div class="test-duration">0.007s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">buildStubbedMetrics</div><div class="test-title">includes all five documented metric groups</div><div class="test-status">passed</div><div class="test-duration">0.007s</div></div></div></div><div class="suite-consolelog"><div class="suite-consolelog-header">Console Log</div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at setProgrammingModel (C:\Users\Ryan\quizpulse - PWA\api\node_modules\@azure\functions\dist\webpack:\@azure\functions\src\app.ts:42:17)
+    at generic (C:\Users\Ryan\quizpulse - PWA\api\node_modules\@azure\functions\dist\webpack:\@azure\functions\src\app.ts:191:9)
+    at Object.http (C:\Users\Ryan\quizpulse - PWA\api\node_modules\@azure\functions\dist\webpack:\@azure\functions\src\app.ts:100:5)
+    at Object.http (C:\Users\Ryan\quizpulse - PWA\api\metrics.js:20:5)
+    at ModuleExecutor.exec (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:2078:26)
+    at CjsLoader.loadModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:323:36)
+    at CjsLoader.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:289:12)
+    at Runtime.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3657:27)
+    at Runtime.requireModuleOrMock (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3745:19)
+    at RequireBuilder.requireDispatch (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3511:51)
+    at moduleRequire (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:2951:138)
+    at Object.require (C:\Users\Ryan\quizpulse - PWA\tests\unit\api\metrics.test.js:6:33)
+    at ModuleExecutor.exec (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:2078:26)
+    at CjsLoader.loadModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:323:36)
+    at CjsLoader.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:289:12)
+    at Runtime.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3657:27)
+    at jestAdapter (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-circus\build\runner.js:96:13)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at runTestInternal (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runner\build\testWorker.js:276:16)
+    at runTest (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runner\build\testWorker.js:344:7)
+    at Object.worker (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runner\build\testWorker.js:498:12)</pre><pre class="suite-consolelog-item-message">WARNING: Failed to detect the Azure Functions runtime. Switching "@azure/functions" package to test mode - not all features are supported.</pre></div><div class="suite-consolelog-item"><pre class="suite-consolelog-item-origin">    at generic (C:\Users\Ryan\quizpulse - PWA\api\node_modules\@azure\functions\dist\webpack:\@azure\functions\src\app.ts:196:17)
+    at Object.http (C:\Users\Ryan\quizpulse - PWA\api\node_modules\@azure\functions\dist\webpack:\@azure\functions\src\app.ts:100:5)
+    at Object.http (C:\Users\Ryan\quizpulse - PWA\api\metrics.js:20:5)
+    at ModuleExecutor.exec (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:2078:26)
+    at CjsLoader.loadModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:323:36)
+    at CjsLoader.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:289:12)
+    at Runtime.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3657:27)
+    at Runtime.requireModuleOrMock (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3745:19)
+    at RequireBuilder.requireDispatch (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3511:51)
+    at moduleRequire (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:2951:138)
+    at Object.require (C:\Users\Ryan\quizpulse - PWA\tests\unit\api\metrics.test.js:6:33)
+    at ModuleExecutor.exec (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:2078:26)
+    at CjsLoader.loadModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:323:36)
+    at CjsLoader.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:289:12)
+    at Runtime.requireModule (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runtime\build\index.js:3657:27)
+    at jestAdapter (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-circus\build\runner.js:96:13)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at runTestInternal (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runner\build\testWorker.js:276:16)
+    at runTest (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runner\build\testWorker.js:344:7)
+    at Object.worker (C:\Users\Ryan\quizpulse - PWA\node_modules\jest-runner\build\testWorker.js:498:12)</pre><pre class="suite-consolelog-item-message">WARNING: Skipping call to register function "manageMetrics" because the "@azure/functions" package is in test mode.</pre></div></div></details><details id="suite-15" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\auth.test.js</div><div class="suite-time">2.055s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">extractBearer</div><div class="test-title">returns token from valid Bearer header</div><div class="test-status">passed</div><div class="test-duration">0.006s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">extractBearer</div><div class="test-title">returns null when Authorization header is absent</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">extractBearer</div><div class="test-title">returns null for non-Bearer schemes</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">extractBearer</div><div class="test-title">is case-insensitive for the Bearer scheme</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">teacherIdFromClaims</div><div class="test-title">returns oid when present</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">teacherIdFromClaims</div><div class="test-title">falls back to sub when oid is absent</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">teacherIdFromClaims</div><div class="test-title">returns null when neither oid nor sub is present</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">teacherIdFromClaims</div><div class="test-title">prefers oid over sub</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">verifyToken in DEV_MODE</div><div class="test-title">resolves with decoded claims for a valid token</div><div class="test-status">passed</div><div class="test-duration">0.004s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">verifyToken in DEV_MODE</div><div class="test-title">rejects with an expired token</div><div class="test-status">passed</div><div class="test-duration">0.014s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">verifyToken in DEV_MODE</div><div class="test-title">rejects with a malformed token string</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">verifyToken in DEV_MODE</div><div class="test-title">rejects with an empty string</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authenticateTeacher</div><div class="test-title">returns { error, status: 401 } when no Authorization header is present</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authenticateTeacher</div><div class="test-title">returns { teacherId, claims } for a valid token with oid</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authenticateTeacher</div><div class="test-title">returns 401 when token has no oid or sub claim</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authenticateTeacher</div><div class="test-title">returns 401 for an expired token</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">authenticateTeacher</div><div class="test-title">returns 401 for a garbage token string</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details></main></body></html>
