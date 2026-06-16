@@ -479,3 +479,55 @@ describe('Institution onboarding — invite', () => {
     expect(secondRedeem.status).toBe(410);
   });
 });
+
+// --- Monitoring endpoints (Sprint 5 admin endpoints, stubbed per the metrics caveat) ---
+
+describe('Monitoring — metrics', () => {
+  it_int('a non-owner/support caller gets 404 from manage/metrics', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/metrics?range=today`, {
+      headers: authHeaders(TEACHER_B), // plain 'teacher' role
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it_int('an owner caller gets a 200 with the stubbed metric shape', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/metrics?range=7d`, {
+      headers: ownerHeaders('sprint5-owner-metrics'),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.stubbed).toBe(true);
+    expect(body.range).toBe('7d');
+  });
+
+  it_int('rejects an invalid range', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/metrics?range=1y`, {
+      headers: ownerHeaders('sprint5-owner-metrics'),
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('Monitoring — logs export', () => {
+  it_int('a non-owner/support caller gets 404 from manage/logs/export', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/logs/export?type=security`, {
+      headers: authHeaders(TEACHER_B),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it_int('type=security streams real JSONL from audit_log', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/logs/export?type=security`, {
+      headers: ownerHeaders('sprint5-owner-logs'),
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toMatch(/ndjson/);
+  });
+
+  it_int('type=errors returns 501, not fabricated data', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/logs/export?type=errors`, {
+      headers: ownerHeaders('sprint5-owner-logs'),
+    });
+    expect(res.status).toBe(501);
+  });
+});
