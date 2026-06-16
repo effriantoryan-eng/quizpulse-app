@@ -236,6 +236,22 @@ app.http('quizzes', {
         };
 
         const { resource } = await container.items.create(quiz);
+
+        // Best-effort: increment usageCount on each referenced question (fire-and-forget)
+        const uniqueIds = [...new Set(quiz.questionIds)];
+        Promise.all(uniqueIds.map(async (qid) => {
+          try {
+            const { resources: qMatches } = await questionsContainer.items.query({
+              query: 'SELECT * FROM c WHERE c.id = @id',
+              parameters: [{ name: '@id', value: qid }]
+            }).fetchAll();
+            if (qMatches.length > 0) {
+              const q = qMatches[0];
+              await questionsContainer.items.upsert({ ...q, usageCount: (q.usageCount || 0) + 1 });
+            }
+          } catch (_) { /* non-fatal */ }
+        })).catch(() => {});
+
         return respond(201, resource, quiz.teacherId)
       }
 

@@ -11,11 +11,13 @@ function CreateQuestion() {
   const [options, setOptions] = useState(['', '', '', ''])
   const [correctIndex, setCorrectIndex] = useState(null)
   const [topic, setTopic] = useState('')
+  const [yearLevel, setYearLevel] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState(null)
 
   const topics = ['Mathematics', 'Science', 'English', 'History', 'Geography']
+  const yearLevels = [7, 8, 9, 10, 11, 12]
 
   function handleOptionChange(index, value) {
     const updated = [...options]
@@ -36,7 +38,7 @@ function CreateQuestion() {
       const res = await fetch(`${API_BASE}/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: question, options, correctIndex, topic, teacherId })
+        body: JSON.stringify({ text: question, options, correctIndex, topic, yearLevel })
       })
 
       if (!res.ok) throw new Error('Failed to save question')
@@ -46,6 +48,7 @@ function CreateQuestion() {
       setOptions(['', '', '', ''])
       setCorrectIndex(null)
       setTopic('')
+      setYearLevel(null)
       setTimeout(() => setSaved(false), 3000)
 
     } catch (err) {
@@ -117,7 +120,7 @@ function CreateQuestion() {
         ))}
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '20px' }}>
         <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Topic tag</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {topics.map(t => (
@@ -133,6 +136,27 @@ function CreateQuestion() {
               }}
             >
               {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '24px' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Year level (optional)</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <button
+            onClick={() => setYearLevel(null)}
+            style={{ padding: '4px 12px', borderRadius: '20px', border: '1px solid #ddd', background: yearLevel === null ? '#534AB7' : 'white', color: yearLevel === null ? 'white' : '#555', cursor: 'pointer', fontSize: '13px' }}
+          >
+            All years
+          </button>
+          {yearLevels.map(y => (
+            <button
+              key={y}
+              onClick={() => setYearLevel(y)}
+              style={{ padding: '4px 12px', borderRadius: '20px', border: '1px solid #ddd', background: yearLevel === y ? '#534AB7' : 'white', color: yearLevel === y ? 'white' : '#555', cursor: 'pointer', fontSize: '13px' }}
+            >
+              Year {y}
             </button>
           ))}
         </div>
