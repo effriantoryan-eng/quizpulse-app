@@ -1,5 +1,7 @@
 const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
+const { authenticateTeacher } = require('./auth');
+const { getCallerScope, requireRole, ScopeError, ROLES } = require('./shared/authz');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -10,12 +12,25 @@ const database = client.database(process.env.COSMOS_DATABASE);
 
 const LIMIT = 1000;
 
+// This returns an unfiltered, platform-wide dump of every teacher's data. The Function-key
+// gate (authLevel: 'function') is defense-in-depth only — the real gate is the caller's role
+// claim. Sprint 5 security audit: this previously had no role check at all, just the key.
 app.http('usageLog', {
   methods: ['GET'],
   authLevel: 'function',
   route: 'usageLog',
   handler: async (request, context) => {
     try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return { status: auth.status, jsonBody: { error: auth.error } };
+      const caller = getCallerScope(auth.claims);
+      try {
+        requireRole(caller, [ROLES.OWNER, ROLES.SUPPORT]);
+      } catch (err) {
+        if (err instanceof ScopeError) return { status: 404, jsonBody: { error: 'Not found' } };
+        throw err;
+      }
+
       const params = new URL(request.url).searchParams;
       const limit = Math.min(parseInt(params.get('limit') || LIMIT, 10), LIMIT);
 

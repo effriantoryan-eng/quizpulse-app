@@ -3,6 +3,7 @@ const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
+const { assertScope, ScopeError } = require('./shared/authz');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -55,8 +56,11 @@ app.http('classesNameList', {
         if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
       }
-      if (!existing || existing.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(existing, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       const { nameList, nameListEnabled } = body;

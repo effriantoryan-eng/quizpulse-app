@@ -86,7 +86,7 @@ app.http('subscribe', {
       if (!doc.createdAt) delete doc.createdAt; // preserve original on upsert
 
       await subscriptionsContainer.items.upsert(doc);
-      context.log(`Subscription upserted: ${doc.id} (device=${deviceId}, class=${classId})`);
+      context.log(`Subscription upserted: ${doc.id}`);
       return respond(201, { id: doc.id });
     } catch (err) {
       context.error('subscribe failed', err);

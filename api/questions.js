@@ -3,6 +3,7 @@ const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
+const { assertScope, ScopeError } = require('./shared/authz');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -133,7 +134,12 @@ app.http('questionById', {
         }).fetchAll()
 
         if (resources.length === 0) return respond(404, { error: 'Question not found' }, teacherId)
-        if (resources[0].teacherId !== teacherId) return respond(403, { error: 'You do not have access to this question' }, teacherId)
+        try {
+          assertScope(resources[0], { teacherId })
+        } catch (err) {
+          if (err instanceof ScopeError) return respond(404, { error: 'Question not found' }, teacherId)
+          throw err
+        }
 
         await container.item(id, teacherId).delete()
         return respond(204, null, teacherId)
@@ -172,7 +178,12 @@ app.http('questionById', {
         }).fetchAll()
 
         if (resources.length === 0) return respond(404, { error: 'Question not found' }, teacherId)
-        if (resources[0].teacherId !== teacherId) return respond(403, { error: 'You do not have access to this question' }, teacherId)
+        try {
+          assertScope(resources[0], { teacherId })
+        } catch (err) {
+          if (err instanceof ScopeError) return respond(404, { error: 'Question not found' }, teacherId)
+          throw err
+        }
 
         const updated = {
           ...resources[0],

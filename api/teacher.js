@@ -103,6 +103,14 @@ app.http('onboarding', {
         return respond(400, { error: 'Request body must be a JSON object' }, teacherId);
       }
 
+      // role is never settable from a teacher-facing request body — role changes go through
+      // the dedicated owner-gated PUT /api/manage/teachers/{id}/role endpoint only (teacherRole.js).
+      // Reject explicitly here rather than silently dropping it, so a future edit to this
+      // handler can't accidentally start trusting it.
+      if ('role' in body) {
+        return respond(400, { error: 'role cannot be set here' }, teacherId);
+      }
+
       const { schoolName } = body;
       if (typeof schoolName !== 'string' || !schoolName.trim()) {
         return respond(400, { error: 'schoolName is required and must be a string' }, teacherId);

@@ -2,6 +2,8 @@ const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
+const { authenticateTeacher } = require('./auth');
+const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -22,24 +24,47 @@ app.http('responses', {
     const start = Date.now()
     const method = request.method
 
-    function respond(status, body) {
-      logRequest(context, { endpoint: 'responses', method, status, durationMs: Date.now() - start })
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: 'responses', method, status, durationMs: Date.now() - start, teacherId })
       return { status, jsonBody: body }
     }
 
     try {
       if (method === 'GET') {
-        const quizId = new URL(request.url).searchParams.get('quizId');
+        // Teacher-only — this returns raw student answers, so it requires the same
+        // ownership check as /api/analytics. (Sprint 5 security audit: previously this
+        // endpoint had no auth check at all.)
+        const auth = await authenticateTeacher(request)
+        if (auth.error) return respond(auth.status, { error: auth.error })
+        const caller = getCallerScope(auth.claims)
 
+        if (!rateLimit(`responses-get:${getClientIp(request)}`, 30, 60000)) {
+          return respond(429, { error: 'Too many requests. Please try again later.' }, caller.teacherId)
+        }
+
+        const quizId = new URL(request.url).searchParams.get('quizId');
         if (!quizId) {
-          return respond(400, { error: 'quizId is required' })
+          return respond(400, { error: 'quizId is required' }, caller.teacherId)
+        }
+
+        const { resources: quizMatches } = await quizzesContainer.items.query({
+          query: 'SELECT * FROM c WHERE c.id = @id',
+          parameters: [{ name: '@id', value: quizId }]
+        }).fetchAll();
+        if (quizMatches.length === 0) return respond(404, { error: 'Quiz not found' }, caller.teacherId)
+
+        try {
+          assertScope(quizMatches[0], caller)
+        } catch (err) {
+          if (err instanceof ScopeError) return respond(404, { error: 'Quiz not found' }, caller.teacherId)
+          throw err
         }
 
         const { resources } = await container.items
           .query({ query: 'SELECT * FROM c WHERE c.quizId = @quizId', parameters: [{ name: '@quizId', value: quizId }] })
           .fetchAll();
 
-        return respond(200, resources)
+        return respond(200, resources, caller.teacherId)
       }
 
       if (method === 'POST') {

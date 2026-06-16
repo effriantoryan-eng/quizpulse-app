@@ -19,15 +19,20 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 4 (v2.0.0).** Sprint 1 (v1.0.0) complete:
-teachers sign in via Microsoft Entra External ID (CIAM), complete onboarding, manage real
-classes (CRUD), build quizzes, and send them. Sprint 2 adds student join requests, teacher
-approval UI, name-list validation (fuse.js), class roster, and join code management. Sprint 3
-adds PWA shell (manifest + service worker), approval-gated push subscriptions,
-send-notification endpoint, and iOS install guide. Sprint 4 retires simulated responses: students
-now take real quizzes at `/quiz`, responses are gated by approval/duplicate/closed checks,
-analytics are live (polled, real data, CSV export), failed submissions queue offline via
-Background Sync, and quizzes can be scheduled for automatic send.
+**[CURRENT] state of the app — Sprint 5 security foundation, on top of Sprint 4 (v2.0.0).**
+Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
+onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
+requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
+management. Sprint 3 adds PWA shell (manifest + service worker), approval-gated push
+subscriptions, send-notification endpoint, and iOS install guide. Sprint 4 retires simulated
+responses: students now take real quizzes at `/quiz`, responses are gated by
+approval/duplicate/closed checks, analytics are live (polled, real data, CSV export), failed
+submissions queue offline via Background Sync, and quizzes can be scheduled for automatic send.
+Sprint 5 (pre-admin-features) adds a full security audit (`docs/security/SPRINT5_AUDIT.md`), the
+shared `assertScope` authorization helper, a 404-on-mismatch convention across every
+ownership-checked endpoint, an owner-gated role-change endpoint, and cross-tenant negative tests
+— this is the prerequisite foundation the Sprint 5 admin endpoints (institution onboarding, school
+merge, monitoring portal) are built on top of, not yet those features themselves.
 
 ---
 
@@ -44,7 +49,7 @@ Background Sync, and quizzes can be scheduled for automatic send.
 | Logging | Azure Application Insights | [CURRENT] |
 | Push | Web Push API + VAPID (service worker, no native SDK) | [CURRENT] — Sprint 3 complete |
 | Fuzzy match | fuse.js (name-list validation, server-side) | [CURRENT] — Sprint 2 complete |
-| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 4 suite live (66/66 unit pass) |
+| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 5 suite live (84/84 unit pass) |
 | Rate limiting | in-memory per-instance → Azure API Management | [CURRENT] → [PLANNED — Sprint 6] |
 | CI/CD | GitHub Actions — develop → PR → main → SWA auto-deploy | [CURRENT] |
 
@@ -63,6 +68,8 @@ Background Sync, and quizzes can be scheduled for automatic send.
 - Sprint 2 report: `tests/reports/sprint2-report.html`
 - Sprint 3 report: `tests/reports/sprint3-report.html`
 - Sprint 4 report: `tests/reports/sprint4-report.html`
+- Sprint 5 report: `tests/reports/sprint5-report.html`
+- Sprint 5 security audit: `docs/security/SPRINT5_AUDIT.md`
 - Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
 
@@ -280,7 +287,7 @@ pattern — `VAPID-PUBLIC-KEY` and `VAPID-PRIVATE-KEY` secrets in Key Vault, ref
 
 Two adoption paths. Individual teachers create an **unvalidated** school (free-text name).
 Institutions create a **validated** school (manually verified by super admin). When a school is
-validated, unvalidated records can be merged: `POST /api/admin/schools/merge` re-points all
+validated, unvalidated records can be merged: `POST /api/manage/schools/merge` re-points all
 teacher/class/question/quiz/response docs from source `schoolId` to target, sets `mergedIntoId`
 on the source (tombstone — nothing deleted). Merges run sequentially, one at a time.
 
@@ -295,6 +302,41 @@ list. **It's an assistance tool, not a gate** — the teacher decides regardless
 
 Use `context.error()` / `context.warn()` / `context.log()` — NOT `context.log.error/.warn/.info`.
 The `context.log.*` sub-methods don't exist in v4 and throw, turning intended error responses into 500s.
+
+### Authorization model [CURRENT — Sprint 5]
+
+Every endpoint that accepts a resource ID (`classId`, `quizId`, `questionId`, a join-request id,
+etc.) MUST call `assertScope` from `api/shared/authz.js` before reading or mutating that resource
+— this is a hard rule for any new endpoint, not just the ones touched in Sprint 5.
+
+- **`getCallerScope(claims)`** derives `{ teacherId, role, schoolId }` from validated JWT claims
+  only — never from a request body or a database read. `role`/`schoolId` default to
+  `'teacher'`/`null` until the Entra custom claims described in
+  `docs/azure/ROLE_CLAIMS_SETUP.md` are configured; a missing claim never grants extra access
+  (fails closed).
+- **`assertScope(resource, caller, { ownerField = 'teacherId' })`** throws a `ScopeError` (which
+  handlers map to **404, never 403**) when `resource[ownerField]` doesn't match the caller's
+  scope. Privileged roles (`owner`, `support`) bypass the check entirely. `ownerField: 'schoolId'`
+  is for the (not-yet-built) school_admin scope.
+- **404-on-mismatch is the convention, full stop.** Returning 403 confirms a resource exists but
+  isn't the caller's; 404 reveals nothing. Every ownership check in `classes.js`, `questions.js`,
+  `quizzes.js`, `joinRequests.js`, `namelist.js`, `analytics.js`, and `sendNotification.js` follows
+  this — if you add a new one, match it.
+- **List/GET endpoints scope the Cosmos query itself** (`WHERE c.teacherId = @callerId`) — never
+  fetch broadly and filter in code.
+- **The `role` field is never settable from a teacher-facing endpoint.** The only way to change it
+  is `PUT /api/manage/teachers/{id}/role`, gated on `caller.role === 'owner'` (see
+  `api/teacherRole.js`). `teacher.js`'s onboarding handler explicitly rejects a `role` key in its
+  request body rather than silently ignoring it, so a future edit can't accidentally start
+  trusting it.
+- **Gotcha:** Azure Functions reserves the `admin/` route segment for its own host-level admin API
+  and refuses to register a custom route under it ("The specified route conflicts with one or
+  more built in routes") — this surfaced when `teacherRoleSet` was first wired up at
+  `admin/teachers/{id}/role` and the function silently failed to start. Use `manage/...` (or
+  similar) for any Sprint 5/6 admin endpoint, not `admin/...`.
+- Background: `docs/security/SPRINT5_AUDIT.md` is the full audit that motivated this model —
+  read it before building the Sprint 5/6 admin endpoints (metrics, school merge, log export) that
+  depend on it.
 
 ---
 
@@ -336,6 +378,9 @@ The `context.log.*` sub-methods don't exist in v4 and throw, turning intended er
 | Merges per session | 1 sequential | 5 |
 | Metrics API calls/hr | 60 | 5 |
 | Log export size | 50 MB per request | 5 |
+| Owner accounts | 1 globally | 5 |
+| platform_admin (support) accounts | 5 | 5 |
+| Step-up re-auth window for owner-gated actions | 10 min since last sign-in | 5 |
 | Public questions per teacher | 500 | 6 |
 | Upvotes per teacher per question | 1 | 6 |
 | Question reports per teacher/day | 20 | 6 |
@@ -352,6 +397,11 @@ HTML report is generated.
   Runs every push.
 - **Integration** (jest + supertest) — API endpoints vs local Cosmos emulator + Azurite; status
   codes, DB writes, limit enforcement. Runs after unit pass.
+- **Cross-tenant access denial** [introduced Sprint 5] — for every resource type a teacher can
+  act on, Teacher A authenticates and attempts to access Teacher B's resource by ID; expected
+  result is always 404 (never the resource). A test that gets the resource back is a FAILED test.
+  This category is required going forward for any new resource-scoped endpoint, not just the ones
+  retrofitted in Sprint 5 (`tests/integration/api/sprint5.test.js`).
 - **E2E** (Playwright) — full user journeys vs deployed staging. Runs on PR merge to develop.
 
 Each test record documents: what is tested, how, expected result of success, pass/fail status.
@@ -376,8 +426,10 @@ Hard limit **$100 USD/month**.
 
 ## Admin monitoring portal [PLANNED — Sprint 5, depth in Sprint 6]
 
-Super admin route, gated by `role: super_admin`. Metrics via `GET /api/admin/metrics?range=`
-proxying App Insights Kusto queries. Log download via `GET /api/admin/logs/export` streaming JSONL.
+Super admin route, gated by `role: super_admin`. Metrics via `GET /api/manage/metrics?range=`
+proxying App Insights Kusto queries. Log download via `GET /api/manage/logs/export` streaming JSONL.
+(Routes use `manage/`, not `admin/` — Azure Functions reserves the `admin/` route segment for its
+own host API and refuses to register a conflicting custom route; see Authorization model above.)
 
 Metric groups: **System health** (error rate, p95, active instances) · **Usage/growth** (schools,
 teachers, students, quizzes/day, push delivery rate) · **Engagement** (avg response rate, time-to-respond,
@@ -413,6 +465,7 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
 | Real student quiz flow (/quiz, approval/duplicate/closed gating) | [CURRENT] Sprint 4 complete |
 | Offline resilience (Background Sync, IndexedDB queue) | [CURRENT] Sprint 4 complete |
 | Quiz scheduling (timer trigger, scheduledFor picker) | [CURRENT] Sprint 4 complete |
+| Security audit + authorization foundation (assertScope, role-from-claim, owner-gated role endpoint, cross-tenant negative tests) | [CURRENT] Sprint 5 complete |
 | Super admin + school merge | [PLANNED — Sprint 5] |
 | Institution onboarding | [PLANNED — Sprint 5] |
 | Monitoring portal | [PLANNED — Sprint 5/6] |
