@@ -1,9 +1,7 @@
-// Unit tests for subscribe.js logic — unapproved device returns 403.
-// These tests mock Cosmos and call the handler directly.
-
-const { rateLimit } = require('../../../api/rateLimit');
-
-// --- helpers ---
+// Unit tests for subscribe.js logic — approval gating and subscription upsert.
+// Sprint 6: throughput rate limiting (20/hr/device) is now enforced by Azure API Management
+// (see docs/azure/APIM_SETUP.md), not in-process. Tests for 429 from the in-process store
+// have been removed. The approval gate (403 when no approved join request) is tested here.
 
 function makeSubscription() {
   return {
@@ -12,7 +10,7 @@ function makeSubscription() {
   };
 }
 
-// Minimal handler extracted for unit testing (mirrors subscribe.js logic).
+// Minimal handler extracted for unit testing (mirrors subscribe.js approval logic).
 function makeHandler({ joinRequestsResult = [], existingSubResult = [] } = {}) {
   const crypto = require('crypto');
 
@@ -28,14 +26,7 @@ function makeHandler({ joinRequestsResult = [], existingSubResult = [] } = {}) {
     },
   };
 
-  const SUBSCRIBE_MAX = 20;
-  const SUBSCRIBE_WINDOW_MS = 3600000;
-
-  return async function handler({ classId, deviceId, subscription, rateLimitKey }) {
-    if (!rateLimit(rateLimitKey || `subscribe:${deviceId}`, SUBSCRIBE_MAX, SUBSCRIBE_WINDOW_MS)) {
-      return { status: 429 };
-    }
-
+  return async function handler({ classId, deviceId, subscription }) {
     if (
       typeof classId !== 'string' || !classId.trim() ||
       typeof deviceId !== 'string' || !deviceId.trim() ||
@@ -62,29 +53,16 @@ function makeHandler({ joinRequestsResult = [], existingSubResult = [] } = {}) {
   };
 }
 
-let keyCounter = 0;
-function freshKey() { return `sub-unit:${Date.now()}:${keyCounter++}`; }
-
 describe('subscribe — unapproved device', () => {
   test('returns 403 when no approved join request exists', async () => {
     const handler = makeHandler({ joinRequestsResult: [] });
-    const result = await handler({
-      classId: 'class-1',
-      deviceId: 'device-99',
-      subscription: makeSubscription(),
-      rateLimitKey: freshKey(),
-    });
+    const result = await handler({ classId: 'class-1', deviceId: 'device-99', subscription: makeSubscription() });
     expect(result.status).toBe(403);
   });
 
   test('returns 201 when an approved join request exists', async () => {
     const handler = makeHandler({ joinRequestsResult: [{ id: 'req-1' }] });
-    const result = await handler({
-      classId: 'class-1',
-      deviceId: 'device-99',
-      subscription: makeSubscription(),
-      rateLimitKey: freshKey(),
-    });
+    const result = await handler({ classId: 'class-1', deviceId: 'device-99', subscription: makeSubscription() });
     expect(result.status).toBe(201);
   });
 
@@ -94,18 +72,13 @@ describe('subscribe — unapproved device', () => {
       classId: 'class-1',
       deviceId: 'device-99',
       subscription: { endpoint: 'https://example.com' }, // missing keys
-      rateLimitKey: freshKey(),
     });
     expect(result.status).toBe(400);
   });
 
-  test('returns 429 after 20 attempts from the same deviceId', async () => {
+  test('returns 400 for missing deviceId', async () => {
     const handler = makeHandler({ joinRequestsResult: [{ id: 'req-1' }] });
-    const key = freshKey();
-    for (let i = 0; i < 20; i++) {
-      await handler({ classId: 'c', deviceId: 'd', subscription: makeSubscription(), rateLimitKey: key });
-    }
-    const result = await handler({ classId: 'c', deviceId: 'd', subscription: makeSubscription(), rateLimitKey: key });
-    expect(result.status).toBe(429);
+    const result = await handler({ classId: 'class-1', deviceId: '', subscription: makeSubscription() });
+    expect(result.status).toBe(400);
   });
 });
