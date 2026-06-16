@@ -162,16 +162,16 @@ describe('Cross-tenant denial — analytics', () => {
     expect(res.status).toBe(404);
   });
 
-  it_int('Teacher B cannot read Teacher A\'s raw quiz responses (Critical audit finding #1)', async () => {
+  it_int('GET /api/responses no longer exists (Critical audit finding #1 — deleted, not secured)', async () => {
     const res = await fetch(`${FUNC_URL}/responses?quizId=${quizA.id}`, {
       headers: authHeaders(TEACHER_B),
     });
     expect(res.status).toBe(404);
   });
 
-  it_int('an unauthenticated caller cannot read raw quiz responses at all', async () => {
+  it_int('GET /api/responses returns 404 for an unauthenticated caller too (route gone, not just gated)', async () => {
     const res = await fetch(`${FUNC_URL}/responses?quizId=${quizA.id}`);
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(404);
   });
 });
 
@@ -301,5 +301,38 @@ describe('Anonymous endpoint denial — POST /api/responses', () => {
       }),
     });
     expect(res.status).toBe(403);
+  });
+});
+
+// --- Audit cleanup follow-ups (docs/security/SPRINT5_AUDIT.md findings #4, #5) ---
+
+describe('Audit cleanup — join-requests reject defense-in-depth', () => {
+  it_int('reject re-checks the loaded join request\'s teacherId, not just class ownership', async () => {
+    // Same shape as the cross-tenant reject test above, asserting the specific defense-in-depth
+    // check added at api/joinRequests.js (matching the approve path) rather than just the
+    // class-ownership gate that runs before it.
+    const join = await fetch(`${FUNC_URL}/join-request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ joinCode: classA.joinCode, studentName: 'Reject Defense Student', deviceId: 'sprint5-reject-defense-device' }),
+    });
+    const { id: reqId } = await join.json();
+
+    const res = await fetch(`${FUNC_URL}/join-requests/${reqId}/reject?classId=${classA.id}`, {
+      method: 'POST',
+      headers: authHeaders(TEACHER_B),
+    });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('Audit cleanup — GET /api/quizzes/{id}/questions rate limiting', () => {
+  it_int('is throttled after exceeding 30 requests/min/IP', async () => {
+    let lastStatus;
+    for (let i = 0; i < 31; i++) {
+      const res = await fetch(`${FUNC_URL}/quizzes/${quizA.id}/questions`);
+      lastStatus = res.status;
+    }
+    expect(lastStatus).toBe(429);
   });
 });
