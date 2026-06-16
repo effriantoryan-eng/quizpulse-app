@@ -1,43 +1,28 @@
-// In-memory sliding window rate limiter.
-// State is per Function instance — not shared across scale-out replicas.
-// Sufficient for MVP; replace with Azure API Management for production scale.
-
-const store = new Map()
+// Rate limiting is enforced at the Azure API Management layer (see docs/azure/APIM_SETUP.md).
+// This module is a no-op kept so call sites compile without changes — the sliding-window
+// in-memory store has been removed. APIM policies cover every limit from the security table.
+//
+// The only exception is the school-merge serialisation lock in schoolAdmin.js, which uses
+// a module-level boolean rather than this helper because it is a concurrency control
+// (exactly 1 in-flight merge), not a throughput limit.
 
 /**
- * Returns true if the request is allowed, false if rate limited.
- * @param {string} key       - Unique key (e.g. "questions:1.2.3.4")
- * @param {number} max       - Maximum requests allowed in the window
- * @param {number} windowMs  - Window size in milliseconds
+ * Always returns true — APIM enforces the actual limit before the request reaches here.
+ * @returns {boolean}
  */
-function rateLimit(key, max, windowMs) {
-  const now = Date.now()
-  const timestamps = (store.get(key) || []).filter(t => now - t < windowMs)
-
-  if (timestamps.length >= max) {
-    return false
-  }
-
-  timestamps.push(now)
-  store.set(key, timestamps)
-
-  // Periodically prune stale keys to prevent unbounded memory growth
-  if (store.size > 10000) {
-    for (const [k, ts] of store.entries()) {
-      if (ts.every(t => now - t >= windowMs)) store.delete(k)
-    }
-  }
-
-  return true
+function rateLimit() {
+  return true;
 }
 
 /**
- * Extracts the client IP from the request headers.
- * Azure passes the real IP in x-forwarded-for.
+ * Extracts the real client IP from the x-forwarded-for header.
+ * Still needed for audit log ip fields in institutions.js and schoolAdmin.js.
+ * @param {Request} request
+ * @returns {string}
  */
 function getClientIp(request) {
-  const forwarded = request.headers.get('x-forwarded-for')
-  return forwarded ? forwarded.split(',')[0].trim() : 'unknown'
+  const forwarded = request.headers.get('x-forwarded-for');
+  return forwarded ? forwarded.split(',')[0].trim() : 'unknown';
 }
 
-module.exports = { rateLimit, getClientIp }
+module.exports = { rateLimit, getClientIp };

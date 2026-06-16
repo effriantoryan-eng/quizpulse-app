@@ -4,8 +4,12 @@ const { authenticateTeacher } = require('./auth');
 const { getCallerScope, requireRole, ScopeError, ROLES } = require('./shared/authz');
 const { assertStepUp, StepUpError } = require('./shared/stepUp');
 const { writeAudit } = require('./shared/auditLog');
-const { rateLimit, getClientIp } = require('./rateLimit');
+const { getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
+
+// Serialises school merges: only 1 may be in flight at a time platform-wide.
+// APIM handles general throughput; this is a concurrency guard, not a rate limit.
+let mergeInProgress = false;
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -120,11 +124,11 @@ app.http('schoolMerge', {
         throw err;
       }
 
-      // Security limits table — "Merges per session: 1 sequential". A fixed key (not per-IP)
-      // ensures only one merge can be in flight platform-wide at a time.
-      if (!rateLimit('manage-schools-merge', 1, 5 * 60 * 1000)) {
+      // Security limits table — "Merges per session: 1 sequential".
+      if (mergeInProgress) {
         return respond(429, { error: 'Another merge is already in progress. Try again shortly.' }, caller.teacherId);
       }
+      mergeInProgress = true;
 
       const body = await request.json().catch(() => null);
       const { sourceSchoolId, targetSchoolId } = body || {};
@@ -194,8 +198,10 @@ app.http('schoolMerge', {
         ip: getClientIp(request),
       });
 
+      mergeInProgress = false;
       return respond(200, after, caller.teacherId);
     } catch (err) {
+      mergeInProgress = false;
       context.error('schoolMerge error:', err.message);
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
