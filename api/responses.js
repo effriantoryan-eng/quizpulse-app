@@ -10,6 +10,10 @@ const client = new CosmosClient({
 
 const database = client.database(process.env.COSMOS_DATABASE);
 const container = database.container(process.env.COSMOS_CONTAINER_RESPONSES);
+const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES);
+const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
+
+const MAX_RESPONSE_BODY = 4 * 1024; // Security limits table — Response body size, 4 KB max
 
 app.http('responses', {
   methods: ['GET', 'POST'],
@@ -45,11 +49,21 @@ app.http('responses', {
         }
 
         const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
-        if (contentLength > 65536) {
-          return respond(413, { error: 'Request body too large. Maximum size is 64KB' })
+        if (contentLength > MAX_RESPONSE_BODY) {
+          return respond(413, { error: 'Request body too large. Maximum size is 4KB' })
         }
 
-        const body = await request.json();
+        const rawBody = await request.text();
+        if (Buffer.byteLength(rawBody, 'utf8') > MAX_RESPONSE_BODY) {
+          return respond(413, { error: 'Request body too large. Maximum size is 4KB' })
+        }
+
+        let body;
+        try {
+          body = JSON.parse(rawBody);
+        } catch {
+          return respond(400, { error: 'Request body must be valid JSON' })
+        }
 
         if (!body || typeof body !== 'object' || Array.isArray(body)) {
           return respond(400, { error: 'Request body must be a JSON object' })
@@ -59,6 +73,9 @@ app.http('responses', {
 
         if (typeof quizId !== 'string' || !quizId.trim()) {
           return respond(400, { error: 'quizId is required and must be a string' })
+        }
+        if (typeof studentId !== 'string' || !studentId.trim()) {
+          return respond(400, { error: 'studentId is required and must be a string' })
         }
         if (!Array.isArray(answers) || answers.length === 0) {
           return respond(400, { error: 'answers must be a non-empty array' })
@@ -78,15 +95,46 @@ app.http('responses', {
           }
         }
 
-        const resolvedStudentId = typeof studentId === 'string' && studentId.trim()
-          ? studentId.trim().slice(0, 100)
-          : require('crypto').randomUUID();
+        const resolvedQuizId = quizId.trim();
+        const resolvedStudentId = studentId.trim().slice(0, 100);
+
+        // Look up the quiz to enforce closedAt and resolve its target classes.
+        const { resources: quizMatches } = await quizzesContainer.items.query({
+          query: 'SELECT * FROM c WHERE c.id = @id',
+          parameters: [{ name: '@id', value: resolvedQuizId }]
+        }).fetchAll();
+
+        if (quizMatches.length === 0) {
+          return respond(404, { error: 'Quiz not found' })
+        }
+        const quiz = quizMatches[0];
+
+        if (quiz.closedAt && new Date(quiz.closedAt).getTime() < Date.now()) {
+          return respond(410, { error: 'This quiz has closed.' })
+        }
+
+        // The student (identified by deviceId) must hold an approved join request for
+        // at least one of the quiz's target classes.
+        const classIds = Array.isArray(quiz.classIds) ? quiz.classIds : [];
+        let hasApproval = false;
+        if (classIds.length > 0) {
+          const classIdParams = classIds.map((id, i) => ({ name: `@cid${i}`, value: id }));
+          const classIdList = classIdParams.map(p => p.name).join(', ');
+          const { resources: approved } = await joinRequestsContainer.items.query({
+            query: `SELECT TOP 1 c.id FROM c WHERE c.deviceId = @did AND c.status = "approved" AND c.classId IN (${classIdList})`,
+            parameters: [{ name: '@did', value: resolvedStudentId }, ...classIdParams]
+          }).fetchAll();
+          hasApproval = approved.length > 0;
+        }
+        if (!hasApproval) {
+          return respond(403, { error: 'You do not have an approved join request for this quiz\'s class' })
+        }
 
         // Idempotency check — prevent duplicate submissions for the same student + quiz
         const { resources: existing } = await container.items.query({
           query: 'SELECT c.id FROM c WHERE c.quizId = @quizId AND c.studentId = @studentId',
           parameters: [
-            { name: '@quizId', value: quizId.trim() },
+            { name: '@quizId', value: resolvedQuizId },
             { name: '@studentId', value: resolvedStudentId }
           ]
         }).fetchAll();
@@ -97,7 +145,7 @@ app.http('responses', {
 
         const response = {
           id: require('crypto').randomUUID(),
-          quizId: quizId.trim(),
+          quizId: resolvedQuizId,
           studentId: resolvedStudentId,
           answers: answers.map(a => ({ questionId: a.questionId.trim(), selectedIndex: a.selectedIndex })),
           completedAt: new Date().toISOString()

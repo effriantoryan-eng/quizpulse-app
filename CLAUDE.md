@@ -19,13 +19,15 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 3 (v1.2.0).** Sprint 1 (v1.0.0) complete:
+**[CURRENT] state of the app — Sprint 4 (v2.0.0).** Sprint 1 (v1.0.0) complete:
 teachers sign in via Microsoft Entra External ID (CIAM), complete onboarding, manage real
-classes (CRUD), build quizzes, send them, and view simulated analytics. Sprint 2 adds student
-join requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
-management. Sprint 3 adds PWA shell (manifest + service worker), approval-gated push
-subscriptions, send-notification endpoint, and iOS install guide. Simulated responses still
-used until Sprint 4.
+classes (CRUD), build quizzes, and send them. Sprint 2 adds student join requests, teacher
+approval UI, name-list validation (fuse.js), class roster, and join code management. Sprint 3
+adds PWA shell (manifest + service worker), approval-gated push subscriptions,
+send-notification endpoint, and iOS install guide. Sprint 4 retires simulated responses: students
+now take real quizzes at `/quiz`, responses are gated by approval/duplicate/closed checks,
+analytics are live (polled, real data, CSV export), failed submissions queue offline via
+Background Sync, and quizzes can be scheduled for automatic send.
 
 ---
 
@@ -42,7 +44,7 @@ used until Sprint 4.
 | Logging | Azure Application Insights | [CURRENT] |
 | Push | Web Push API + VAPID (service worker, no native SDK) | [CURRENT] — Sprint 3 complete |
 | Fuzzy match | fuse.js (name-list validation, server-side) | [CURRENT] — Sprint 2 complete |
-| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 3 suite live (53/53 unit pass) |
+| Testing | jest + vitest (unit), supertest (integration), Playwright (E2E) | [CURRENT] — Sprint 4 suite live (66/66 unit pass) |
 | Rate limiting | in-memory per-instance → Azure API Management | [CURRENT] → [PLANNED — Sprint 6] |
 | CI/CD | GitHub Actions — develop → PR → main → SWA auto-deploy | [CURRENT] |
 
@@ -51,6 +53,7 @@ used until Sprint 4.
 ## Local paths
 
 - Project root: `C:\Users\Ryan\quizpulse - PWA\`
+- Changelog (breaking changes, new features, fixes — introduced Sprint 4): `CHANGELOG.md`
 - Frontend source: `src/`
 - Azure Functions: `api/`
 - Built output: `dist/`
@@ -59,6 +62,7 @@ used until Sprint 4.
 - Sprint 1 report: `tests/reports/sprint1-report.html`
 - Sprint 2 report: `tests/reports/sprint2-report.html`
 - Sprint 3 report: `tests/reports/sprint3-report.html`
+- Sprint 4 report: `tests/reports/sprint4-report.html`
 - Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
 
@@ -202,7 +206,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 - ~~[Sprint 1] `schoolId` + `schoolStatus` (denormalised) on teacher, class~~ — **DONE** (on teacher and class docs)
 - ~~[Sprint 1] `visibility: "private|school|public"` + `authorId` on questions~~ — **DONE** (visibility='private', authorId=oid)
 - ~~[Sprint 1] `role: "teacher|school_admin|super_admin"` on teacher~~ — **DONE** (role='teacher'; super_admin set in Sprint 5)
-- [Sprint 4] `closedAt` on quizzes
+- ~~[Sprint 4] `closedAt` on quizzes~~ — **DONE** (derived server-side from teacher-configured `durationMinutes` at send time; also `scheduledFor` for scheduled quizzes)
 - [Sprint 6] `upvotes`, `usageCount` on questions
 
 ---
@@ -239,13 +243,29 @@ Bearer token is the MSAL ID token (RS256, signed by CIAM); backend validates via
 New teachers are gated through `/onboarding` (`GET /api/me` → `onboarded: false` → redirect).
 See `docs/azure/B2C_SETUP.md` for manual tenant configuration steps.
 
-### Service worker [CURRENT — Sprint 3]
+### Service worker [CURRENT — Sprint 4]
 
-`public/sw.js` handles `push` (showNotification) and `notificationclick` (navigates to
-`/quiz?quizId=`). Registered in `src/main.jsx` after React mounts via
-`navigator.serviceWorker.register('/sw.js')`. `SWUpdateBanner` in App.jsx detects a waiting SW
-and shows a "Refresh" prompt. SW calls `skipWaiting()` on install and `clients.claim()` on
-activate for immediate takeover.
+`public/sw.js` handles `push` (showNotification), `notificationclick` (navigates to
+`/quiz?quizId=`), and `sync` (Background Sync, tag `sync-responses`). Registered in
+`src/main.jsx` after React mounts via `navigator.serviceWorker.register('/sw.js')`.
+`SWUpdateBanner` in App.jsx detects a waiting SW and shows a "Refresh" prompt. SW calls
+`skipWaiting()` on install and `clients.claim()` on activate for immediate takeover.
+Background Sync logic (IndexedDB store `pending-responses`) is duplicated between
+`public/sw.js` (classic script, no ES module support) and `src/offlineQueue.js` (main-thread
+queueing) — keep the store name/shape in sync if either changes.
+
+### Quiz lifecycle & student quiz-taking [CURRENT — Sprint 4]
+
+`closedAt` is computed server-side from a teacher-entered `durationMinutes` (min 5) at send
+time — never trust a client-supplied `closedAt`. `POST /api/responses` re-checks `closedAt`,
+duplicate submission (same `studentId` + `quizId`), and approved-join-request ownership on every
+call, since the student-facing `/quiz` route has no auth. `studentId` is the same device UUID
+(`quizpulse_device_id`) used for join requests and push subscriptions — there is no separate
+student identity. `GET /api/quizzes/{id}/questions` is a public, anonymous endpoint that strips
+`correctIndex` before returning question data to students. A timer-triggered function
+(`scheduledQuizSend`, every minute) promotes `status: 'scheduled'` quizzes whose `scheduledFor`
+has passed to `'sent'`, sets `closedAt`, and reuses the same `sendNotificationForQuiz()` helper
+as the manual send endpoint.
 
 ### Key Vault [CURRENT]
 
@@ -372,9 +392,8 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
 |---|---|
 | Home page | [CURRENT] Working |
 | Create Question / Question Bank / edit / delete | [CURRENT] Working |
-| Build Quiz / Send Quiz | [CURRENT] Working |
-| Simulated responses (`/api/simulate`) | [CURRENT] Working — **retired in Sprint 4** |
-| Analytics (from simulated data) | [CURRENT] Working — real data in Sprint 4 |
+| Build Quiz / Send Quiz (now/duration/schedule) | [CURRENT] Working |
+| Analytics (live, polled, real data, CSV export) | [CURRENT] Sprint 4 complete |
 | Preset classes (3 hardcoded) | [RETIRED] — replaced by real CRUD in Sprint 1 |
 | Teacher auth (Entra ID Easy Auth) | [RETIRED] — replaced by Entra External ID in Sprint 1 |
 | App Insights logging | [CURRENT] Working |
@@ -390,9 +409,10 @@ completion rate) · **Security** (rate-limit hits, join rejection rate, failed a
 | PWA shell (manifest, sw.js, SW update banner, iOS install guide) | [CURRENT] Sprint 3 complete |
 | Push subscriptions (approval-gated, /api/subscribe, /api/vapid-public-key) | [CURRENT] Sprint 3 complete |
 | Send-notification endpoint (/api/send-notification, idempotency, stale pruning) | [CURRENT] Sprint 3 complete |
-| Real student quiz flow | [PLANNED — Sprint 4] |
-| Offline resilience (Background Sync) | [PLANNED — Sprint 4] |
-| Quiz scheduling | [PLANNED — Sprint 4] |
+| Sprint 4 test suite (66/66 unit, integration, E2E scaffolding) | [CURRENT] Sprint 4 complete |
+| Real student quiz flow (/quiz, approval/duplicate/closed gating) | [CURRENT] Sprint 4 complete |
+| Offline resilience (Background Sync, IndexedDB queue) | [CURRENT] Sprint 4 complete |
+| Quiz scheduling (timer trigger, scheduledFor picker) | [CURRENT] Sprint 4 complete |
 | Super admin + school merge | [PLANNED — Sprint 5] |
 | Institution onboarding | [PLANNED — Sprint 5] |
 | Monitoring portal | [PLANNED — Sprint 5/6] |
