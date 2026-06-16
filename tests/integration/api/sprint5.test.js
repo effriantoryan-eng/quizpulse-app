@@ -336,3 +336,55 @@ describe('Audit cleanup — GET /api/quizzes/{id}/questions rate limiting', () =
     expect(lastStatus).toBe(429);
   });
 });
+
+// --- School validate/merge (Sprint 5 admin endpoints) ---
+
+function ownerHeaders(oid, extraClaims = {}) {
+  return authHeaders(oid, { role: 'owner', ...extraClaims });
+}
+
+// Mints a token with an explicit (stale) auth_time so step-up tests can exercise the rejection
+// path without waiting out the real 10-minute window.
+function staleOwnerHeaders(oid) {
+  const staleAuthTime = Math.floor(Date.now() / 1000) - 11 * 60; // 11 minutes ago
+  return {
+    Authorization: `Bearer ${jwt.sign(
+      { oid, role: 'owner', name: 'Integration Teacher', emails: [`${oid}@example.com`], auth_time: staleAuthTime },
+      'dev-key',
+      { expiresIn: '1h', noTimestamp: true }
+    )}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+describe('School admin — validate', () => {
+  it_int('a non-owner/platform_admin caller gets 404 from school validate', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/schools/${classA.schoolId || 'unknown-school'}/validate`, {
+      method: 'POST',
+      headers: authHeaders(TEACHER_B), // plain 'teacher' role
+    });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('School admin — merge', () => {
+  it_int('a non-owner caller gets 404 from school merge', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/schools/merge`, {
+      method: 'POST',
+      headers: authHeaders(TEACHER_B), // plain 'teacher' role, not owner
+      body: JSON.stringify({ sourceSchoolId: 'school-a', targetSchoolId: 'school-b' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it_int('an owner caller without a fresh sign-in is blocked by step-up re-auth', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/schools/merge`, {
+      method: 'POST',
+      headers: staleOwnerHeaders('sprint5-owner-stale'),
+      body: JSON.stringify({ sourceSchoolId: 'school-a', targetSchoolId: 'school-b' }),
+    });
+    expect(res.status).toBe(401);
+    const body = await res.json();
+    expect(body.reauthRequired).toBe(true);
+  });
+});
