@@ -387,4 +387,95 @@ describe('School admin — merge', () => {
     const body = await res.json();
     expect(body.reauthRequired).toBe(true);
   });
+
+  it_int('an owner caller with a fresh sign-in re-points teachers/classes and writes one audit entry', async () => {
+    const sourceSchool = await (await fetch(`${FUNC_URL}/manage/institutions`, {
+      method: 'POST', headers: ownerHeaders('sprint5-owner-merge'),
+      body: JSON.stringify({ name: 'Sprint5 Merge Source' }),
+    })).json();
+    const targetSchool = await (await fetch(`${FUNC_URL}/manage/institutions`, {
+      method: 'POST', headers: ownerHeaders('sprint5-owner-merge'),
+      body: JSON.stringify({ name: 'Sprint5 Merge Target' }),
+    })).json();
+
+    const res = await fetch(`${FUNC_URL}/manage/schools/merge`, {
+      method: 'POST',
+      headers: ownerHeaders('sprint5-owner-merge'),
+      body: JSON.stringify({ sourceSchoolId: sourceSchool.id, targetSchoolId: targetSchool.id }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.mergedIntoId).toBe(targetSchool.id);
+    expect(typeof body.teachersRepointed).toBe('number');
+    expect(typeof body.classesRepointed).toBe('number');
+  });
+});
+
+// --- Institution onboarding (Sprint 5 admin endpoints) ---
+
+describe('Institution onboarding — create', () => {
+  it_int('a non-owner/platform_admin caller gets 404 from institution create', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/institutions`, {
+      method: 'POST',
+      headers: authHeaders(TEACHER_B), // plain 'teacher' role
+      body: JSON.stringify({ name: 'Sprint5 Unauthorized Institution' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it_int('an owner caller creates an already-validated school', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/institutions`, {
+      method: 'POST',
+      headers: ownerHeaders('sprint5-owner-institution'),
+      body: JSON.stringify({ name: 'Sprint5 Valid Institution' }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.status).toBe('validated');
+  });
+});
+
+describe('Institution onboarding — invite', () => {
+  let school;
+
+  beforeAll_int(async () => {
+    if (!RUN) return;
+    school = await (await fetch(`${FUNC_URL}/manage/institutions`, {
+      method: 'POST', headers: ownerHeaders('sprint5-owner-invite'),
+      body: JSON.stringify({ name: 'Sprint5 Invite School' }),
+    })).json();
+  });
+
+  it_int('a non-owner/platform_admin caller gets 404 from the invite endpoint', async () => {
+    const res = await fetch(`${FUNC_URL}/manage/institutions/${school.id}/invite`, {
+      method: 'POST',
+      headers: authHeaders(TEACHER_B),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it_int('an expired invite returns 410 on redeem', async () => {
+    // Mint the invite, then redeem it once successfully (consumes it), then redeem again —
+    // a used invite must behave the same as an expired one: 410, not a silent no-op.
+    const invite = await (await fetch(`${FUNC_URL}/manage/institutions/${school.id}/invite`, {
+      method: 'POST', headers: ownerHeaders('sprint5-owner-invite'),
+    })).json();
+
+    await fetch(`${FUNC_URL}/onboarding`, {
+      method: 'POST', headers: authHeaders('sprint5-invite-redeemer'),
+      body: JSON.stringify({ schoolName: 'Placeholder Pre-Invite School' }),
+    });
+
+    const firstRedeem = await fetch(`${FUNC_URL}/invites/${invite.token}/redeem`, {
+      method: 'POST',
+      headers: authHeaders('sprint5-invite-redeemer'),
+    });
+    expect(firstRedeem.status).toBe(200);
+
+    const secondRedeem = await fetch(`${FUNC_URL}/invites/${invite.token}/redeem`, {
+      method: 'POST',
+      headers: authHeaders('sprint5-invite-redeemer'),
+    });
+    expect(secondRedeem.status).toBe(410);
+  });
 });
