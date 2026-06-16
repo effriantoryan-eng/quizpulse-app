@@ -144,7 +144,7 @@ app.http('sendNotification', {
 
       if (!quizzes.length) return respond(404, { error: 'Quiz not found' });
       const quiz = quizzes[0];
-      if (quiz.teacherId !== teacherId) return respond(403, { error: 'Not your quiz' });
+      if (quiz.teacherId !== teacherId) return respond(404, { error: 'Quiz not found' });
 
       const result = await sendNotificationForQuiz(quiz, context, { quizTitle, questionCount });
       if (result.error) return respond(result.status, { error: result.error });

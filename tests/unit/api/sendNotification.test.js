@@ -17,7 +17,7 @@ function makeHandler({ quiz = null, subs = [], sendFn = async () => {} } = {}) {
     }
 
     if (!quiz) return { status: 404 };
-    if (quiz.teacherId !== teacherId) return { status: 403 };
+    if (quiz.teacherId !== teacherId) return { status: 404 }; // Sprint 5: 404, not 403 — see docs/security/SPRINT5_AUDIT.md
     if (quiz.notificationSentAt) return { status: 409 };
 
     const payload = JSON.stringify({
@@ -68,11 +68,11 @@ describe('send-notification — idempotency', () => {
     expect(second.status).toBe(409);
   });
 
-  test('returns 403 when teacherId does not own the quiz', async () => {
+  test('returns 404 when teacherId does not own the quiz (Sprint 5: 404, not 403)', async () => {
     const quiz = { id: 'q1', teacherId: 't1', classIds: ['c1'] };
     const handler = makeHandler({ quiz });
     const result = await handler({ teacherId: 'other', quizId: 'q1', quizTitle: 'Quiz', questionCount: 5, rateLimitKey: freshKey() });
-    expect(result.status).toBe(403);
+    expect(result.status).toBe(404);
   });
 
   test('returns 429 after 5 calls from the same teacher per minute', async () => {

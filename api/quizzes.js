@@ -3,6 +3,7 @@ const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher, extractBearer } = require('./auth');
+const { assertScope, ScopeError } = require('./shared/authz');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -30,6 +31,10 @@ app.http('getQuizQuestions', {
       return { status, jsonBody: body };
     }
     try {
+      if (!rateLimit(`quiz-questions:${getClientIp(request)}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' });
+      }
+
       const id = request.params.id;
       const { resources: quizMatches } = await container.items.query({
         query: 'SELECT * FROM c WHERE c.id = @id',
@@ -95,8 +100,13 @@ app.http('getQuizById', {
 
       const quiz = resources[0];
 
-      if (teacherId && quiz.teacherId !== teacherId) {
-        return respond(403, { error: 'You do not have access to this quiz' }, teacherId)
+      if (teacherId) {
+        try {
+          assertScope(quiz, { teacherId })
+        } catch (err) {
+          if (err instanceof ScopeError) return respond(404, { error: 'Quiz not found' }, teacherId)
+          throw err
+        }
       }
 
       return respond(200, quiz, teacherId)
