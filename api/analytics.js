@@ -26,7 +26,7 @@ async function loadQuizAnalytics(quizId, teacherId) {
   }).fetchAll();
   if (quizMatches.length === 0) throw { status: 404, error: 'Quiz not found' };
   const quiz = quizMatches[0];
-  if (quiz.teacherId !== teacherId) throw { status: 403, error: 'You do not have access to this quiz' };
+  if (quiz.teacherId !== teacherId) throw { status: 404, error: 'Quiz not found' };
 
   const questionIds = quiz.questionIds || [];
   let questions = [];

@@ -4,6 +4,7 @@ const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
+const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -166,8 +167,11 @@ app.http('classesUpdate', {
         if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
       }
-      if (!existing || existing.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(existing, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       const { name, studentCount } = body;
@@ -222,8 +226,11 @@ app.http('classesRegenerateCode', {
         if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
       }
-      if (!existing || existing.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(existing, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       existing.joinCode = generateJoinCode();
@@ -268,8 +275,11 @@ app.http('classesRemoveStudent', {
         if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
       }
-      if (!existing || existing.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(existing, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
@@ -342,8 +352,11 @@ app.http('classesDelete', {
         if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
       }
-      if (!existing || existing.teacherId !== teacherId) {
-        return respond(403, { error: 'Forbidden' }, teacherId);
+      try {
+        assertScope(existing, { teacherId });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
       }
 
       await classesContainer.item(classId, teacherId).delete();
