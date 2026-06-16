@@ -29,9 +29,10 @@ Entra admin center → **App registrations** → `QuizPulse API` (client ID
 | Display name | Value | Description |
 |---|---|---|
 | Teacher | `teacher` | Default — standard teacher account (also the safe fallback when no claim is present) |
-| School Admin | `school_admin` | Sprint 5 — school-scoped reads/writes |
-| Support | `support` | Cross-tenant read access for support tooling |
-| Owner | `owner` | Full cross-tenant access; required to call `PUT /api/manage/teachers/{id}/role` |
+| School Admin | `school_admin` | Sprint 5 — school-scoped reads/writes (`assertScope` with `ownerField: 'schoolId'`) |
+| Support | `support` | Cross-tenant **read-only** access (`assertScope`'s `READ_ALL_ROLES` bypass; never `MUTATE_ALL_ROLES`) |
+| Platform Admin | `platform_admin` | Cross-tenant **operational** mutations — institution onboarding, school validation (not destructive actions like school merge or role changes) |
+| Owner | `owner` | Full cross-tenant access including destructive actions (school merge, behind step-up re-auth) and `PUT /api/manage/teachers/{id}/role` |
 
 For each: allowed member types = **Users/Groups** (this is a human-assigned role, not an app
 permission). Save.
