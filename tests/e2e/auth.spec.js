@@ -1,6 +1,6 @@
-// E2E tests — teacher authentication via Azure AD B2C.
+// E2E tests — teacher authentication via Entra External ID (CIAM).
 // Requires:
-//   - B2C tenant fully configured (see docs/azure/B2C_SETUP.md)
+//   - CIAM tenant fully configured (see docs/azure/B2C_SETUP.md)
 //   - E2E_GOOGLE_EMAIL / E2E_GOOGLE_PASSWORD in environment (gitignored .env.test)
 //   - E2E_MICROSOFT_EMAIL / E2E_MICROSOFT_PASSWORD in environment
 //   - npm run dev (frontend) + func start (api) running
@@ -17,7 +17,45 @@ const msPassword     = process.env.E2E_MICROSOFT_PASSWORD;
 const skipGoogle    = !googleEmail || !googlePassword;
 const skipMicrosoft = !msEmail || !msPassword;
 
-test.describe('B2C authentication — Google provider', () => {
+// Regression test: clicking sign-in must initiate a CIAM redirect (not silently fail).
+// No credentials needed — the test only confirms the redirect is attempted.
+// This catches the v3.0.1 regression where a stale CSP connect-src (*.b2clogin.com instead
+// of *.ciamlogin.com) caused MSAL's discovery fetch to be blocked, making the button silent.
+test.describe('sign-in button initiates CIAM redirect', () => {
+  test('Microsoft button navigates away from the app toward ciamlogin.com', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait for React to mount and the login page to render.
+    await page.waitForSelector('[data-testid="login-microsoft"]', { timeout: 10000 });
+
+    // Intercept the navigation that MSAL triggers. We do not follow it — we just confirm
+    // it is attempted and points at the CIAM authority.
+    let navigatedUrl = null;
+    page.on('framenavigated', (frame) => {
+      if (frame === page.mainFrame() && frame.url() !== 'about:blank') {
+        navigatedUrl = frame.url();
+      }
+    });
+
+    // Click and allow a brief window for MSAL to initiate the redirect.
+    await page.click('[data-testid="login-microsoft"]');
+    // Give MSAL up to 8 s to fetch discovery + start the redirect.
+    await page.waitForFunction(
+      () => !window.location.href.includes('localhost'),
+      { timeout: 8000 }
+    ).catch(() => { /* timeout is fine — we check navigatedUrl below */ });
+
+    const currentUrl = page.url();
+    const redirected = currentUrl.includes('ciamlogin.com') || (navigatedUrl && navigatedUrl.includes('ciamlogin.com'));
+
+    expect(
+      redirected,
+      `Expected navigation to ciamlogin.com but stayed on: ${currentUrl}`
+    ).toBe(true);
+  });
+});
+
+test.describe('CIAM authentication — Google provider', () => {
   test.skip(skipGoogle, 'E2E_GOOGLE_EMAIL / E2E_GOOGLE_PASSWORD not set');
 
   test('teacher can sign in with Google and is redirected to onboarding or dashboard', async ({ page }) => {
@@ -50,7 +88,7 @@ test.describe('B2C authentication — Google provider', () => {
   });
 });
 
-test.describe('B2C authentication — Microsoft provider', () => {
+test.describe('CIAM authentication — Microsoft provider', () => {
   test.skip(skipMicrosoft, 'E2E_MICROSOFT_EMAIL / E2E_MICROSOFT_PASSWORD not set');
 
   test('teacher can sign in with Microsoft and is redirected to onboarding or dashboard', async ({ page }) => {
