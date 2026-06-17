@@ -40,7 +40,7 @@ function TakeQuiz() {
       try {
         const quizRes = await fetch(`${API_BASE}/quizzes/${quizId}`)
         if (quizRes.status === 404) throw new Error('Quiz not found.')
-        if (!quizRes.ok) throw new Error(`Server error (${quizRes.status})`)
+        if (!quizRes.ok) throw new Error('Something went wrong. Please try again.')
         const quizData = await quizRes.json()
         setQuiz(quizData)
 
@@ -51,7 +51,7 @@ function TakeQuiz() {
         }
 
         const questionsRes = await fetch(`${API_BASE}/quizzes/${quizId}/questions`)
-        if (!questionsRes.ok) throw new Error(`Server error (${questionsRes.status})`)
+        if (!questionsRes.ok) throw new Error('Something went wrong. Please try again.')
         const questionsData = await questionsRes.json()
         setQuestions(questionsData)
       } catch (err) {
@@ -104,7 +104,7 @@ function TakeQuiz() {
       }
 
       const data = await res.json().catch(() => ({}))
-      setSubmitError(data.error || `Server error (${res.status})`)
+      setSubmitError(data.error || 'Something went wrong. Please try again.')
     } catch {
       // Network failure — queue for Background Sync and tell the student it's safe to leave.
       await queueResponse({ id: crypto.randomUUID(), ...payload, createdAt: new Date().toISOString() })
