@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuizPulse — Mockups v3.0.1</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple:      #534AB7;
+    --purple-l:    #EEEDFE;
+    --purple-m:    #7B6EDE;
+    --purple-d:    #1a1433;
+    --green:       #3B6D11;
+    --green-l:     #EAF3DE;
+    --red:         #A32D2D;
+    --red-l:       #FCEBEB;
+    --orange:      #C05000;
+    --orange-l:    #FFF3CD;
+    --border:      #e0e0e0;
+    --text:        #1a1433;
+    --sub:         #666;
+    --muted:       #aaa;
+    --bg:          #f7f7fb;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Index ── */
+  #index {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .index-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .index-logo .icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--purple);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+
+  .index-logo h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+  .index-logo .badge {
+    font-size: 10px; padding: 2px 8px; border-radius: 20px;
+    background: var(--purple-l); color: var(--purple);
+    font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--muted);
+    margin: 32px 0 14px;
+  }
+
+  .screen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .screen-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    text-decoration: none;
+    display: block;
+  }
+
+  .screen-card:hover {
+    box-shadow: 0 4px 18px rgba(83,74,183,0.14);
+    border-color: #c5c0f0;
+  }
+
+  .screen-card .thumb { font-size: 28px; margin-bottom: 10px; }
+  .screen-card .title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .screen-card .who {
+    display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 20px;
+    font-weight: 600; margin-bottom: 6px;
+  }
+
+  .who-student { background: var(--green-l); color: var(--green); }
+  .who-teacher { background: var(--purple-l); color: var(--purple); }
+
+  .screen-card .desc { font-size: 12px; color: var(--sub); line-height: 1.5; }
+
+  /* ── Screen wrapper ── */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  .screen.active { display: block; }
+
+  /* ── Top nav ── */
+  .topnav {
+    background: var(--purple-d);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .topnav .back {
+    background: rgba(255,255,255,0.12);
+    border: none; border-radius: 6px;
+    padding: 6px 12px; color: white; font-size: 13px;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  .topnav .back:hover { background: rgba(255,255,255,0.2); }
+  .topnav .screen-title { color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; }
+
+  /* ── Phone shell ── */
+  .phone-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+
+  .phone {
+    width: min(280px, 90vw);
+    background: #111;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+
+  .phone-notch {
+    height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 4px;
+  }
+
+  .phone-notch-pill {
+    width: 70px; height: 12px;
+    background: #000; border-radius: 10px;
+  }
+
+  .phone-screen {
+    background: white;
+    border-radius: 32px;
+    min-height: 520px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-statusbar {
+    background: #f5f5f5;
+    padding: 5px 14px;
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: #555; font-weight: 600;
+  }
+
+  .phone-home-bar {
+    height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 4px;
+  }
+
+  .phone-home-pill {
+    width: 70px; height: 5px;
+    background: #444; border-radius: 5px;
+  }
+
+  /* ── Teacher full-width wrap ── */
+  .teacher-wrap {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* ── Utility ── */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.88; }
+  .btn-primary { background: var(--purple); color: white; }
+  .btn-outline { background: white; color: var(--purple); border: 1px solid var(--purple); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  input[type="text"], input[type="search"], select, textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(83,74,183,0.12);
+  }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+
+  .tag-green { background: var(--green-l); color: var(--green); }
+  .tag-purple { background: var(--purple-l); color: var(--purple); }
+  .tag-orange { background: var(--orange-l); color: var(--orange); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     INDEX
+     ═══════════════════════════════════════════════════════════ -->
+<div id="index">
+  <div class="index-logo">
+    <div class="icon">⚡</div>
+    <h1>QuizPulse</h1>
+    <span class="badge">beta</span>
+  </div>
+
+  <p style="font-size:14px;color:var(--sub);margin-bottom:4px;">Mockups · v3.0.1 · Reference artifact — not part of the build.</p>
+
+  <p class="section-label">Student screens (phone frame)</p>
+  <div class="screen-grid">
+    <a href="#" class="screen-card" onclick="show('s-completion'); return false">
+      <div class="thumb">✅</div>
+      <span class="who who-student">Student</span>
+      <div class="title">Quiz completion</div>
+      <div class="desc">Success state, encouragement line, streak treatments side-by-side.</div>
+    </a>
+    <a href="#" class="screen-card" onclick="show('s-notification'); return false">
+      <div class="thumb">🔔</div>
+      <span class="who who-student">Student</span>
+      <div class="title">Incoming notification</div>
+      <div class="desc">Lock-screen push from teacher — no jargon, plain teaser.</div>
+    </a>
+    <a href="#" class="screen-card" onclick="show('s-participation'); return false">
+      <div class="thumb">📅</div>
+      <span class="who who-student">Student</span>
+      <div class="title">My participation</div>
+      <div class="desc">Quizzes completed and streak — participation only, no marks.</div>
+    </a>
+  </div>
+
+  <p class="section-label">Teacher screens (full width)</p>
+  <div class="screen-grid">
+    <a href="#" class="screen-card" onclick="show('t-community'); return false">
+      <div class="thumb">🏛️</div>
+      <span class="who who-teacher">Teacher</span>
+      <div class="title">Community quiz bank</div>
+      <div class="desc">Search, filter by topic + year, browse My bank / School / Community tabs.</div>
+    </a>
+    <a href="#" class="screen-card" onclick="show('t-analytics'); return false">
+      <div class="thumb">📊</div>
+      <span class="who who-teacher">Teacher</span>
+      <div class="title">Analytics</div>
+      <div class="desc">Live response counter, per-question breakdown, topics to revisit, non-responders.</div>
+    </a>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 1 — Student: Quiz completion
+     ═══════════════════════════════════════════════════════════ -->
+<div id="s-completion" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Quiz completion (student)</span>
+  </nav>
+
+  <div style="max-width:900px;margin:0 auto;padding:32px 24px;">
+    <p style="font-size:13px;color:var(--sub);margin-bottom:28px;line-height:1.6;">
+      The completion screen appears after a student submits. Below the main message,
+      an encouragement line is shown (one chosen at random on each submission).
+      The two streak treatments appear <strong>side-by-side</strong> for comparison — only one would ship.
+    </p>
+
+    <!-- Completion content — centred, phone-width feel -->
+    <div style="max-width:380px;margin:0 auto 40px;background:white;border:1px solid var(--border);border-radius:16px;padding:32px 28px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:16px;">✅</div>
+      <h2 style="font-size:19px;font-weight:600;color:var(--text);margin-bottom:8px;">All done — your answers have been sent to your teacher.</h2>
+      <p style="font-size:15px;color:#5a5298;font-style:italic;margin-top:14px;line-height:1.6;">
+        Nice work showing up today.
+      </p>
+
+      <!-- Streak comparison -->
+      <div style="margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;">
+        <!-- Standard treatment -->
+        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">Option A — Standard</div>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--orange-l);border-radius:8px;padding:10px 12px;">
+            <span style="font-size:20px;">🔥</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--orange);">4 in a row</div>
+              <div style="font-size:11px;color:var(--orange);margin-top:1px;">You've answered every quiz this week</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Softer treatment -->
+        <div style="border:1px solid var(--border);border-radius:12px;padding:14px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">Option B — Softer</div>
+          <div style="background:var(--green-l);border-radius:8px;padding:10px 12px;">
+            <div style="font-size:12px;color:var(--green);line-height:1.5;">You've shown up consistently this week — nice.</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:24px;padding:12px;">Done</button>
+    </div>
+
+    <div style="background:var(--purple-l);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--purple);line-height:1.6;">
+      <strong>Design note:</strong> Option A uses a flame icon and a numerical count ("4 in a row") which is clear but can create pressure.
+      Option B drops the number and icon, framing it as presence ("shown up") rather than achievement.
+      Neither shows a score or marks. Recommend Option B for low-stakes framing.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 2 — Student: Incoming notification (lock screen)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="s-notification" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Incoming notification (student, lock screen)</span>
+  </nav>
+
+  <div style="padding:32px 24px;text-align:center;">
+    <p style="font-size:13px;color:var(--sub);margin-bottom:28px;">
+      Lock-screen push notification. Sender is the teacher's name; teaser is plain and immediate — no technical terms.
+    </p>
+
+    <!-- Lock-screen phone -->
+    <div style="display:inline-block;width:min(260px,85vw);background:linear-gradient(160deg,#1a1a2e 0%,#16213e 100%);border-radius:40px;padding:10px;box-shadow:0 16px 48px rgba(0,0,0,0.45);">
+      <!-- notch -->
+      <div style="height:20px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;">
+        <div style="width:60px;height:10px;background:#000;border-radius:10px;"></div>
+      </div>
+      <!-- screen -->
+      <div style="border-radius:30px;overflow:hidden;min-height:420px;background:linear-gradient(160deg,#0f3460 0%,#533483 100%);padding:14px;position:relative;">
+        <!-- status bar -->
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.7);margin-bottom:24px;font-weight:600;">
+          <span>9:41</span><span>●●● 🔋</span>
+        </div>
+        <!-- time -->
+        <div style="text-align:center;margin-bottom:28px;">
+          <div style="font-size:48px;font-weight:200;color:white;line-height:1;">9:41</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">Wednesday, 18 June</div>
+        </div>
+        <!-- notification banner -->
+        <div style="background:rgba(255,255,255,0.18);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:16px;padding:14px 14px;border:1px solid rgba(255,255,255,0.25);">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;">
+            <div style="width:20px;height:20px;background:var(--purple);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">⚡</div>
+            <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.6px;">QUIZPULSE</span>
+            <span style="font-size:8px;color:rgba(255,255,255,0.5);margin-left:auto;">now</span>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Ms Lee</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.85);margin-bottom:10px;line-height:1.45;">A quick quiz — 3 questions</div>
+          <div style="display:flex;gap:7px;">
+            <div style="flex:1;background:rgba(255,255,255,0.28);border-radius:8px;padding:6px;text-align:center;font-size:10px;font-weight:700;color:white;cursor:pointer;">Start</div>
+            <div style="flex:1;background:rgba(255,255,255,0.1);border-radius:8px;padding:6px;text-align:center;font-size:10px;color:rgba(255,255,255,0.7);cursor:pointer;">Later</div>
+          </div>
+        </div>
+      </div>
+      <!-- home bar -->
+      <div style="height:20px;display:flex;align-items:center;justify-content:center;margin-top:4px;">
+        <div style="width:70px;height:4px;background:rgba(255,255,255,0.3);border-radius:4px;"></div>
+      </div>
+    </div>
+
+    <div style="max-width:360px;margin:28px auto 0;background:var(--purple-l);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--purple);line-height:1.6;text-align:left;">
+      <strong>Copy guidelines:</strong> Sender = teacher name (not "QuizPulse"). Teaser is immediate and action-oriented.
+      No "push notification", no "quiz alert", no class codes or IDs in the notification body.
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 3 — Student: My participation
+     ═══════════════════════════════════════════════════════════ -->
+<div id="s-participation" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">My participation (student)</span>
+  </nav>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen">
+        <div class="phone-statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+
+        <!-- App chrome -->
+        <div style="background:var(--purple-d);padding:10px 14px 8px;">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:2px;">My participation</div>
+        </div>
+
+        <!-- Content -->
+        <div style="padding:14px;overflow-y:auto;">
+          <!-- Participation summary -->
+          <div style="background:var(--purple-l);border-radius:12px;padding:14px;margin-bottom:14px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:var(--purple);line-height:1;">7</div>
+            <div style="font-size:11px;color:var(--purple);margin-top:3px;">quizzes completed this term</div>
+          </div>
+
+          <!-- Streak — softer framing -->
+          <div style="background:var(--green-l);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:2px;">This week</div>
+            <div style="font-size:12px;color:var(--green);line-height:1.5;">You've shown up to every quiz so far — keep going.</div>
+          </div>
+
+          <!-- Week grid -->
+          <div style="font-size:10px;color:var(--sub);font-weight:600;margin-bottom:8px;">This term at a glance</div>
+          <!-- Mon-Fri grid, 3 weeks shown (current week partial) -->
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:14px;">
+            <!-- week 1 -->
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--border);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <!-- week 2 -->
+            <div style="height:28px;border-radius:6px;background:var(--border);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--border);"></div>
+            <!-- week 3 — current, partial -->
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:var(--purple-l);border:1px dashed var(--purple);"></div>
+            <div style="height:28px;border-radius:6px;background:#eee;"></div>
+            <div style="height:28px;border-radius:6px;background:#eee;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:14px;">
+            <div style="font-size:8px;color:var(--muted);text-align:center;">M</div>
+            <div style="font-size:8px;color:var(--muted);text-align:center;">T</div>
+            <div style="font-size:8px;color:var(--muted);text-align:center;">W</div>
+            <div style="font-size:8px;color:var(--muted);text-align:center;">T</div>
+            <div style="font-size:8px;color:var(--muted);text-align:center;">F</div>
+          </div>
+
+          <!-- Legend -->
+          <div style="display:flex;gap:10px;font-size:10px;color:var(--sub);">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--purple);display:inline-block;"></span> Completed</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--border);display:inline-block;"></span> No quiz</span>
+          </div>
+
+          <div style="margin-top:12px;padding:10px 12px;background:#f9f9f9;border-radius:8px;font-size:11px;color:var(--sub);line-height:1.5;">
+            This shows whether you completed each quiz — it never shows scores or marks.
+          </div>
+        </div>
+      </div>
+      <div class="phone-home-bar"><div class="phone-home-pill"></div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 4 — Teacher: Community quiz bank
+     ═══════════════════════════════════════════════════════════ -->
+<div id="t-community" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Community quiz bank (teacher)</span>
+  </nav>
+
+  <div class="teacher-wrap">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;">Question bank</h2>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:20px;">Browse and copy questions from your bank, your school, or the community.</p>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;width:fit-content;">
+      <button onclick="switchTab('my-bank')" id="tab-my-bank" style="padding:9px 18px;border:none;background:var(--purple);color:white;font-size:13px;font-weight:500;cursor:pointer;">My bank</button>
+      <button onclick="switchTab('school')" id="tab-school" style="padding:9px 18px;border:none;background:white;color:var(--sub);font-size:13px;cursor:pointer;border-left:1px solid var(--border);">School</button>
+      <button onclick="switchTab('community')" id="tab-community" style="padding:9px 18px;border:none;background:white;color:var(--sub);font-size:13px;cursor:pointer;border-left:1px solid var(--border);">Community</button>
+    </div>
+
+    <!-- Search + filters -->
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;position:relative;">
+        <input type="search" id="bank-search" placeholder="Search questions…" oninput="filterBank()" style="padding-left:34px;">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;">🔍</span>
+      </div>
+      <select id="filter-topic" onchange="filterBank()" style="width:160px;">
+        <option value="">All topics</option>
+        <option>Science</option>
+        <option>Maths</option>
+        <option>English</option>
+        <option>History</option>
+      </select>
+      <select id="filter-year" onchange="filterBank()" style="width:140px;">
+        <option value="">All years</option>
+        <option>Year 7</option>
+        <option>Year 8</option>
+        <option>Year 9</option>
+        <option>Year 10</option>
+        <option>Year 11</option>
+        <option>Year 12</option>
+      </select>
+    </div>
+
+    <!-- Results count -->
+    <div style="font-size:12px;color:var(--sub);margin-bottom:14px;" id="bank-count">Showing 4 questions</div>
+
+    <!-- Question cards -->
+    <div id="bank-cards">
+      <!-- Card 1 -->
+      <div class="bank-card card" data-topic="Science" data-year="Year 9">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;color:var(--text);line-height:1.5;margin-bottom:6px;">
+              Which organelle is responsible for producing energy in a cell?
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="tag tag-purple">Science</span>
+              <span class="tag tag-green">Year 9</span>
+              <span style="font-size:11px;color:var(--sub);display:flex;align-items:center;gap:3px;">🏫 Northside High</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <button class="btn btn-outline btn-sm" onclick="copyToast()">Copy to my bank</button>
+            <div style="font-size:11px;color:var(--sub);">▲ 24 upvotes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="bank-card card" data-topic="Maths" data-year="Year 10">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;color:var(--text);line-height:1.5;margin-bottom:6px;">
+              What is the gradient of a horizontal line?
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="tag tag-purple">Maths</span>
+              <span class="tag tag-green">Year 10</span>
+              <span style="font-size:11px;color:var(--sub);display:flex;align-items:center;gap:3px;">🏫 Westfield College</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <button class="btn btn-outline btn-sm" onclick="copyToast()">Copy to my bank</button>
+            <div style="font-size:11px;color:var(--sub);">▲ 17 upvotes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="bank-card card" data-topic="English" data-year="Year 8">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;color:var(--text);line-height:1.5;margin-bottom:6px;">
+              Which of the following is an example of a metaphor?
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="tag tag-purple">English</span>
+              <span class="tag tag-green">Year 8</span>
+              <span style="font-size:11px;color:var(--sub);display:flex;align-items:center;gap:3px;">🏫 Eastbrook School</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <button class="btn btn-outline btn-sm" onclick="copyToast()">Copy to my bank</button>
+            <div style="font-size:11px;color:var(--sub);">▲ 11 upvotes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="bank-card card" data-topic="History" data-year="Year 9">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;color:var(--text);line-height:1.5;margin-bottom:6px;">
+              In which year did the Second World War end?
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="tag tag-purple">History</span>
+              <span class="tag tag-green">Year 9</span>
+              <span style="font-size:11px;color:var(--sub);display:flex;align-items:center;gap:3px;">🌐 Community</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <button class="btn btn-outline btn-sm" onclick="copyToast()">Copy to my bank</button>
+            <div style="font-size:11px;color:var(--sub);">▲ 8 upvotes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="copy-toast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--purple-d);color:white;padding:12px 22px;border-radius:10px;font-size:14px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:999;">
+      ✓ Copied to your bank
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 5 — Teacher: Analytics
+     ═══════════════════════════════════════════════════════════ -->
+<div id="t-analytics" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Analytics (teacher)</span>
+  </nav>
+
+  <div class="teacher-wrap">
+    <!-- Quiz header -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">Week 9 — Photosynthesis check-in</h2>
+        <div style="font-size:13px;color:var(--sub);">Sent · Year 9 Science · 3 questions</div>
+      </div>
+      <button class="btn btn-outline btn-sm">Export CSV</button>
+    </div>
+
+    <!-- Live counter -->
+    <div class="card" style="background:var(--green-l);border-color:var(--green);">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="text-align:center;">
+          <div style="font-size:36px;font-weight:700;color:var(--green);line-height:1;" id="resp-count">18</div>
+          <div style="font-size:11px;color:var(--green);margin-top:2px;">of 24 responded</div>
+        </div>
+        <div style="flex:1;">
+          <div style="height:10px;background:rgba(0,0,0,0.1);border-radius:5px;overflow:hidden;">
+            <div id="resp-bar" style="height:100%;background:var(--green);border-radius:5px;width:75%;transition:width 0.6s;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--green);">
+            <span>75% participation</span>
+            <button onclick="simulateLive()" style="background:none;border:none;color:var(--green);font-size:11px;cursor:pointer;text-decoration:underline;">Simulate new response</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-question breakdown -->
+    <div style="font-size:14px;font-weight:600;margin:20px 0 12px;">Question breakdown</div>
+
+    <!-- Q1 -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;line-height:1.4;">Q1 — Which organelle is responsible for photosynthesis?</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+        <span class="tag tag-green">✓ Most students got this right</span>
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>A — Mitochondria</span><span style="color:var(--sub);">4 students</span></div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:22%;"></div></div>
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span><strong>B — Chloroplast ✓</strong></span><span style="color:var(--green);font-weight:600;">14 students</span></div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:var(--green);border-radius:4px;width:78%;"></div></div>
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>C — Nucleus</span><span style="color:var(--sub);">0 students</span></div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:0%;"></div></div>
+      </div>
+    </div>
+
+    <!-- Q2 — worth revisiting -->
+    <div class="card" style="border-color:#e8a000;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">
+        <div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:6px;line-height:1.4;">Q2 — What do plants need alongside light for photosynthesis?</div>
+          <span class="tag tag-orange">Worth revisiting with the class</span>
+        </div>
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span><strong>A — Carbon dioxide + water ✓</strong></span><span style="color:var(--green);font-weight:600;">8 students</span></div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:var(--green);border-radius:4px;width:44%;"></div></div>
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>B — Oxygen + sugar</span><span style="color:var(--sub);">6 students</span></div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:33%;"></div></div>
+      </div>
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>C — Nitrogen + minerals</span><span style="color:var(--sub);">4 students</span></div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:22%;"></div></div>
+      </div>
+      <div style="margin-top:10px;padding:8px 12px;background:var(--orange-l);border-radius:8px;font-size:12px;color:var(--orange);line-height:1.5;">
+        Fewer than half of students chose the correct answer. This is a topic worth revisiting — not a reflection of how hard students tried.
+      </div>
+    </div>
+
+    <!-- Non-responders -->
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Students yet to respond <span style="font-size:12px;font-weight:400;color:var(--sub);">(6 of 24)</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9f9f9;border-radius:8px;">
+          <span style="font-size:13px;">Alex M.</span>
+          <span style="font-size:11px;color:var(--sub);">No response yet</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9f9f9;border-radius:8px;">
+          <span style="font-size:13px;">Jordan T.</span>
+          <span style="font-size:11px;color:var(--sub);">No response yet</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9f9f9;border-radius:8px;">
+          <span style="font-size:13px;">Sam K.</span>
+          <span style="font-size:11px;color:var(--sub);">No response yet</span>
+        </div>
+        <div style="padding:6px 12px;font-size:12px;color:var(--sub);">+ 3 more</div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--sub);line-height:1.5;">
+        Students are listed here to help you follow up — not as a judgement on participation.
+        Some may not have received the notification if they're not yet subscribed.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  // ── Navigation ────────────────────────────────────────────
+  function show(id) {
+    document.getElementById('index').style.display  = 'none'
+    document.querySelectorAll('.screen').forEach(s  => s.classList.remove('active'))
+
+    if (id === 'index') {
+      document.getElementById('index').style.display = 'block'
+    } else {
+      const el = document.getElementById(id)
+      if (el) el.classList.add('active')
+    }
+    window.scrollTo(0, 0)
+  }
+
+  // ── Community bank: tab switching ─────────────────────────
+  function switchTab(tab) {
+    const tabs = ['my-bank', 'school', 'community']
+    tabs.forEach(t => {
+      const btn = document.getElementById('tab-' + t)
+      if (btn) {
+        btn.style.background = t === tab ? 'var(--purple)' : 'white'
+        btn.style.color      = t === tab ? 'white'         : 'var(--sub)'
+      }
+    })
+  }
+
+  // ── Community bank: filtering ─────────────────────────────
+  function filterBank() {
+    const q    = (document.getElementById('bank-search').value  || '').toLowerCase()
+    const top  = (document.getElementById('filter-topic').value || '').toLowerCase()
+    const yr   = (document.getElementById('filter-year').value  || '').toLowerCase()
+    let   count = 0
+
+    document.querySelectorAll('.bank-card').forEach(card => {
+      const text  = card.innerText.toLowerCase()
+      const topic = (card.dataset.topic || '').toLowerCase()
+      const year  = (card.dataset.year  || '').toLowerCase()
+
+      const matchQ   = !q   || text.includes(q)
+      const matchTop = !top || topic.includes(top)
+      const matchYr  = !yr  || year.includes(yr)
+
+      const visible = matchQ && matchTop && matchYr
+      card.style.display = visible ? '' : 'none'
+      if (visible) count++
+    })
+
+    document.getElementById('bank-count').textContent =
+      'Showing ' + count + ' question' + (count !== 1 ? 's' : '')
+  }
+
+  // ── Copy toast ────────────────────────────────────────────
+  function copyToast() {
+    const t = document.getElementById('copy-toast')
+    t.style.display = 'block'
+    setTimeout(() => { t.style.display = 'none' }, 2200)
+  }
+
+  // ── Analytics: simulate live response ────────────────────
+  let respCount = 18
+  const totalStudents = 24
+
+  function simulateLive() {
+    if (respCount >= totalStudents) return
+    respCount++
+    const pct = Math.round((respCount / totalStudents) * 100)
+    document.getElementById('resp-count').textContent = respCount
+    document.getElementById('resp-bar').style.width   = pct + '%'
+    document.querySelector('[id="resp-bar"] ~ div span:first-child') // update label
+    document.querySelectorAll('.card')[0].querySelector('.green-sub') // skip
+    // update the "of X responded" label
+    const sub = document.querySelectorAll('#t-analytics .card')[0]
+    if (sub) {
+      const info = sub.querySelector('div:first-child div:last-child')
+      if (info) info.textContent = 'of ' + totalStudents + ' responded'
+    }
+    // Simple label update
+    document.querySelectorAll('#t-analytics div[style*="11px"][style*="green"]')[0]
+      .textContent = pct + '% participation'
+  }
+</script>
+</body>
+</html>

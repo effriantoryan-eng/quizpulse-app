@@ -113,13 +113,13 @@ function SendQuiz() {
       })
       if (!quizRes.ok) {
         const data = await quizRes.json().catch(() => ({}))
-        throw new Error(data.error || `Quiz save failed (${quizRes.status})`)
+        throw new Error(data.error || 'Something went wrong. Please try again.')
       }
       const quiz = await quizRes.json()
 
       if (mode === 'now') {
         // Send push notifications to subscribed students (best-effort — failures don't block).
-        setSendingMsg('Sending push notifications…')
+        setSendingMsg('Sending notifications…')
         try {
           await fetch(`${API_BASE}/send-notification`, {
             method: 'POST',
@@ -177,7 +177,7 @@ function SendQuiz() {
           <div style={{ fontSize: '12px', color: '#3a7a65', marginBottom: '20px' }}>
             {sentResult.scheduled
               ? 'It will be sent automatically at the scheduled time.'
-              : 'Students will receive a push notification and analytics will update as they respond.'}
+              : 'Students will receive a notification and analytics will update as they respond.'}
           </div>
           <button
             onClick={() => navigate(`/teacher/analytics/${sentResult.quizId}`)}

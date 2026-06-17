@@ -33,7 +33,7 @@ function Subscribe() {
     try {
       // Fetch the VAPID public key at runtime.
       const keyRes = await fetch(`${API_BASE}/vapid-public-key`)
-      if (!keyRes.ok) throw new Error('Could not fetch push key from server.')
+      if (!keyRes.ok) throw new Error('Could not connect to the server. Please try again.')
       const { publicKey } = await keyRes.json()
 
       // Request push permission and subscribe.
@@ -62,7 +62,7 @@ function Subscribe() {
       }
       if (!subRes.ok) {
         const data = await subRes.json().catch(() => ({}))
-        throw new Error(data.error || `Server error (${subRes.status})`)
+        throw new Error(data.error || 'Something went wrong. Please try again.')
       }
 
       setStatus('success')
@@ -87,7 +87,7 @@ function Subscribe() {
     <div style={{ maxWidth: 420, margin: '0 auto', padding: '24px' }}>
       <h2 style={{ marginBottom: '8px' }}>Subscribe to quiz notifications</h2>
       <p style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>
-        Your teacher will send quizzes as push notifications. Enter your class ID and tap Subscribe.
+        Your teacher will send quizzes as notifications. Enter your class ID and tap Subscribe.
       </p>
 
       {status === 'success' ? (

@@ -8,11 +8,11 @@
 
 ## What this project is
 
-QuizPulse is a **PWA-first** low-stakes formative assessment tool for Victorian secondary
-school teachers (Years 7–12). Teachers create short multiple-choice quizzes and push them to
-students via **real Web Push notifications**. Students receive a notification, tap it, complete
-the quiz, and teachers view live analytics. The differentiator is push-first delivery — no link
-sharing required.
+QuizPulse is a **PWA-first** low-stakes formative assessment tool for school teachers (K–12,
+any curriculum). Teachers create short multiple-choice quizzes and send them to students via
+**real Web Push notifications**. Students receive a notification, tap it, complete the quiz, and
+teachers view live analytics. The differentiator is push-first delivery — no link sharing
+required.
 
 **This is a real Progressive Web App built from scratch — NOT a wrapper.** It uses service
 workers, the Web Push API, and a web app manifest to behave like a native app without a native
@@ -534,11 +534,24 @@ sprint's scope.
 | Azure API Management (rateLimit.js no-op → APIM policies) | [CURRENT] Sprint 6 complete — APIM instance not yet provisioned (see APIM_SETUP.md) |
 | Apple ID CIAM provider | [CURRENT] Sprint 6 complete — portal config pending (see APPLE_ID_SETUP.md) |
 | Analytics depth: class cross-quiz aggregation + response timeline chart | [CURRENT] Sprint 6 complete |
+| Sign-in CSP fix (*.ciamlogin.com in connect-src + frame-src) | [CURRENT] v3.0.1 complete — portal redirect URI verification pending |
+| No-jargon UI copy sweep (push/Azure/server-error terms replaced) | [CURRENT] v3.0.1 complete |
+| Generic product positioning (no VIC-specific copy; beta not demo) | [CURRENT] v3.0.1 complete |
+| Encouragement line on quiz completion (src/data/encouragements.js) | [CURRENT] v3.0.1 complete — placeholder, expand/curate later |
+| Mockup file (quizpulse_mockups_v301.html, 5 screens, reference only) | [CURRENT] v3.0.1 complete |
 | Admin frontend (super admin UI for the above) | [PLANNED — Sprint 7, separate site] |
 
 ---
 
 ## Known issues [CURRENT]
+
+~~**Sign-in buttons produced total silence in production (resolved v3.0.1).**~~
+The CSP `connect-src` listed `*.b2clogin.com` (old Azure AD B2C domain) instead of `*.ciamlogin.com`
+(the actual Entra External ID / CIAM authority). MSAL's OIDC discovery fetch was blocked, preventing
+any redirect. Fixed in `staticwebapp.config.json` — `connect-src` now has `*.ciamlogin.com`; `frame-src`
+added for silent token iframe renewal. **Portal action still required:** confirm
+`https://nice-field-0127b5b00.7.azurestaticapps.net` is listed as a redirect URI in the Entra External
+ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
 
 1. **SWA Standard upgrade is a portal step — not yet applied to the live site.** Until the Azure
    portal steps in `docs/azure/SWA_STANDARD_UPGRADE.md` are executed (upgrade to Standard tier,
@@ -572,7 +585,7 @@ sprint's scope.
 
 - React functional components + hooks only.
 - Async/await for all API calls, always wrapped in try/catch.
-- API calls use `API_BASE` from `src/api.js` (direct Function App URL in prod until Sprint 6).
+- API calls use `API_BASE` from `src/api.js` (relative `/api` in prod via SWA Standard proxy).
 - `teacherId` from `AuthContext`.
 - Plain JavaScript — no TypeScript. Inline styles — no CSS modules.
 - Azure Functions v4: `context.error()` / `context.warn()` / `context.log()` only.
@@ -580,3 +593,16 @@ sprint's scope.
   field validation → ownership check. 500s return a generic message to the client.
 - Enforce every limit from the Security limits table **server-side**, not just in the UI.
 - Student endpoints keyed by non-guessable UUIDs; teacher/admin endpoints require auth.
+- **No technical jargon in user-facing strings.** JSX text, button labels, headings, placeholders,
+  toast/error messages, and aria-labels must use plain language. Do NOT write "push notification",
+  "service worker", "VAPID", "endpoint", "Azure", "Cosmos", "Function App", "deviceId" (as rendered
+  text), "Entra", "CIAM", "MSAL", "PWA", or raw HTTP status codes in strings a teacher or student
+  will see. Replace with plain equivalents ("notification", "something went wrong", etc.).
+  Code identifiers, filenames, and data-model fields are NOT affected by this rule.
+- **Encouragement placeholder** (`src/data/encouragements.js`): 10 effort/participation-focused
+  lines shown at random on the TakeQuiz completion screen (`data-testid="encouragement-line"`).
+  Expand or curate this array — do not add ability/cleverness framing, score references, or markup.
+- **Mockup file** (`quizpulse_mockups_v301.html` in the project root): self-contained HTML reference
+  artifact with 5 screens (completion, notification, participation, community bank, analytics).
+  Not part of the build. Update alongside design changes; keep copy consistent with the no-jargon
+  and generic-positioning rules above.

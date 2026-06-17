@@ -44,7 +44,7 @@ function SectionLabel({ role }) {
 }
 
 function Badge({ label, live }) {
-  const isLive   = label === 'Live in demo'
+  const isLive   = label === 'Live'
   const isActive = label === 'Interactive'
   const bg   = isLive ? C.greenLight : isActive ? C.purpleLight : '#FFF3CD'
   const color = isLive ? C.green     : isActive ? C.purple      : '#856404'
@@ -290,7 +290,7 @@ function Card2() {
   const total = q.counts.reduce((a, b) => a + b, 0)
 
   return (
-    <CardShell title="Quiz analytics" subtitle="Per-question response breakdown" badge="Live in demo" hint="Click Q1 / Q2 / Q3 to switch questions. Green bar = correct answer. This is the real analytics view already live in the demo.">
+    <CardShell title="Quiz analytics" subtitle="Per-question response breakdown" badge="Live" hint="Click Q1 / Q2 / Q3 to switch questions. Green bar = correct answer. This is the real analytics view, working live in the app.">
       {/* Q selector */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
         {ANALYTICS_DATA.map((_, i) => (
@@ -449,13 +449,13 @@ function LockScreenPhone() {
 
 function Card4() {
   return (
-    <CardShell title="Native push notifications" subtitle="iOS & Android via Azure Notification Hubs" badge="Post-MVP" hint="This shows what students will see on their lock screen when a teacher sends a quiz.">
+    <CardShell title="Native notifications" subtitle="Delivered directly to iOS & Android" badge="Post-MVP" hint="This shows what students will see on their lock screen when a teacher sends a quiz.">
       <LockScreenPhone />
       <div style={{ marginTop: '16px' }}>
         <div style={{ fontSize: '12px', fontWeight: '600', color: C.text, marginBottom: '8px' }}>How it works</div>
         {[
           { icon: '📤', text: 'Teacher sends or schedules a quiz' },
-          { icon: '☁️', text: 'Azure Notification Hubs fans out to all class devices' },
+          { icon: '☁️', text: 'Notifications are sent to every student device in the class' },
           { icon: '📱', text: 'Students get a native lock-screen notification on iOS & Android' },
           { icon: '⚡', text: 'Tap to open QuizPulse and start the quiz instantly' },
         ].map(({ icon, text }) => (
@@ -465,7 +465,7 @@ function Card4() {
           </div>
         ))}
         <div style={{ marginTop: '10px', padding: '8px 10px', background: '#FFF3CD', borderRadius: '8px', fontSize: '11px', color: '#856404' }}>
-          Planned for post-MVP using Azure Notification Hubs with APNs + FCM.
+          Planned for a future release — delivers natively to iOS and Android.
         </div>
       </div>
     </CardShell>
