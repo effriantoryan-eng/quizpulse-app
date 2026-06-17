@@ -2,6 +2,94 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.0.0] — Sprint 6: community bank, SWA Standard, APIM, Apple ID, analytics depth
+
+### Breaking changes
+
+- **`src/api.js` `API_BASE` in production changes from the direct Function App URL to `/api`.**
+  Any client code, scripts, or browser bookmarks pointing to
+  `https://quizpulse-app-api-av5z18.azurewebsites.net/api/...` must update to the SWA hostname
+  (`https://nice-field-0127b5b00.7.azurestaticapps.net/api/...`). This requires the SWA Standard
+  tier upgrade and linked backend to be provisioned before deploying (see
+  `docs/azure/SWA_STANDARD_UPGRADE.md`). **Do not deploy the v3.0.0 frontend before completing
+  those portal steps** or all API calls will 404.
+
+### New features
+
+#### SWA Standard tier (`feat/s6-swa-standard-tier`)
+- `src/api.js`: production `API_BASE` is now `/api` (relative, proxied by SWA linked backend).
+- `staticwebapp.config.json`: explicit `/api/*` rewrite route removed; Function App origin
+  removed from CSP `connect-src` (browser never calls it directly anymore).
+- `docs/azure/SWA_STANDARD_UPGRADE.md`: portal steps for tier upgrade, backend linking,
+  CORS cleanup, deploy order, and rollback procedure.
+
+#### Community question bank (`feat/s6-community-bank`)
+- `GET /api/questions?visibility=school|public`: paginated community browse (50/page, `?offset`).
+  School mode queries teachers in the same school via a two-step DB lookup.
+  Supports `?topic=`, `?year=` (7–12), `?q=` (text search) filters.
+- `PUT /api/questions/{id}`: now accepts a `visibility` field (`private|school|public`).
+  Enforces 500 public questions per teacher. `platform_admin` can unpublish any question
+  by sending `{ "visibility": "private" }` only (moderation action).
+- `POST /api/questions/{id}/copy`: creates a private clone of any school/public question.
+  Increments `usageCount` on the original (best-effort).
+- `POST /api/questions/{id}/upvote`: toggles upvote (1 per teacher per question). Uses the
+  new `question_upvotes` Cosmos container (pk `/questionId`).
+- `POST /api/questions/{id}/report`: flags a question for moderation. Rate-limited to 20
+  reports/teacher/day. Uses the new `question_reports` container (pk `/questionId`).
+- `GET /api/questions/reports`: moderation queue (support/platform_admin/owner only).
+- `POST /api/quizzes`: increments `usageCount` on each referenced question (best-effort,
+  fire-and-forget).
+- All new questions now include `upvoteCount: 0`, `usageCount: 0`, `yearLevel: null` fields.
+- `POST /api/questions`: now enforces the 2000-questions-per-teacher limit explicitly.
+- Frontend: `QuestionBank.jsx` Community tab unlocked — School/Public mode toggle, search,
+  topic, and year-level filters, per-card upvote toggle + "Copy to mine" + report actions.
+  Visibility pill on My Questions cycles `private → school → public` on click. Edit form
+  includes `yearLevel` (7–12) and `visibility` selectors.
+- Frontend: `CreateQuestion.jsx` adds year level selector (Years 7–12, optional).
+
+#### Azure API Management (`feat/s6-api-management`)
+- `api/rateLimit.js`: in-memory sliding-window store removed. `rateLimit()` is now a no-op
+  (always returns true) — Azure API Management enforces limits at the gateway.
+- `api/schoolAdmin.js`: school-merge serialisation lock moved from `rateLimit()` to a
+  module-level boolean (`mergeInProgress`) — this is a concurrency guard, not throughput limiting.
+- `api/joinRequests.js`: join-code brute-force protection (10 wrong attempts/IP/hr) retained at
+  the application layer with a dedicated `joinBruteForce()` sliding-window function, separate from
+  `rateLimit.js`.
+- `docs/azure/APIM_SETUP.md`: portal guide to create the Consumption-tier APIM instance, import
+  the Function App, and configure inbound rate-limit policies for all endpoints from the security
+  limits table.
+
+#### Apple ID auth (`feat/s6-apple-id-auth`)
+- `docs/azure/APPLE_ID_SETUP.md`: step-by-step guide for Apple Developer Portal (App ID,
+  Services ID, private key), Azure Key Vault secret, and Entra External ID CIAM tenant
+  configuration. No frontend or backend code changes required.
+
+#### Analytics depth (`feat/s6-analytics-depth`)
+- `GET /api/analytics?quizId=` now includes a `timeline` field: cumulative response counts
+  in 5-minute buckets from `quiz.sentAt` — `[ { minutesElapsed, cumulativeCount } ]`.
+- `GET /api/analytics/class/{classId}?topic=` (new): returns all sent quizzes targeting this
+  class with per-quiz `responseCount`, `approvedStudents`, and `responseRate` (%). Optional
+  `?topic=` filter restricts to quizzes containing at least one question with that topic.
+  Ownership-gated via `assertScope` on the class document.
+- Frontend: `Analytics.jsx` adds a `TimelineChart` SVG component above the per-question
+  breakdown, showing cumulative responses over time since the quiz was sent. Updates every 3 s
+  with the existing poll cycle.
+
+### New containers (must be provisioned before deploying)
+- `question_upvotes` (pk `/questionId`) — env `COSMOS_CONTAINER_QUESTION_UPVOTES`
+- `question_reports` (pk `/questionId`) — env `COSMOS_CONTAINER_QUESTION_REPORTS`
+- Provisioning steps: `docs/azure/SPRINT6_CONTAINERS_SETUP.md`
+
+### Test changes
+- 27 new unit tests in `tests/unit/api/communityBank.test.js`: visibility scoping,
+  moderation role gating, upvote idempotency, visibility transitions, yearLevel validation.
+- `rateLimit.test.js`: updated to test the no-op + `getClientIp` behaviour.
+- `joinBruteForce.test.js`: tests inline sliding-window logic (no longer imports `rateLimit.js`).
+- `subscribe.test.js`: in-process 429 test removed; approval-gate tests preserved.
+- `sendNotification.test.js`: in-process 429 test removed; idempotency tests preserved.
+  Added payload >3 KB → 413 test.
+- All 130 unit tests pass.
+
 ## [v2.1.0] — Sprint 5: security foundation + admin/institution/monitoring endpoints
 
 Security audit and authorization hardening, followed by the institution/admin/monitoring

@@ -1,43 +1,33 @@
-// In-memory sliding window rate limiter.
-// State is per Function instance — not shared across scale-out replicas.
-// Sufficient for MVP; replace with Azure API Management for production scale.
+// In-memory sliding-window rate limiter (per Function App instance).
+// Sufficient for pilot scale. APIM rate-limit-by-key requires Developer tier or higher —
+// not available on Consumption — so per-instance enforcement is used instead.
 
-const store = new Map()
+const _store = new Map();
 
 /**
- * Returns true if the request is allowed, false if rate limited.
- * @param {string} key       - Unique key (e.g. "questions:1.2.3.4")
- * @param {number} max       - Maximum requests allowed in the window
- * @param {number} windowMs  - Window size in milliseconds
+ * Returns true if the caller is within the allowed rate, false if they should be throttled.
+ * @param {string} key   - unique key per caller+endpoint (e.g. "analytics:1.2.3.4")
+ * @param {number} max   - max calls allowed in the window
+ * @param {number} windowMs - window length in milliseconds
+ * @returns {boolean}
  */
 function rateLimit(key, max, windowMs) {
-  const now = Date.now()
-  const timestamps = (store.get(key) || []).filter(t => now - t < windowMs)
-
-  if (timestamps.length >= max) {
-    return false
-  }
-
-  timestamps.push(now)
-  store.set(key, timestamps)
-
-  // Periodically prune stale keys to prevent unbounded memory growth
-  if (store.size > 10000) {
-    for (const [k, ts] of store.entries()) {
-      if (ts.every(t => now - t >= windowMs)) store.delete(k)
-    }
-  }
-
-  return true
+  const now = Date.now();
+  const timestamps = (_store.get(key) || []).filter(t => now - t < windowMs);
+  if (timestamps.length >= max) return false;
+  timestamps.push(now);
+  _store.set(key, timestamps);
+  return true;
 }
 
 /**
- * Extracts the client IP from the request headers.
- * Azure passes the real IP in x-forwarded-for.
+ * Extracts the real client IP from the x-forwarded-for header.
+ * @param {Request} request
+ * @returns {string}
  */
 function getClientIp(request) {
-  const forwarded = request.headers.get('x-forwarded-for')
-  return forwarded ? forwarded.split(',')[0].trim() : 'unknown'
+  const forwarded = request.headers.get('x-forwarded-for');
+  return forwarded ? forwarded.split(',')[0].trim() : 'unknown';
 }
 
-module.exports = { rateLimit, getClientIp }
+module.exports = { rateLimit, getClientIp };

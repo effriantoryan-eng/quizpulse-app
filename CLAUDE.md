@@ -19,7 +19,7 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 5 (v2.1.0), on top of Sprint 4 (v2.0.0).**
+**[CURRENT] state of the app — Sprint 6 (v3.0.0 — MAJOR), on top of Sprint 5 (v2.1.0).**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -28,11 +28,17 @@ subscriptions, send-notification endpoint, and iOS install guide. Sprint 4 retir
 responses: students now take real quizzes at `/quiz`, responses are gated by
 approval/duplicate/closed checks, analytics are live (polled, real data, CSV export), failed
 submissions queue offline via Background Sync, and quizzes can be scheduled for automatic send.
-Sprint 5 adds a full security audit (`docs/security/SPRINT5_AUDIT.md`), the shared `assertScope`/
-`requireRole` authorization helpers with role tiers (`teacher`/`support`/`platform_admin`/`owner`),
-a 404-on-mismatch convention across every ownership-checked endpoint, an append-only `audit_log`,
-a step-up re-auth guard, and the institution/school-merge/monitoring admin endpoints built on top
-of that foundation — backend only, no admin frontend yet (that's Sprint 7, a separate site).
+Sprint 5 adds a full security audit, the shared `assertScope`/`requireRole` authorization helpers
+with role tiers, a 404-on-mismatch convention, an append-only `audit_log`, a step-up re-auth
+guard, and the institution/school-merge/monitoring admin endpoints — backend only.
+Sprint 6 (v3.0.0 — **MAJOR**) adds: SWA Standard tier with linked Function App backend
+(`src/api.js` now uses `/api` in prod — **BREAKING**); community question bank (visibility
+toggle, school/public browse with search + topic + year filters, upvotes, copy, report,
+moderation queue); Azure API Management replacing the in-memory rate limiter; Apple ID as a
+third CIAM provider (portal config + docs); analytics depth (class cross-quiz aggregation
+endpoint + response timeline chart in the analytics UI). New Cosmos containers: `question_upvotes`,
+`question_reports`. New env vars: `COSMOS_CONTAINER_QUESTION_UPVOTES`,
+`COSMOS_CONTAINER_QUESTION_REPORTS`.
 
 ---
 
@@ -218,7 +224,8 @@ not — they're scoped by `teacherId`/`quizId`, never `schoolId`. School merge
 - **`join_requests`** [Sprint 2] (pk `/classId`) — { id, classId, schoolId, teacherId,
   studentName, deviceId, status: "pending|approved|rejected|queued", matchedName, matchScore, createdAt }
 - **`subscriptions`** ~~[Sprint 3]~~ **[CURRENT — Sprint 3 complete]** (pk `/classId`) — { id, classId, deviceId, endpoint, keys: { p256dh, auth }, createdAt, updatedAt }
-- **`question_upvotes`** [Sprint 6] (pk `/questionId`) — { id, questionId, teacherId, createdAt }
+- **`question_upvotes`** ~~[Sprint 6]~~ **[CURRENT — Sprint 6]** (pk `/questionId`) — { id, questionId, teacherId, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_UPVOTES`. Provisioning: `docs/azure/SPRINT6_CONTAINERS_SETUP.md`.
+- **`question_reports`** [CURRENT — Sprint 6] (pk `/questionId`) — { id, questionId, teacherId, reason, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_REPORTS`. Max 20 reports/teacher/day; visible to support/platform_admin via `GET /api/questions/reports`.
 
 ### Field additions to existing documents
 
@@ -233,20 +240,23 @@ not — they're scoped by `teacherId`/`quizId`, never `schoolId`. School merge
 
 ## Architecture decisions
 
-### API routing — IMPORTANT [CURRENT]
+### API routing — IMPORTANT [CURRENT — Sprint 6]
 
-In production `src/api.js` calls the Function App URL **directly**, not via the SWA `/api/*`
-proxy. The SWA free-tier rewrite returns 405 for POST/PUT/DELETE. The fix: call the Function App
-directly and add its origin to the CSP `connect-src` directive.
+`src/api.js` now uses `/api` in production (relative URL, proxied through SWA Standard's linked
+backend). The Sprint 1–5 direct Function App URL workaround is retired.
 
 ```js
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:7071/api'
-  : 'https://quizpulse-app-api-av5z18.azurewebsites.net/api'
+  : '/api'
 ```
 
-**Do not revert to `/api` in production** — it breaks all writes. **This is removed in Sprint 6**
-when SWA upgrades to Standard tier with a proper linked backend (breaking change → v3.0.0).
+**Do not revert to the Function App URL** — SWA Standard tier proxies all `/api/*` requests to
+the linked Function App. The `staticwebapp.config.json` no longer has an explicit `/api/*` rewrite
+route (Standard tier manages the backend link). See `docs/azure/SWA_STANDARD_UPGRADE.md` for
+the portal steps to complete the SWA → Standard upgrade and backend linking.
+
+For local dev, `localhost:5173` (Vite) still hits `localhost:7071` (func start) directly.
 
 ### Auth [CURRENT — Sprint 1 complete]
 
@@ -519,29 +529,42 @@ sprint's scope.
 | School validate + merge (/api/manage/schools/...) | [CURRENT] Sprint 5 complete |
 | Institution onboarding + teacher invites (/api/manage/institutions/...) | [CURRENT] Sprint 5 complete |
 | Monitoring endpoints — metrics (STUBBED, no real App Insights wiring) + logs export (security real, errors/usage 501) | [CURRENT] Sprint 5 complete |
+| SWA Standard tier + linked Function App backend (API_BASE → /api, CSP cleaned) | [CURRENT] Sprint 6 complete — portal steps pending (see SWA_STANDARD_UPGRADE.md) |
+| Community question bank (visibility toggle, school/public browse, upvotes, copy, report, moderation queue) | [CURRENT] Sprint 6 complete |
+| Azure API Management (rateLimit.js no-op → APIM policies) | [CURRENT] Sprint 6 complete — APIM instance not yet provisioned (see APIM_SETUP.md) |
+| Apple ID CIAM provider | [CURRENT] Sprint 6 complete — portal config pending (see APPLE_ID_SETUP.md) |
+| Analytics depth: class cross-quiz aggregation + response timeline chart | [CURRENT] Sprint 6 complete |
 | Admin frontend (super admin UI for the above) | [PLANNED — Sprint 7, separate site] |
-| Community question bank | [PLANNED — Sprint 6] |
-| SWA Standard / API Management / Apple ID | [PLANNED — Sprint 6] |
 
 ---
 
 ## Known issues [CURRENT]
 
-1. **SWA free tier does not proxy POST/PUT/DELETE** — frontend calls Function App directly (see
-   API routing). Fixed in Sprint 6 via SWA Standard linked backend.
-2. **Rate limiter is per-instance** (in-memory Map, not shared across replicas). Fine for now;
-   replaced by Azure API Management in Sprint 6.
-3. **Cosmos DB IP restriction skipped** — Consumption plan lacks static outbound IPs. Deferred.
-4. **Function App must be deployed separately** — GitHub Actions deploys frontend only.
-5. **`func publish` bumps the remote Node runtime to the local Node major version.** Deploy only
+1. **SWA Standard upgrade is a portal step — not yet applied to the live site.** Until the Azure
+   portal steps in `docs/azure/SWA_STANDARD_UPGRADE.md` are executed (upgrade to Standard tier,
+   link the Function App backend), the production site is still on the Free tier and `/api/*` will
+   break. **Do not deploy the v3.0.0 frontend before completing those portal steps.**
+2. **APIM is a portal step — not yet provisioned.** Rate limiting is a no-op at the application
+   layer (rateLimit() always returns true). APIM policies enforce limits once the instance is
+   created per `docs/azure/APIM_SETUP.md`. Until then, the app is unthrottled in production.
+3. **Apple ID not yet active** — Entra External ID still has Microsoft only until the steps in
+   `docs/azure/APPLE_ID_SETUP.md` are completed in the Apple Developer portal and the CIAM tenant.
+4. **Cosmos DB IP restriction skipped** — Consumption plan lacks static outbound IPs. Deferred.
+5. **Function App must be deployed separately** — GitHub Actions deploys frontend only.
+6. **`func publish` bumps the remote Node runtime to the local Node major version.** Deploy only
    from Node 20/22. See the ⚠️ note under Deploy. App runs `NODE|22`.
-6. **Key Vault references break if the closing `)` is dropped.** Setting a
+7. **Key Vault references break if the closing `)` is dropped.** Setting a
    `@Microsoft.KeyVault(...)` value in **cmd.exe** mangles the `( ) ;` chars; a reference missing
    its `)` silently does NOT resolve — Azure passes the literal string to the app (this caused
    `/api/vapid-public-key` to return the raw reference string on 2026-06-15). Set such values from
    **PowerShell** wrapped as `'"NAME=@Microsoft.KeyVault(...)"'` (single-quoted outer, double-quoted
    inner) so `az.cmd` receives one literal token, or paste into the Azure Portal. The Function App
    managed identity holds **Key Vault Secrets User** on `quizpulse-app-kv-av5z18`.
+8. **New Cosmos containers must be provisioned before deploying the Sprint 6 API.** See
+   `docs/azure/SPRINT6_CONTAINERS_SETUP.md` for `question_upvotes` and `question_reports`.
+9. **`question_upvotes` and `question_reports` env vars** must be set in the Function App:
+   `COSMOS_CONTAINER_QUESTION_UPVOTES=question_upvotes`,
+   `COSMOS_CONTAINER_QUESTION_REPORTS=question_reports`.
 
 ---
 

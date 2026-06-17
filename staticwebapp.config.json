@@ -1,19 +1,14 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html"
+    "rewrite": "/index.html",
+    "exclude": ["/api/*"]
   },
-  "routes": [
-    {
-      "route": "/api/*",
-      "rewrite": "https://quizpulse-app-api-av5z18.azurewebsites.net/api/*"
-    }
-  ],
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://quizpulse-app-api-av5z18.azurewebsites.net https://login.microsoftonline.com https://*.b2clogin.com; img-src 'self' data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'"
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://login.microsoftonline.com https://*.b2clogin.com; img-src 'self' data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'"
   }
 }

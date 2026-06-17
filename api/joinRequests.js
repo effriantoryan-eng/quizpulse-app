@@ -1,6 +1,6 @@
 const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
-const { rateLimit, getClientIp } = require('./rateLimit');
+const { getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
@@ -22,6 +22,19 @@ const REQUESTS_PER_DEVICE_PER_DAY = 5;
 const BRUTE_FORCE_MAX = 10;
 const BRUTE_FORCE_WINDOW_MS = 3600000; // 1 hour
 const PENDING_PER_CLASS_MAX = 60;
+
+// Dedicated sliding-window store for join-code brute-force protection.
+// Intentionally separate from the general rateLimit.js (which delegates to APIM) —
+// this is a security control for account enumeration, not a throughput limit.
+const _bruteForceStore = new Map();
+function joinBruteForce(key) {
+  const now = Date.now();
+  const attempts = (_bruteForceStore.get(key) || []).filter(t => now - t < BRUTE_FORCE_WINDOW_MS);
+  if (attempts.length >= BRUTE_FORCE_MAX) return false;
+  attempts.push(now);
+  _bruteForceStore.set(key, attempts);
+  return true;
+}
 
 async function getClassByJoinCode(joinCode) {
   const { resources } = await classesContainer.items.query({
@@ -98,11 +111,9 @@ app.http('joinRequestCreate', {
       const bruteKey = `join-brute:${ip}`;
       const cls = await getClassByJoinCode(joinCode.trim().toUpperCase());
       if (!cls) {
-        // Count this as a bad attempt before returning 404
-        if (!rateLimit(bruteKey, BRUTE_FORCE_MAX, BRUTE_FORCE_WINDOW_MS)) {
+        if (!joinBruteForce(bruteKey)) {
           return respond(429, { error: 'Too many incorrect join code attempts. Try again in an hour.' });
         }
-        rateLimit(bruteKey, BRUTE_FORCE_MAX, BRUTE_FORCE_WINDOW_MS); // consume a slot
         return respond(404, { error: 'Class not found. Check your join code.' });
       }
 
