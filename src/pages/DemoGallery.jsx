@@ -44,7 +44,7 @@ function SectionLabel({ role }) {
 }
 
 function Badge({ label, live }) {
-  const isLive   = label === 'Live in demo'
+  const isLive   = label === 'Live'
   const isActive = label === 'Interactive'
   const bg   = isLive ? C.greenLight : isActive ? C.purpleLight : '#FFF3CD'
   const color = isLive ? C.green     : isActive ? C.purple      : '#856404'
@@ -290,7 +290,7 @@ function Card2() {
   const total = q.counts.reduce((a, b) => a + b, 0)
 
   return (
-    <CardShell title="Quiz analytics" subtitle="Per-question response breakdown" badge="Live in demo" hint="Click Q1 / Q2 / Q3 to switch questions. Green bar = correct answer. This is the real analytics view already live in the demo.">
+    <CardShell title="Quiz analytics" subtitle="Per-question response breakdown" badge="Live" hint="Click Q1 / Q2 / Q3 to switch questions. Green bar = correct answer. This is the real analytics view, working live in the app.">
       {/* Q selector */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
         {ANALYTICS_DATA.map((_, i) => (
