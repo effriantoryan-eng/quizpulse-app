@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import API_BASE from '../../api'
 import { queueResponse, registerResponseSync } from '../../offlineQueue'
+import ENCOURAGEMENTS from '../../data/encouragements'
 
 // Decision: all questions render on one screen rather than one-at-a-time. These are short
 // (≤20 question) low-stakes formative quizzes, so a single scrollable page lets students see
@@ -32,6 +33,11 @@ function TakeQuiz() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(null)
   const [outcome, setOutcome] = useState(null) // null | 'submitted' | 'already' | 'offline'
+
+  const encouragement = useMemo(
+    () => ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)],
+    []
+  )
 
   useEffect(() => {
     if (!quizId) return
@@ -152,8 +158,14 @@ function TakeQuiz() {
   if (outcome === 'submitted') {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>🎉</div>
-        <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Thanks for completing the quiz!</h2>
+        <div style={{ fontSize: '28px', marginBottom: '16px' }}>✅</div>
+        <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>All done — your answers have been sent to your teacher.</h2>
+        <p
+          data-testid="encouragement-line"
+          style={{ fontSize: '15px', color: '#5a5298', fontStyle: 'italic', marginTop: '16px', lineHeight: '1.6' }}
+        >
+          {encouragement}
+        </p>
       </div>
     )
   }
