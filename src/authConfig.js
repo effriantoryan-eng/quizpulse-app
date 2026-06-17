@@ -24,7 +24,10 @@ export const msalConfig = {
   },
   cache: {
     cacheLocation: 'localStorage',
-    storeAuthStateInCookie: false,
+    // Safari ITP clears sessionStorage/localStorage on cross-origin navigation, wiping the
+    // MSAL nonce/state before it can be read back on return. Cookies survive ITP. Required
+    // for any redirect flow on iOS Safari (both in-browser and standalone PWA).
+    storeAuthStateInCookie: true,
   },
 }
 
