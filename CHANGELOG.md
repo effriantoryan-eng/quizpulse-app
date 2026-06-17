@@ -2,6 +2,46 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.0.1] — Polish release: sign-in fix, copy cleanup, encouragement, mockups
+
+### Bug fixes
+
+- **Sign-in broken in production (CSP).** `staticwebapp.config.json` `connect-src` listed
+  `*.b2clogin.com` (old Azure AD B2C domain) instead of `*.ciamlogin.com` (Entra External ID).
+  MSAL's OIDC discovery fetch was blocked, causing all sign-in buttons to silently do nothing.
+  Fixed: `connect-src` now includes `https://*.ciamlogin.com`; `frame-src` added for
+  `*.ciamlogin.com` and `login.microsoftonline.com` to support MSAL's silent token iframe.
+  Diagnosis in `docs/fixes/SIGNIN_DIAGNOSIS.md`.
+  **Portal action still required:** verify `https://nice-field-0127b5b00.7.azurestaticapps.net`
+  is registered as a redirect URI in the Entra External ID app registration.
+
+### Improvements
+
+- **No-jargon UI copy.** Swept all user-facing rendered strings in `src/` for technical
+  implementation terms (push subscription, Azure, server error codes, VAPID, etc.) and replaced
+  with plain language. Affected files: `Subscribe.jsx`, `TakeQuiz.jsx`, `SendQuiz.jsx`,
+  `QuestionBank.jsx`, `DemoGallery.jsx`. Code identifiers and data-model fields unchanged.
+- **Generic product positioning.** Removed Victorian-secondary-specific framing from all
+  user-facing strings. Renamed "demo" → "beta" in rendered UI (nav badge, home page CTA and
+  callout, gallery card badge). Files: `DemoNav.jsx`, `Home.jsx`, `DemoGallery.jsx`, `CLAUDE.md`.
+- **Quiz completion encouragement.** After submitting a quiz, students now see one randomly
+  chosen effort/participation line from `src/data/encouragements.js` (10 entries, placeholder
+  for future curation). Framing is effort-focused — no ability language, no score reference.
+- **Mockup reference file.** `quizpulse_mockups_v301.html` added to project root: a
+  self-contained clickable index of 5 screens (completion, lock-screen notification, participation,
+  community bank, analytics). Reference artifact only — not part of the build.
+
+### Tests
+
+- E2E regression test added to `tests/e2e/auth.spec.js` asserting sign-in button navigates
+  toward `ciamlogin.com` (catches the CSP regression without needing full credentials).
+- Unit tests added in `tests/unit/encouragements.test.js` (6 assertions): array length = 10,
+  all entries are plain text, no ability-focused words, selection logic correctness.
+- Full unit suite: 137/137 passing (was 102 before v3.0.1; +35 from encouragements + existing
+  sprint 6 tests all still green).
+
+---
+
 ## [v3.0.0] — Sprint 6: community bank, SWA Standard, APIM, Apple ID, analytics depth
 
 ### Breaking changes
