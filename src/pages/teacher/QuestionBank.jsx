@@ -289,7 +289,7 @@ function QuestionBank() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm),
       })
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || `Server error ${res.status}`) }
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Something went wrong. Please try again.') }
       const updated = await res.json()
       setQuestions(prev => prev.map(q => q.id === id ? updated : q))
       setEditingId(null)
@@ -305,7 +305,7 @@ function QuestionBank() {
     if (!window.confirm('Delete this question? This cannot be undone.')) return
     try {
       const res = await fetch(`${API_BASE}/questions/${id}`, { method: 'DELETE' })
-      if (!res.ok && res.status !== 204) throw new Error(`Server error ${res.status}`)
+      if (!res.ok && res.status !== 204) throw new Error('Something went wrong. Please try again.')
       setQuestions(prev => prev.filter(q => q.id !== id))
       setSelected(prev => prev.filter(i => i !== id))
     } catch (err) {

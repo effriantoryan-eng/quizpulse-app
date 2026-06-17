@@ -39,7 +39,7 @@ const OFFLINE_STORE_NAME = 'pending-responses'
 function getApiBase() {
   return self.location.hostname === 'localhost'
     ? 'http://localhost:7071/api'
-    : 'https://quizpulse-app-api-av5z18.azurewebsites.net/api'
+    : (self.location.origin + '/api')
 }
 
 function openOfflineDb() {

@@ -44,7 +44,7 @@ export default function DemoNav() {
           fontSize: '10px', padding: '2px 7px', borderRadius: '20px',
           background: 'rgba(83,74,183,0.4)', color: '#AFA9EC',
           fontWeight: '500', letterSpacing: '0.5px', textTransform: 'uppercase',
-        }}>demo</span>
+        }}>beta</span>
       </div>
 
       {/* Nav buttons */}

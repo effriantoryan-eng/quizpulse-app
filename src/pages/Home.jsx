@@ -490,7 +490,7 @@ export default function Home() {
               cursor: 'pointer', boxShadow: '0 4px 12px rgba(83,74,183,0.35)',
             }}
           >
-            Start demo →
+            Get started →
           </button>
           <button
             onClick={() => navigate('/demo')}
@@ -512,7 +512,7 @@ export default function Home() {
       {/* How it works */}
       <div style={{ maxWidth: 680, margin: '0 auto', marginBottom: '48px' }}>
         <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', color: '#999', marginBottom: '20px', textAlign: 'center' }}>
-          How the demo works
+          How it works
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
           {STEPS.map((step, i) => (
@@ -556,11 +556,11 @@ export default function Home() {
         <span style={{ fontSize: '22px', flexShrink: 0, marginTop: '2px' }}>🎓</span>
         <div>
           <div style={{ fontSize: '14px', fontWeight: '600', color: '#3C3489', marginBottom: '4px' }}>
-            Teacher-only demo
+            Teacher view
           </div>
           <p style={{ fontSize: '13px', color: '#5a5298', lineHeight: '1.6', margin: 0 }}>
-            This demo runs entirely from the teacher's perspective. When you send a quiz,
-            students receive a real push notification and analytics update live as they respond.
+            QuizPulse is a working beta shown here from the teacher's perspective. When you send a quiz,
+            students receive a real notification and analytics update live as they respond.
             Some flows are shown as mockups in the{' '}
             <span
               onClick={() => navigate('/demo')}

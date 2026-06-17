@@ -2,6 +2,73 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.0.1] — Polish release: sign-in fix, copy cleanup, encouragement, mockups
+
+### Bug fixes
+
+- **Sign-in broken in production (CSP — desktop).** `staticwebapp.config.json` `connect-src`
+  listed `*.b2clogin.com` (old Azure AD B2C domain) instead of `*.ciamlogin.com` (Entra
+  External ID). MSAL's OIDC discovery fetch was blocked, causing all sign-in buttons to silently
+  do nothing on desktop. Fixed: `connect-src` now includes `https://*.ciamlogin.com`; `frame-src`
+  added for `*.ciamlogin.com` and `login.microsoftonline.com` to support MSAL's silent token
+  iframe. Full diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
+  **Portal action still required:** verify `https://nice-field-0127b5b00.7.azurestaticapps.net`
+  is registered as a redirect URI in the Entra External ID app registration.
+
+- **Sign-in broken on mobile — three additional causes.** The CSP fix was necessary but not
+  sufficient on mobile. Three further fixes applied (branch `fix/v301-signin-mobile`):
+
+  1. **Safari ITP wipes MSAL interaction state** (`src/authConfig.js`). Safari's Intelligent
+     Tracking Prevention clears localStorage/sessionStorage on cross-origin navigation, removing
+     the nonce/PKCE state MSAL stored before redirecting to CIAM. On return, MSAL can't validate
+     the response → `handleRedirectPromise()` resolves null → page loads unauthenticated.
+     Fixed: `storeAuthStateInCookie: true` — MSAL stores interaction state in cookies, which
+     survive ITP. Covers regular mobile Safari on all recent iOS versions.
+
+  2. **In-app browser WebViews** (`src/pages/Login.jsx`). If the app is opened from a link
+     inside Facebook, Instagram, LinkedIn, WhatsApp, Twitter/X, TikTok, Line, Snapchat, or a
+     generic Android WebView, OAuth redirects are intercepted or blocked. Sign-in buttons now
+     hidden in these environments; a "Please open in Safari or Chrome" message is shown with a
+     copy-link button. Detected via navigator.userAgent at render time.
+
+  3. **iOS PWA standalone mode — separate data partition** (`src/pages/Login.jsx`). When the
+     app runs from the home screen (standalone), iOS opens the CIAM URL in Safari (external
+     origin). After auth, CIAM redirects back into Safari — not the PWA. iOS 16.4+ gives PWA
+     home-screen apps a separate localStorage partition, so MSAL's stored account in Safari is
+     invisible to the PWA. Fixed: when standalone + iPhone/iPad is detected, sign-in buttons are
+     replaced with "Sign in via Safari first" guidance and an "Open in Safari" link.
+
+### Improvements
+
+- **No-jargon UI copy.** Swept all user-facing rendered strings in `src/` for technical
+  implementation terms (push subscription, Azure, server error codes, VAPID, etc.) and replaced
+  with plain language. Affected files: `Subscribe.jsx`, `TakeQuiz.jsx`, `SendQuiz.jsx`,
+  `QuestionBank.jsx`, `DemoGallery.jsx`. Code identifiers and data-model fields unchanged.
+- **Generic product positioning.** Removed Victorian-secondary-specific framing from all
+  user-facing strings. Renamed "demo" → "beta" in rendered UI (nav badge, home page CTA and
+  callout, gallery card badge). Files: `DemoNav.jsx`, `Home.jsx`, `DemoGallery.jsx`, `CLAUDE.md`.
+- **Quiz completion encouragement.** After submitting a quiz, students now see one randomly
+  chosen effort/participation line from `src/data/encouragements.js` (10 entries, placeholder
+  for future curation). Framing is effort-focused — no ability language, no score reference.
+- **Mockup reference file.** `quizpulse_mockups_v301.html` added to project root: a
+  self-contained clickable index of 5 screens (completion, lock-screen notification, participation,
+  community bank, analytics). Reference artifact only — not part of the build.
+
+### Tests
+
+- E2E regression tests in `tests/e2e/auth.spec.js`:
+  - Desktop redirect regression (catches stale CSP — no credentials needed)
+  - Mobile viewport (390×844) redirect regression
+  - In-app browser detection suite: Facebook UA shows prompt, Instagram UA shows prompt,
+    standard mobile Safari UA shows normal buttons
+  - iOS standalone suite: iOS + standalone shows "Sign in via Safari first" guidance;
+    Android + standalone shows normal sign-in buttons
+- Unit tests added in `tests/unit/encouragements.test.js` (6 assertions): array length = 10,
+  all entries are plain text, no ability-focused words, selection logic correctness.
+- Full unit suite: 137/137 passing (was 102 before v3.0.1).
+
+---
+
 ## [v3.0.0] — Sprint 6: community bank, SWA Standard, APIM, Apple ID, analytics depth
 
 ### Breaking changes
