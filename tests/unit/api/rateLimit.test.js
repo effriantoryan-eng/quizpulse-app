@@ -1,30 +1,37 @@
-// Unit tests for api/rateLimit.js.
-//
-// Sprint 6: rateLimit() is now a no-op — Azure API Management enforces throughput limits at
-// the edge (see docs/azure/APIM_SETUP.md). The function always returns true so existing call
-// sites compile and work, while APIM makes the actual throttling decision before any request
-// reaches the Function App.
-//
-// getClientIp() is still tested because it is used by audit-log handlers (institutions.js,
-// schoolAdmin.js) to record the caller's IP on sensitive admin actions.
+// Unit tests for api/rateLimit.js — in-memory sliding-window implementation.
+// APIM Consumption tier does not support rate-limit-by-key, so per-instance
+// enforcement is used instead (adequate for pilot scale).
 
 const { rateLimit, getClientIp } = require('../../../api/rateLimit');
 
-describe('rateLimit (APIM no-op)', () => {
-  test('always returns true regardless of call count', () => {
-    for (let i = 0; i < 100; i++) {
-      expect(rateLimit('any-key', 1, 60000)).toBe(true);
-    }
+describe('rateLimit (sliding window)', () => {
+  test('allows calls within the limit', () => {
+    const key = `allow-${Date.now()}`;
+    expect(rateLimit(key, 3, 60000)).toBe(true);
+    expect(rateLimit(key, 3, 60000)).toBe(true);
+    expect(rateLimit(key, 3, 60000)).toBe(true);
   });
 
-  test('returns true for any key, max, and windowMs combination', () => {
-    expect(rateLimit('k1', 30, 60000)).toBe(true);
-    expect(rateLimit('k2', 5, 60000)).toBe(true);
-    expect(rateLimit('k3', 1, 5 * 60 * 1000)).toBe(true);
+  test('blocks the call that exceeds max', () => {
+    const key = `block-${Date.now()}`;
+    for (let i = 0; i < 5; i++) rateLimit(key, 5, 60000);
+    expect(rateLimit(key, 5, 60000)).toBe(false);
   });
 
-  test('returns true with no arguments (safe default)', () => {
-    expect(rateLimit()).toBe(true);
+  test('different keys are tracked independently', () => {
+    const key1 = `ind1-${Date.now()}`;
+    const key2 = `ind2-${Date.now()}`;
+    for (let i = 0; i < 5; i++) rateLimit(key1, 5, 60000);
+    expect(rateLimit(key1, 5, 60000)).toBe(false);
+    expect(rateLimit(key2, 5, 60000)).toBe(true);
+  });
+
+  test('expired timestamps outside the window do not count', async () => {
+    const key = `exp-${Date.now()}`;
+    for (let i = 0; i < 5; i++) rateLimit(key, 5, 10);
+    await new Promise(r => setTimeout(r, 20));
+    // Window has elapsed — should allow again
+    expect(rateLimit(key, 5, 10)).toBe(true);
   });
 });
 

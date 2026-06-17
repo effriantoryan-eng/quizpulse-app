@@ -1,22 +1,27 @@
-// Rate limiting is enforced at the Azure API Management layer (see docs/azure/APIM_SETUP.md).
-// This module is a no-op kept so call sites compile without changes — the sliding-window
-// in-memory store has been removed. APIM policies cover every limit from the security table.
-//
-// The only exception is the school-merge serialisation lock in schoolAdmin.js, which uses
-// a module-level boolean rather than this helper because it is a concurrency control
-// (exactly 1 in-flight merge), not a throughput limit.
+// In-memory sliding-window rate limiter (per Function App instance).
+// Sufficient for pilot scale. APIM rate-limit-by-key requires Developer tier or higher —
+// not available on Consumption — so per-instance enforcement is used instead.
+
+const _store = new Map();
 
 /**
- * Always returns true — APIM enforces the actual limit before the request reaches here.
+ * Returns true if the caller is within the allowed rate, false if they should be throttled.
+ * @param {string} key   - unique key per caller+endpoint (e.g. "analytics:1.2.3.4")
+ * @param {number} max   - max calls allowed in the window
+ * @param {number} windowMs - window length in milliseconds
  * @returns {boolean}
  */
-function rateLimit() {
+function rateLimit(key, max, windowMs) {
+  const now = Date.now();
+  const timestamps = (_store.get(key) || []).filter(t => now - t < windowMs);
+  if (timestamps.length >= max) return false;
+  timestamps.push(now);
+  _store.set(key, timestamps);
   return true;
 }
 
 /**
  * Extracts the real client IP from the x-forwarded-for header.
- * Still needed for audit log ip fields in institutions.js and schoolAdmin.js.
  * @param {Request} request
  * @returns {string}
  */
