@@ -8,11 +8,11 @@
 
 ## What this project is
 
-QuizPulse is a **PWA-first** low-stakes formative assessment tool for Victorian secondary
-school teachers (Years 7–12). Teachers create short multiple-choice quizzes and push them to
-students via **real Web Push notifications**. Students receive a notification, tap it, complete
-the quiz, and teachers view live analytics. The differentiator is push-first delivery — no link
-sharing required.
+QuizPulse is a **PWA-first** low-stakes formative assessment tool for school teachers (K–12,
+any curriculum). Teachers create short multiple-choice quizzes and send them to students via
+**real Web Push notifications**. Students receive a notification, tap it, complete the quiz, and
+teachers view live analytics. The differentiator is push-first delivery — no link sharing
+required.
 
 **This is a real Progressive Web App built from scratch — NOT a wrapper.** It uses service
 workers, the Web Push API, and a web app manifest to behave like a native app without a native
