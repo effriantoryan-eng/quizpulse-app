@@ -258,7 +258,7 @@ the portal steps to complete the SWA → Standard upgrade and backend linking.
 
 For local dev, `localhost:5173` (Vite) still hits `localhost:7071` (func start) directly.
 
-### Auth [CURRENT — Sprint 1 complete]
+### Auth [CURRENT — Sprint 1 complete; sign-up added v3.2.1]
 
 Microsoft Entra External ID (CIAM) with MSAL (`@azure/msal-browser` + `@azure/msal-react`).
 Tenant: `quizpulseid.onmicrosoft.com` (tenant ID `19567cd0-0f52-46f7-9ac5-699538443ed1`);
@@ -272,6 +272,21 @@ Bearer token is the MSAL ID token (RS256, signed by CIAM); backend validates via
 `src/msalInstance.js` patches `window.fetch` to attach bearer tokens to all API calls silently.
 New teachers are gated through `/onboarding` (`GET /api/me` → `onboarded: false` → redirect).
 See `docs/azure/B2C_SETUP.md` for manual tenant configuration steps.
+
+**Sign-up flow (v3.2.1):** `src/authConfig.js` exports `signUpRequest = { scopes: ['openid',
+'offline_access'], prompt: 'create' }`. `Login.jsx` has a "Create an account" button that
+calls `instance.loginRedirect(signUpRequest)`. Entra External ID (CIAM) interprets
+`prompt=create` as a request to show the account-creation form rather than the sign-in form
+— same authority URL, same redirect URI, no extra portal config beyond enabling self-service
+sign-up on the external tenant (see `docs/fixes/SIGNUP_SETUP.md` for the portal steps).
+After CIAM sign-up the app receives a normal token and routes through the same onboarding
+flow as a sign-in: `GET /api/me` → `{ onboarded: false }` → `/onboarding` → school name →
+`POST /api/onboarding` (idempotent, role always server-set to `'teacher'`).
+
+**Redirect URIs the app depends on:**
+- `https://nice-field-0127b5b00.7.azurestaticapps.net` — production (sign-in + sign-up)
+- `http://localhost:5173` — local dev (sign-in + sign-up)
+Both are registered under the same app registration. No separate URI is needed for sign-up.
 
 ### Service worker [CURRENT — Sprint 4]
 
@@ -542,6 +557,7 @@ sprint's scope.
 | Confidence layer — data model (confidence + responseTimeMs on responses) | [CURRENT] v3.2.0 complete |
 | Confidence layer — student UI (3-button selector, first-time explainer, response-time capture) | [CURRENT] v3.2.0 complete |
 | Confidence layer — misconception analytics (confidentButIncorrect per question, teacher callout) | [CURRENT] v3.2.0 complete |
+| Sign-up flow (Create an account button, prompt: 'create', CIAM self-service sign-up) | [CURRENT] v3.2.1 complete — portal self-service sign-up must be enabled (see SIGNUP_SETUP.md) |
 | Admin frontend (super admin UI for the above) | [PLANNED — Sprint 7, separate site] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 

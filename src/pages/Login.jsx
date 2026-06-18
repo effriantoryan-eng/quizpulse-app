@@ -1,5 +1,5 @@
 import { useMsal } from '@azure/msal-react'
-import { loginRequest } from '../authConfig'
+import { loginRequest, signUpRequest } from '../authConfig'
 
 // Returns true when running inside a social-app in-app browser (Meta IAB, Instagram,
 // LinkedIn, Snapchat, Twitter/X, TikTok, Line, etc.) or a generic Android WebView.
@@ -43,6 +43,13 @@ function Login() {
       ...loginRequest,
       extraQueryParameters: domainHint ? { domain_hint: domainHint } : undefined,
     })
+  }
+
+  // prompt: 'create' tells CIAM to show the account-creation form rather than the
+  // sign-in form. Uses the same authority and redirect URI as sign-in — no extra
+  // portal config needed beyond enabling self-service sign-up on the external tenant.
+  function signUp() {
+    instance.loginRedirect(signUpRequest)
   }
 
   const card = {
@@ -103,10 +110,10 @@ function Login() {
         <h1 style={{ fontSize: '22px', fontWeight: '500', marginBottom: '8px' }}>QuizPulse</h1>
         <div style={{ ...infoBox, marginTop: '24px' }}>
           <strong style={{ display: 'block', marginBottom: '8px' }}>
-            Sign in via Safari first
+            Sign in or create an account via Safari first
           </strong>
-          To sign in from the home screen app on iPhone, open QuizPulse in Safari, sign in
-          there, then return here. Your session will carry over.
+          To sign in or sign up from the home screen app on iPhone, open QuizPulse in Safari,
+          complete sign-in or account creation there, then return here. Your session will carry over.
         </div>
         <a
           data-testid="open-in-safari-link"
@@ -126,7 +133,7 @@ function Login() {
     )
   }
 
-  // Standard browser: show the normal sign-in buttons.
+  // Standard browser: show the normal sign-in buttons + sign-up section.
   return (
     <div style={card}>
       <div style={logo}>⚡</div>
@@ -155,6 +162,21 @@ function Login() {
         style={{ background: 'none', border: 'none', color: '#7B6EDE', fontSize: '13px', cursor: 'pointer', marginTop: '6px' }}
       >
         More sign-in options
+      </button>
+
+      {/* Divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0 20px' }}>
+        <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+        <span style={{ fontSize: '12px', color: '#bbb', whiteSpace: 'nowrap' }}>New to QuizPulse?</span>
+        <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+      </div>
+
+      <button
+        data-testid="signup-button"
+        onClick={signUp}
+        style={{ ...providerButton, background: 'white', color: '#534AB7', border: '1.5px solid #534AB7', marginBottom: 0 }}
+      >
+        Create an account
       </button>
     </div>
   )

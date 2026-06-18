@@ -2,6 +2,51 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.2.1] — Sign-up flow
+
+### New features
+
+- **"Create an account" button on the login page.** New teachers who have no CIAM account
+  can now register directly from the app. The button calls `instance.loginRedirect` with
+  `prompt: 'create'`, which tells Entra External ID (CIAM) to show the account-creation
+  form instead of the sign-in form. Same authority, same redirect URI as sign-in — no new
+  portal redirect URI registration needed.
+- **New-account provisioning handshake is the existing onboarding flow.** After CIAM sign-up
+  the app receives a normal `oid`-bearing token, `GET /api/me` returns `{ onboarded: false }`,
+  and the user is routed to `/onboarding` to enter their school name. `POST /api/onboarding`
+  creates the teacher and school documents with `role: 'teacher'` server-set. The flow is
+  identical to what a returning sign-in user would see on first login — no backend changes
+  required.
+- **Idempotent provisioning.** A second call to `POST /api/onboarding` for the same `oid`
+  returns `{ alreadyOnboarded: true }` without overwriting the existing teacher or school
+  record. `role` is never settable from the request body (400 if attempted).
+- **iOS standalone and in-app browser guidance updated.** Both restricted-environment prompts
+  now mention sign-up alongside sign-in so users know to complete account creation in Safari
+  or a real browser rather than an embedded WebView.
+
+### Portal action required
+
+Self-service sign-up must be enabled on the Entra External ID external tenant before the
+"Create an account" button will work. Steps: `docs/fixes/SIGNUP_SETUP.md` § d.
+
+### Diagnosis
+
+Root cause and full analysis recorded in `docs/fixes/SIGNUP_SETUP.md`. Short version:
+`loginRequest` had no `prompt` parameter → CIAM showed a sign-in-only form → new users
+hit "account not found" on the CIAM-hosted page. Fix: `signUpRequest` with `prompt: 'create'`.
+
+### Tests
+
+- Unit (10 new): first-time teacher creation with role always `'teacher'`; role field
+  rejection (400 for any role in body); idempotency (second call returns `alreadyOnboarded:
+  true`, no document overwrite); input validation (missing/blank/overlong schoolName).
+- Integration: existing `teacher.test.js` tests already cover the provisioning endpoint
+  (`role: 'teacher'`, idempotency, 400 on missing schoolName).
+- Total unit tests: 161 passing across 17 suites.
+- Report: `tests/reports/signup-report.html`.
+
+---
+
 ## [v3.2.0] — Confidence Layer (Sprint A)
 
 Independent formative-assessment feature that adds metacognition data to the existing
