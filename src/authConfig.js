@@ -38,6 +38,14 @@ export const loginRequest = {
   scopes: ['openid', 'offline_access'],
 }
 
+// prompt: 'create' tells Entra External ID (CIAM) to show the account-creation form
+// instead of the sign-in form. Same authority and redirect URI — no extra portal config
+// beyond enabling self-service sign-up on the external tenant (see docs/fixes/SIGNUP_SETUP.md).
+export const signUpRequest = {
+  scopes: ['openid', 'offline_access'],
+  prompt: 'create',
+}
+
 export const apiRequest = {
   scopes: ['openid', 'offline_access'],
 }
