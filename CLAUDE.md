@@ -19,7 +19,7 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 6 (v3.0.0 — MAJOR), on top of Sprint 5 (v2.1.0).**
+**[CURRENT] state of the app — v3.2.0 (Confidence Layer), on top of Sprint 6 (v3.0.0 — MAJOR) / v3.0.1.**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -203,7 +203,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 
 - `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
 - `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt }
-- `responses` — { id, quizId, questionIndex, selectedIndex, simulated, createdAt }
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer). Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
 - `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt } (pk `/teacherId`)
@@ -539,7 +539,11 @@ sprint's scope.
 | Generic product positioning (no VIC-specific copy; beta not demo) | [CURRENT] v3.0.1 complete |
 | Encouragement line on quiz completion (src/data/encouragements.js) | [CURRENT] v3.0.1 complete — placeholder, expand/curate later |
 | Mockup file (quizpulse_mockups_v301.html, 5 screens, reference only) | [CURRENT] v3.0.1 complete |
+| Confidence layer — data model (confidence + responseTimeMs on responses) | [CURRENT] v3.2.0 complete |
+| Confidence layer — student UI (3-button selector, first-time explainer, response-time capture) | [CURRENT] v3.2.0 complete |
+| Confidence layer — misconception analytics (confidentButIncorrect per question, teacher callout) | [CURRENT] v3.2.0 complete |
 | Admin frontend (super admin UI for the above) | [PLANNED — Sprint 7, separate site] |
+| Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
 
@@ -578,6 +582,53 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
 9. **`question_upvotes` and `question_reports` env vars** must be set in the Function App:
    `COSMOS_CONTAINER_QUESTION_UPVOTES=question_upvotes`,
    `COSMOS_CONTAINER_QUESTION_REPORTS=question_reports`.
+
+---
+
+## Planned expansion — Companion Layer (Phase 2)
+
+**What IS built (v3.2.0 — Confidence Layer / Sprint A):** per-question confidence capture
+(3 coarse levels: Sure / Pretty sure / Just guessing), response-time logging as a noisy
+aggregate signal, first-time-only explainer, and misconception surfacing in teacher analytics
+(`confidentButIncorrect` per question — cohort/question level only, never individual).
+
+**What is NOT yet built — gated behind (a) pilot validation and (b) durable student identity:**
+
+The following pieces were deliberately excluded from v3.2.0 and should not be added until
+the core push hypothesis is validated through a real pilot, and until named per-student accounts
+exist (the current device-UUID model can't support longitudinal per-student state):
+
+- **Persistent per-student room.** A private visual space that grows as the student participates.
+  Requires a stable student identity across sessions and devices — the current device-UUID model
+  doesn't provide this.
+- **Monthly creature cadence.** One creature made available per active month; missed months
+  cause the creature to drift to a shared city pool (opportunity, not loss). Requires month-boundary
+  logic and a participation-history record per student.
+- **Depth-accrues / breadth-resets engine.** Returning to a topic deepens an existing creature;
+  exploring a new topic adds a new one. Requires per-student topic-response history.
+- **Adoption loop + curated encouragement.** The creature naming/personalisation and curated text
+  for interaction moments. Curated text only — no free-text, no AI-generated content (minors).
+- **Teacher ambient room view.** Teacher sees the class's aggregate creature collection as an
+  ambient engagement signal (not routed to leadership or admin). Never exposed via reporting APIs.
+- **Statistical anti-farming model.** Detect and discount suspiciously fast/uniform responses
+  when computing creature advancement. Confidence + responseTimeMs captured now are the forward-
+  compatible data foundation for this; the detection logic is not yet built.
+
+**Design non-negotiables to honour in Phase 2 (record here so future sessions don't drift):**
+
+- **Participation, not correctness.** Creatures and room growth must never depend on getting
+  answers right — only on participating. Wrong answers with high confidence are as valuable a
+  learning signal as correct answers. Never tie creature advancement to score.
+- **No rarity tiers, no leaderboards, no comparative display.** This is a personal collection,
+  not a competition. Students must never see each other's rooms or creature counts.
+- **Missed = opportunity, not loss.** A missed month means the creature drifts to the city pool
+  (the student can still see it there); it does not disappear or decay. Framing is gentle.
+- **Measure, don't enforce.** Response time is captured as data only — it must never gate,
+  block, warn, or create minimum-dwell timers. Confidence is buttons only — no free-text ever.
+- **Curated text only.** All creature names, room labels, and encouragement text must be
+  human-curated. No AI-generated copy, no user-submitted text (content surface for minors).
+- **Teacher room view is never routed to leadership.** The ambient class-room view is a teacher
+  engagement signal. It must not appear in admin dashboards, reports, or monitoring endpoints.
 
 ---
 

@@ -271,6 +271,19 @@ function Analytics() {
                 </div>
               )
             })}
+
+            {/* Misconception signal — cohort/question level only, never individual. */}
+            {q.confidentButIncorrect > 0 && (
+              <div style={{
+                marginTop: '14px', padding: '10px 14px',
+                background: '#FFF8E6', border: '1px solid #F5C842',
+                borderRadius: '8px', fontSize: '13px', color: '#7A5C00',
+              }}>
+                {q.confidentButIncorrect === 1
+                  ? '1 student was confident but got this wrong — worth revisiting.'
+                  : `${q.confidentButIncorrect} students were confident but got this wrong — worth revisiting.`}
+              </div>
+            )}
           </div>
         )
       })}

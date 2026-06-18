@@ -2,6 +2,51 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.2.0] — Confidence Layer (Sprint A)
+
+Independent formative-assessment feature that adds metacognition data to the existing
+quiz flow without adding stakes, friction, or requiring student accounts.
+
+### New features
+
+- **Confidence capture per question.** Students tap one of three coarse levels — Sure /
+  Pretty sure / Just guessing — after each answer. Confidence appears once an answer is
+  chosen; submission requires both an answer and a confidence rating for every question.
+  One tap, no free-text, no score implication.
+- **First-time-only explainer.** A one-screen modal teaches the three confidence levels
+  the first time a student encounters the selector. Stored in `localStorage`
+  (`quizpulse_confidence_explained`) so it shows once per device and never repeats.
+- **Response-time capture (best-effort, aggregate only).** `responseTimeMs` is recorded
+  per question (proxy: time from first option tap to confidence selection) and
+  `quizDurationMs` is recorded for the full quiz (time from component mount to submit).
+  Neither value is shown to the student. Neither gates or affects submission. Because all
+  questions render on one screen the per-question timer measures engagement-to-commitment,
+  not time-to-first-view — treat as a noisy aggregate signal only.
+- **Misconception signal in teacher analytics.** `GET /api/analytics` now returns
+  `confidentButIncorrect` per question: count of responses where confidence is `sure` or
+  `pretty_sure` and the answer is wrong. Analytics.jsx surfaces this as an amber callout:
+  "N students were confident but got this wrong — worth revisiting." This is a
+  cohort/question-level signal only — individual students are never named or singled out.
+
+### Data model changes
+
+- `responses` container: each answer object now carries `confidence: "sure"|"pretty_sure"|"guessing"`
+  (required, server-validated) and optional `responseTimeMs: number`. Top-level optional
+  `quizDurationMs: number`. Legacy documents without these fields are tolerated.
+- `POST /api/responses`: new validation — `confidence` is required per answer (400 if
+  missing or not one of the 3 enum values); `responseTimeMs` and `quizDurationMs` are
+  optional non-negative integers bounded to 30 minutes (400 if out of range).
+
+### Tests
+
+- Unit: confidence enum validation (valid → 201; 4th value → 400; missing → 400);
+  `responseTimeMs` bounds (negative → 400; >30 min → 400); `quizDurationMs` bounds;
+  `confidentButIncorrect` aggregate accuracy for known response sets; legacy responses
+  (no confidence field) score 0 correctly.
+- Total unit tests: 23 new assertions across `responses.test.js` and `analytics.test.js`.
+
+---
+
 ## [v3.0.1] — Polish release: sign-in fix, copy cleanup, encouragement, mockups
 
 ### Bug fixes
