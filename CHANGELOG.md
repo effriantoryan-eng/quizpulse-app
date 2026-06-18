@@ -2,6 +2,119 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.1.0] — Sprint 7: admin portal
+
+Separate admin portal site (`admin/`) built on React + Vite, deployed to its own Azure SWA
+and authenticated via its own Entra External ID app registration. Shares the existing
+Function App backend (Sprint 5 admin endpoints) via CORS. The teacher app receives no admin
+code.
+
+### New features
+
+#### Admin CIAM audience separation (`feat/s7-admin-ciam-app`)
+- `api/auth.js`: added `authenticateAdmin()` — validates bearer tokens against
+  `ADMIN_AUTH_CLIENT_ID` (a separate CIAM app registration from the teacher app's
+  `AUTH_CLIENT_ID`). A teacher-app token sent to an admin endpoint now returns **401** (audience
+  mismatch), and vice versa.
+- `verifyTokenForAudience(token, audience)`: factored out from `verifyToken` — accepts the
+  expected audience as a parameter so both `authenticateTeacher` and `authenticateAdmin` can
+  share the same DEV_MODE / production code paths.
+- DEV_MODE audience check: in decode-only mode the `aud` claim is checked only when both the
+  token carries one AND the expected audience env var is configured — backward-compatible with
+  all existing tests that mint tokens without an `aud` claim.
+- All `/api/manage/*` endpoints switched from `authenticateTeacher` to `authenticateAdmin`:
+  `schoolAdmin.js`, `institutions.js` (manage routes only — `inviteRedeem` stays teacher-auth),
+  `metrics.js`, `logsExport.js`, `teacherRole.js`.
+- Missing `rateLimit` import in `schoolAdmin.js` fixed (was `ReferenceError` at runtime).
+- `docs/azure/ADMIN_CIAM_SETUP.md`: full portal walkthrough — create admin app registration,
+  configure redirect URIs and token claims, provision admin SWA, link Function App backend,
+  add `ADMIN_AUTH_CLIENT_ID` to Function App settings, optional IP allow-listing.
+
+#### Admin SWA scaffold (`feat/s7-admin-swa-scaffold`)
+- `admin/` — separate React + Vite project at port 5174. Operator tooling, not product polish:
+  bare tables, forms, inline styles, no CSS frameworks.
+- MSAL against the admin CIAM app registration (`VITE_ADMIN_CLIENT_ID`). Token acquisition and
+  bearer attachment done via the same `window.fetch` patch pattern as the teacher app.
+- **30-minute idle session timeout** (`admin/src/session.js`): `useIdleTimeout` hook tracks
+  mouse, keyboard, touch, and scroll activity; warns at 25 min; calls `logoutRedirect` at 30 min.
+- `admin/staticwebapp.config.json`: SWA routing fallback, strict CSP (`*.ciamlogin.com` in
+  `connect-src` and `frame-src`), security headers (`X-Frame-Options: DENY`, etc.).
+- `api/host.json` CORS: added `http://localhost:5174` (admin local dev) and
+  `ADMIN_SWA_ORIGIN_PLACEHOLDER` (replace with the actual admin SWA hostname after provisioning).
+- `admin/CLAUDE.md`: admin-portal-specific context, tech stack, deploy notes, local dev setup.
+
+#### School admin tools (`feat/s7-admin-school-tools`)
+- **`GET /api/manage/schools`** (new — `api/schoolsList.js`): lists all schools paginated
+  (50/page), searchable by name, filterable by status. Returns per-school teacher and class
+  counts computed in a single pass over all teachers/classes.
+- **`GET /api/manage/teachers`** (new — `api/teachersList.js`): lists all teachers paginated,
+  searchable by name/email/ID, filterable by schoolId.
+- `admin/src/pages/Schools.jsx`: table of all schools with search + status filter + validate
+  action. "Merge tool" button navigates to MergeTool.
+- `admin/src/pages/MergeTool.jsx`: source/target school selectors (live search), side-by-side
+  counts review, destructive-red confirm button. On `{ reauthRequired: true }` response (token
+  >10 min old), shows a re-auth prompt that calls `instance.loginRedirect` with `prompt: 'login'`
+  to force fresh auth before the caller retries the merge.
+- `admin/src/pages/Institutions.jsx`: create validated school (POST /api/manage/institutions)
+  and generate one-time 7-day invite links (POST /api/manage/institutions/{id}/invite) with a
+  copy-to-clipboard button.
+
+#### Monitoring dashboard (`feat/s7-admin-monitoring-ui`)
+- `admin/src/pages/Monitoring.jsx`: time-range selector (Today / 7d / 30d), metric cards for
+  all five groups (System health, Usage & growth, Engagement, Security, Spending) with a
+  stubbed-metrics banner. Spending shows a progress bar when data is available.
+- Log download: date-range pickers + per-type download buttons (Security log downloads real
+  JSONL; Error/Usage show as unavailable — same constraint as the backend endpoint).
+
+#### Audit viewer + role management (`feat/s7-admin-audit-viewer`)
+- **`GET /api/manage/audit`** (new — `api/auditQuery.js`): paginated, filterable audit log
+  query for the admin UI (returns JSON, not JSONL). Filters: actorId, action (CONTAINS match),
+  from/to date. Requires owner/support role.
+- `admin/src/pages/AuditLog.jsx`: searchable paginated table with actor, role, action, target,
+  IP columns. Each row has a "Details" toggle that shows before/after JSON inline.
+- `admin/src/pages/RoleManagement.jsx`: paginated teacher list with search. Owner-only "Change
+  role" modal cycles through teacher / school_admin / support / platform_admin. Owner role is
+  not assignable here (requires Entra app-role configuration). Non-owner callers see a read-only
+  view with an explanatory notice.
+
+### Breaking changes
+
+- **All `/api/manage/*` endpoints now require an admin-portal token** (audience =
+  `ADMIN_AUTH_CLIENT_ID`). Any existing script or test that calls these endpoints with a
+  teacher-app token will receive **401** instead of the previous response. Update scripts to
+  mint tokens with `aud = ADMIN_AUTH_CLIENT_ID`, or set `ADMIN_AUTH_CLIENT_ID` to the same
+  value as `AUTH_CLIENT_ID` as a temporary workaround (not recommended in production).
+
+### New env vars (Function App)
+
+| Setting | Value |
+|---|---|
+| `ADMIN_AUTH_CLIENT_ID` | The admin portal CIAM app registration client ID (from ADMIN_CIAM_SETUP.md) |
+
+### Portal steps required before deploying
+
+1. Create the admin app registration per `docs/azure/ADMIN_CIAM_SETUP.md`.
+2. Provision the admin SWA, link it to the Function App.
+3. Replace `ADMIN_SWA_ORIGIN_PLACEHOLDER` in `api/host.json` with the admin SWA hostname.
+4. Add `ADMIN_AUTH_CLIENT_ID` to the Function App application settings.
+
+### Tests
+
+- 9 new unit tests in `tests/unit/api/adminAudience.test.js`: teacher audience accepted by
+  `authenticateTeacher` / rejected by `authenticateAdmin`; admin audience accepted by
+  `authenticateAdmin` / rejected by `authenticateTeacher`; no-aud tokens pass in DEV_MODE
+  (backward compat); cross-portal isolation assertion.
+- 11 integration tests in `tests/integration/api/sprint7.test.js`: audience gate on metrics and
+  schools endpoints; CORS allow/deny assertions; role assignment owner-gate; audit log endpoint
+  role gates. Run with `RUN_INTEGRATION=true`.
+- 5 E2E tests in `tests/e2e/sprint7.spec.js`: auth redirect gate; teacher-identity-rejection
+  at API level. Run with `RUN_E2E=true`. Full admin flow (merge step-up, log export, role change)
+  documented as manual test scenarios.
+- Total unit tests: 170 passing across 18 suites (was 161 / 17 suites).
+- Report: `tests/reports/sprint7-report.html`.
+
+---
+
 ## [v3.2.1] — Sign-up flow
 
 ### New features

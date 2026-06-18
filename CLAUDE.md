@@ -386,9 +386,9 @@ etc.) MUST call `assertScope` from `api/shared/authz.js` before reading or mutat
   trusting it.
 - **Step-up re-auth (`api/shared/stepUp.js`):** `assertStepUp(claims)` verifies the signed
   `auth_time`/`iat` claim is within a 10-minute window before allowing a destructive owner
-  action through — currently gates `POST /api/manage/schools/merge` only. Built ahead of the
-  Sprint 7 admin UI that will actually trigger a re-auth prompt; until then this just means the
-  merge endpoint 401s if the caller's token is more than 10 minutes old.
+  action through — gates `POST /api/manage/schools/merge` only. The Sprint 7 admin portal
+  (`admin/src/pages/MergeTool.jsx`) handles the `{ reauthRequired: true }` response by calling
+  `instance.loginRedirect` with `prompt: 'login'` so the owner can re-authenticate and retry.
 - **Audit trail (`api/shared/auditLog.js`):** every admin mutation (`schoolAdmin.js`,
   `institutions.js`) calls `writeAudit()` after success, appending to the `audit_log` container.
   No update/delete path exists for it, on purpose.
@@ -558,7 +558,14 @@ sprint's scope.
 | Confidence layer — student UI (3-button selector, first-time explainer, response-time capture) | [CURRENT] v3.2.0 complete |
 | Confidence layer — misconception analytics (confidentButIncorrect per question, teacher callout) | [CURRENT] v3.2.0 complete |
 | Sign-up flow (Create an account button, prompt: 'create', CIAM self-service sign-up) | [CURRENT] v3.2.1 complete — portal self-service sign-up must be enabled (see SIGNUP_SETUP.md) |
-| Admin frontend (super admin UI for the above) | [PLANNED — Sprint 7, separate site] |
+| Admin portal — CIAM audience separation (authenticateAdmin, separate app reg) | [CURRENT] v3.1.0 complete — portal steps in docs/azure/ADMIN_CIAM_SETUP.md |
+| Admin portal — React+Vite SWA scaffold (admin/, port 5174, 30-min idle timeout) | [CURRENT] v3.1.0 complete — provision SWA + replace ADMIN_SWA_ORIGIN_PLACEHOLDER in api/host.json |
+| Admin portal — school list/validate/merge/institution/invite pages | [CURRENT] v3.1.0 complete |
+| Admin portal — monitoring dashboard (metrics + log export) | [CURRENT] v3.1.0 complete |
+| Admin portal — audit log viewer + role management (owner-gated) | [CURRENT] v3.1.0 complete |
+| GET /api/manage/schools (all schools + teacher/class counts) | [CURRENT] v3.1.0 complete |
+| GET /api/manage/teachers (all teachers, paginated, searchable) | [CURRENT] v3.1.0 complete |
+| GET /api/manage/audit (paginated audit log query for admin UI) | [CURRENT] v3.1.0 complete |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---

@@ -1,7 +1,7 @@
 const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
 const crypto = require('crypto');
-const { authenticateTeacher } = require('./auth');
+const { authenticateTeacher, authenticateAdmin } = require('./auth');
 const { getCallerScope, requireRole, ScopeError, ROLES } = require('./shared/authz');
 const { writeAudit } = require('./shared/auditLog');
 const { rateLimit, getClientIp } = require('./rateLimit');
@@ -35,7 +35,7 @@ app.http('institutionCreate', {
     }
 
     try {
-      const auth = await authenticateTeacher(request);
+      const auth = await authenticateAdmin(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const caller = getCallerScope(auth.claims);
 
@@ -107,7 +107,7 @@ app.http('institutionInvite', {
     }
 
     try {
-      const auth = await authenticateTeacher(request);
+      const auth = await authenticateAdmin(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const caller = getCallerScope(auth.claims);
 
