@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import API_BASE from '../../api'
 import { queueResponse, registerResponseSync } from '../../offlineQueue'
@@ -9,14 +9,99 @@ import ENCOURAGEMENTS from '../../data/encouragements'
 // progress and review answers before submitting, and it avoids extra round trips on flaky
 // school wifi — the questions are fetched once up front.
 
+const CONFIDENCE_KEY = 'quizpulse_confidence_explained'
+const DEVICE_ID_KEY = 'quizpulse_device_id'
+
+// Confidence levels shown to students — plain language, no score implication.
+const CONFIDENCE_LEVELS = [
+  { value: 'sure', label: 'Sure' },
+  { value: 'pretty_sure', label: 'Pretty sure' },
+  { value: 'guessing', label: 'Just guessing' },
+]
+
 function getOrCreateDeviceId() {
-  const key = 'quizpulse_device_id'
-  let id = localStorage.getItem(key)
+  let id = localStorage.getItem(DEVICE_ID_KEY)
   if (!id) {
     id = crypto.randomUUID()
-    localStorage.setItem(key, id)
+    localStorage.setItem(DEVICE_ID_KEY, id)
   }
   return id
+}
+
+// One-time explainer shown before the student's first confidence rating.
+function ConfidenceExplainer({ onDone }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 100, padding: '24px',
+    }}>
+      <div style={{
+        background: 'white', borderRadius: '16px', padding: '28px 24px',
+        maxWidth: '380px', width: '100%', textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '32px', marginBottom: '12px' }}>🤔</div>
+        <h2 style={{ margin: '0 0 10px', fontSize: '18px', color: '#1a1a1a' }}>
+          How sure are you?
+        </h2>
+        <p style={{ margin: '0 0 20px', fontSize: '14px', color: '#555', lineHeight: '1.6' }}>
+          After each answer, tap how confident you feel — not to grade you, just so your teacher
+          can see which topics to spend more time on.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
+          {CONFIDENCE_LEVELS.map(({ label }) => (
+            <div key={label} style={{
+              padding: '10px 14px', borderRadius: '8px',
+              border: '1px solid #e0e0e0', fontSize: '14px', color: '#333',
+              background: '#fafafa',
+            }}>
+              {label}
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={onDone}
+          style={{
+            width: '100%', padding: '12px',
+            background: '#534AB7', color: 'white', border: 'none',
+            borderRadius: '8px', fontSize: '15px', fontWeight: '500', cursor: 'pointer',
+          }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// 3-button confidence selector for a single question.
+function ConfidenceSelector({ questionId, value, onChange }) {
+  return (
+    <div style={{ marginTop: '12px' }}>
+      <div style={{ fontSize: '12px', color: '#888', marginBottom: '6px' }}>How sure are you?</div>
+      <div style={{ display: 'flex', gap: '6px' }}>
+        {CONFIDENCE_LEVELS.map(({ value: cv, label }) => {
+          const selected = value === cv
+          return (
+            <button
+              key={cv}
+              onClick={() => onChange(questionId, cv)}
+              style={{
+                flex: 1, padding: '7px 4px', fontSize: '12px', fontWeight: selected ? '600' : '400',
+                border: `1.5px solid ${selected ? '#534AB7' : '#d0d0d0'}`,
+                borderRadius: '8px',
+                background: selected ? '#EEEDFE' : 'white',
+                color: selected ? '#534AB7' : '#555',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 function TakeQuiz() {
@@ -26,18 +111,33 @@ function TakeQuiz() {
 
   const [quiz, setQuiz] = useState(null)
   const [questions, setQuestions] = useState([])
-  const [answers, setAnswers] = useState({}) // questionId -> selectedIndex
+  const [answers, setAnswers] = useState({})      // questionId -> selectedIndex
+  const [confidence, setConfidence] = useState({}) // questionId -> confidence value
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [closed, setClosed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(null)
   const [outcome, setOutcome] = useState(null) // null | 'submitted' | 'already' | 'offline'
+  const [showExplainer, setShowExplainer] = useState(false)
+
+  // Timing: quiz start time (mount) for quizDurationMs; per-question first-interaction time.
+  const quizStartRef = useRef(null)
+  const questionFirstInteractRef = useRef({}) // questionId -> timestamp of first option tap
 
   const encouragement = useMemo(
     () => ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)],
     []
   )
+
+  useEffect(() => {
+    quizStartRef.current = Date.now()
+
+    // Show explainer once per device, before the student's first confidence rating.
+    if (!localStorage.getItem(CONFIDENCE_KEY)) {
+      setShowExplainer(true)
+    }
+  }, [])
 
   useEffect(() => {
     if (!quizId) return
@@ -69,20 +169,54 @@ function TakeQuiz() {
     load()
   }, [quizId])
 
+  function handleExplainerDone() {
+    localStorage.setItem(CONFIDENCE_KEY, '1')
+    setShowExplainer(false)
+  }
+
   function selectAnswer(questionId, index) {
+    // Record first interaction time for this question (used as responseTimeMs start).
+    if (!questionFirstInteractRef.current[questionId]) {
+      questionFirstInteractRef.current[questionId] = Date.now()
+    }
     setAnswers(prev => ({ ...prev, [questionId]: index }))
   }
 
-  const allAnswered = questions.length > 0 && questions.every(q => answers[q.id] !== undefined)
+  function selectConfidence(questionId, value) {
+    setConfidence(prev => ({ ...prev, [questionId]: value }))
+  }
+
+  const allAnswered = questions.length > 0 && questions.every(q =>
+    answers[q.id] !== undefined && confidence[q.id] !== undefined
+  )
 
   async function handleSubmit() {
     setSubmitError(null)
     setSubmitting(true)
 
+    const now = Date.now()
+    const quizDurationMs = quizStartRef.current ? now - quizStartRef.current : undefined
+
+    // Build answers with confidence + responseTimeMs.
+    // responseTimeMs proxy: time from first option tap to confidence selection for each question.
+    // Since all questions are on one screen, this measures engagement-to-commitment per question,
+    // not time-to-first-view. It is a noisy signal; aggregate patterns matter, not individual readings.
+    const answersPayload = questions.map(q => {
+      const firstInteract = questionFirstInteractRef.current[q.id]
+      const responseTimeMs = firstInteract ? Math.max(0, now - firstInteract) : undefined
+      return {
+        questionId: q.id,
+        selectedIndex: answers[q.id],
+        confidence: confidence[q.id],
+        ...(responseTimeMs !== undefined && { responseTimeMs }),
+      }
+    })
+
     const payload = {
       quizId,
       studentId,
-      answers: questions.map(q => ({ questionId: q.id, selectedIndex: answers[q.id] })),
+      answers: answersPayload,
+      ...(quizDurationMs !== undefined && { quizDurationMs }),
     }
 
     try {
@@ -190,65 +324,77 @@ function TakeQuiz() {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px' }}>
-      <h2 style={{ margin: '0 0 4px', fontSize: '20px' }}>{quiz?.name}</h2>
-      <p style={{ color: '#888', fontSize: '13px', marginBottom: '24px' }}>
-        {questions.length} question{questions.length !== 1 ? 's' : ''}
-      </p>
+    <>
+      {showExplainer && <ConfidenceExplainer onDone={handleExplainerDone} />}
 
-      {questions.map((q, qi) => (
-        <div key={q.id} style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
-          <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
-            Question {qi + 1}
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px' }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: '20px' }}>{quiz?.name}</h2>
+        <p style={{ color: '#888', fontSize: '13px', marginBottom: '24px' }}>
+          {questions.length} question{questions.length !== 1 ? 's' : ''}
+        </p>
+
+        {questions.map((q, qi) => (
+          <div key={q.id} style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+              Question {qi + 1}
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: '500', marginBottom: '14px' }}>{q.text}</div>
+
+            {(q.options || []).map((opt, i) => {
+              const isSelected = answers[q.id] === i
+              return (
+                <label
+                  key={i}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '10px 12px', marginBottom: '8px', borderRadius: '8px',
+                    border: `1px solid ${isSelected ? '#534AB7' : '#e0e0e0'}`,
+                    background: isSelected ? '#EEEDFE33' : 'white',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name={`q-${q.id}`}
+                    checked={isSelected}
+                    onChange={() => selectAnswer(q.id, i)}
+                  />
+                  <span style={{ fontSize: '14px' }}>{opt}</span>
+                </label>
+              )
+            })}
+
+            {answers[q.id] !== undefined && (
+              <ConfidenceSelector
+                questionId={q.id}
+                value={confidence[q.id]}
+                onChange={selectConfidence}
+              />
+            )}
           </div>
-          <div style={{ fontSize: '15px', fontWeight: '500', marginBottom: '14px' }}>{q.text}</div>
+        ))}
 
-          {(q.options || []).map((opt, i) => {
-            const isSelected = answers[q.id] === i
-            return (
-              <label
-                key={i}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px', marginBottom: '8px', borderRadius: '8px',
-                  border: `1px solid ${isSelected ? '#534AB7' : '#e0e0e0'}`,
-                  background: isSelected ? '#EEEDFE33' : 'white',
-                  cursor: 'pointer',
-                }}
-              >
-                <input
-                  type="radio"
-                  name={`q-${q.id}`}
-                  checked={isSelected}
-                  onChange={() => selectAnswer(q.id, i)}
-                />
-                <span style={{ fontSize: '14px' }}>{opt}</span>
-              </label>
-            )
-          })}
-        </div>
-      ))}
+        {submitError && (
+          <div style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
+            {submitError}
+          </div>
+        )}
 
-      {submitError && (
-        <div style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
-          {submitError}
-        </div>
-      )}
-
-      <button
-        disabled={!allAnswered || submitting}
-        onClick={handleSubmit}
-        style={{
-          width: '100%', padding: '12px',
-          background: !allAnswered || submitting ? '#ccc' : '#534AB7',
-          color: 'white', border: 'none', borderRadius: '8px',
-          fontSize: '15px', fontWeight: '500',
-          cursor: !allAnswered || submitting ? 'not-allowed' : 'pointer',
-        }}
-      >
-        {submitting ? 'Submitting…' : 'Submit answers'}
-      </button>
-    </div>
+        <button
+          disabled={!allAnswered || submitting}
+          onClick={handleSubmit}
+          style={{
+            width: '100%', padding: '12px',
+            background: !allAnswered || submitting ? '#ccc' : '#534AB7',
+            color: 'white', border: 'none', borderRadius: '8px',
+            fontSize: '15px', fontWeight: '500',
+            cursor: !allAnswered || submitting ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {submitting ? 'Submitting…' : 'Submit answers'}
+        </button>
+      </div>
+    </>
   )
 }
 
