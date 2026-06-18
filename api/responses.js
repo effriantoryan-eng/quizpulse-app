@@ -14,6 +14,8 @@ const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES
 const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
 
 const MAX_RESPONSE_BODY = 4 * 1024; // Security limits table — Response body size, 4 KB max
+const CONFIDENCE_VALUES = new Set(['sure', 'pretty_sure', 'guessing']);
+const RESPONSE_TIME_MAX_MS = 30 * 60 * 1000; // 30 minutes — absurd upper bound for per-question time
 
 // POST only — student quiz submission. The GET variant (raw student-answer dump) was deleted in
 // the Sprint 5 audit cleanup: it was unauthenticated dead code unused by the frontend (see
@@ -58,7 +60,7 @@ app.http('responses', {
         return respond(400, { error: 'Request body must be a JSON object' })
       }
 
-      const { quizId, answers, studentId } = body;
+      const { quizId, answers, studentId, quizDurationMs } = body;
 
       if (typeof quizId !== 'string' || !quizId.trim()) {
         return respond(400, { error: 'quizId is required and must be a string' })
@@ -81,6 +83,20 @@ app.http('responses', {
         }
         if (typeof answer.selectedIndex !== 'number' || !Number.isInteger(answer.selectedIndex) || answer.selectedIndex < 0 || answer.selectedIndex > 3) {
           return respond(400, { error: 'each answer.selectedIndex must be an integer between 0 and 3' })
+        }
+        if (!CONFIDENCE_VALUES.has(answer.confidence)) {
+          return respond(400, { error: 'each answer.confidence must be one of: sure, pretty_sure, guessing' })
+        }
+        if (answer.responseTimeMs !== undefined) {
+          if (typeof answer.responseTimeMs !== 'number' || !Number.isInteger(answer.responseTimeMs) || answer.responseTimeMs < 0 || answer.responseTimeMs > RESPONSE_TIME_MAX_MS) {
+            return respond(400, { error: 'each answer.responseTimeMs must be a non-negative integer not exceeding 30 minutes' })
+          }
+        }
+      }
+
+      if (quizDurationMs !== undefined) {
+        if (typeof quizDurationMs !== 'number' || !Number.isInteger(quizDurationMs) || quizDurationMs < 0 || quizDurationMs > RESPONSE_TIME_MAX_MS) {
+          return respond(400, { error: 'quizDurationMs must be a non-negative integer not exceeding 30 minutes' })
         }
       }
 
@@ -136,7 +152,12 @@ app.http('responses', {
         id: require('crypto').randomUUID(),
         quizId: resolvedQuizId,
         studentId: resolvedStudentId,
-        answers: answers.map(a => ({ questionId: a.questionId.trim(), selectedIndex: a.selectedIndex })),
+        answers: answers.map(a => {
+          const stored = { questionId: a.questionId.trim(), selectedIndex: a.selectedIndex, confidence: a.confidence };
+          if (a.responseTimeMs !== undefined) stored.responseTimeMs = a.responseTimeMs;
+          return stored;
+        }),
+        ...(quizDurationMs !== undefined && { quizDurationMs }),
         completedAt: new Date().toISOString()
       };
 

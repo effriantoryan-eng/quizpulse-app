@@ -63,17 +63,26 @@ async function loadQuizAnalytics(quizId, teacherId) {
   return { quiz, questions, responses, approvedStudents };
 }
 
+const CONFIDENT_VALUES = new Set(['sure', 'pretty_sure']);
+
 function buildQuestionBreakdown(questions, responses) {
   return questions.map(q => {
     const optionCount = (q.options || []).length;
     const counts = Array(optionCount).fill(0);
+    let confidentButIncorrect = 0;
     responses.forEach(r => {
       const answer = (r.answers || []).find(a => a.questionId === q.id);
       if (answer && answer.selectedIndex >= 0 && answer.selectedIndex < optionCount) {
         counts[answer.selectedIndex]++;
+        if (
+          CONFIDENT_VALUES.has(answer.confidence) &&
+          answer.selectedIndex !== q.correctIndex
+        ) {
+          confidentButIncorrect++;
+        }
       }
     });
-    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts };
+    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect };
   });
 }
 

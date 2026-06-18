@@ -10,8 +10,8 @@ module.exports = {
     [
       'jest-html-reporter',
       {
-        pageTitle: 'QuizPulse — v3.0.1 Test Report',
-        outputPath: 'tests/reports/v3.0.1-report.html',
+        pageTitle: 'QuizPulse — v3.2.0 Confidence Layer Test Report',
+        outputPath: 'tests/reports/confidence-layer-report.html',
         includeFailureMsg: true,
         includeConsoleLog: true,
       },
