@@ -605,6 +605,21 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
 9. **`question_upvotes` and `question_reports` env vars** must be set in the Function App:
    `COSMOS_CONTAINER_QUESTION_UPVOTES=question_upvotes`,
    `COSMOS_CONTAINER_QUESTION_REPORTS=question_reports`.
+10. **Admin portal is live** at `https://ambitious-sand-054490e00.7.azurestaticapps.net` (SWA
+    `quizpulse-admin-av5z18`, admin app reg `ADMIN_AUTH_CLIENT_ID=6fa86528-3a7b-4c03-bc55-c0e7073b8eb7`).
+    Three production realities differ from the original Sprint 7 design — see
+    `memory/reference_admin_portal_auth_gotchas.md` for the full debugging story:
+    - **The admin SWA has NO linked Function App backend** (a Function App links to only one SWA,
+      and it's linked to the teacher SWA). So `admin/src/api.js` calls the Function App by
+      **absolute URL** in prod (`https://quizpulse-app-api-av5z18.azurewebsites.net/api`), not the
+      relative `/api`. The Function App CORS and the admin CSP `connect-src` both list that host.
+    - **App Service Easy Auth was disabled** on the Function App. It was a retired-since-Sprint-1
+      leftover (`enabled:true`, unconfigured) that 401'd admin-audience tokens at the platform layer
+      before any function code ran. All API auth now relies on app-level JWKS validation (by design).
+    - **CIAM stamps token `iss` with the tenant-GUID host**, not the subdomain. `api/auth.js`'s
+      `ISSUER` is now an array accepting both forms; `getCallerScope` reads the `roles[]` array claim.
+      Owner role is assigned to the **self-service-signup principal** (the account you actually sign
+      in as), and the admin app reg must be added to the CIAM `SignUpSignIn` user flow.
 
 ---
 

@@ -20,8 +20,15 @@ const ADMIN_AUDIENCE = process.env.ADMIN_AUTH_CLIENT_ID;
 const DEV_MODE = process.env.B2C_ALLOW_UNVERIFIED_DEV === 'true';
 
 // Entra External ID CIAM issuer and JWKS — no policy name in the URL.
+// CIAM stamps the token `iss` with the tenant GUID host ({tenantId}.ciamlogin.com) even when the
+// app authenticates via the subdomain host ({subdomain}.ciamlogin.com). Accept BOTH forms so
+// real production verification succeeds regardless of which host MSAL/CIAM uses. jwt.verify takes
+// an array for `issuer` and passes if the token's iss matches any entry.
 const ISSUER = TENANT_ID
-  ? `https://${TENANT_SUBDOMAIN}.ciamlogin.com/${TENANT_ID}/v2.0`
+  ? [
+      `https://${TENANT_SUBDOMAIN}.ciamlogin.com/${TENANT_ID}/v2.0`,
+      `https://${TENANT_ID}.ciamlogin.com/${TENANT_ID}/v2.0`,
+    ]
   : null;
 const JWKS_URI = TENANT_ID
   ? `https://${TENANT_SUBDOMAIN}.ciamlogin.com/${TENANT_ID}/discovery/v2.0/keys`

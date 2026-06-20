@@ -1,7 +1,14 @@
 // API base URL for the admin portal.
-// In production the admin SWA proxies /api/* to the linked Function App (Standard tier).
-// In local dev, Vite proxies /api/* to http://localhost:7071 (see vite.config.js).
-const API_BASE = '/api'
+// The admin SWA has NO linked backend (the Function App is linked to the teacher SWA), so the
+// admin app calls the Function App directly by absolute URL in production. CORS on the Function
+// App allows the admin SWA origin, and the CSP connect-src (staticwebapp.config.json) lists this
+// host. The MSAL fetch patch (msalInstance.js) still matches on '/api/' so the bearer token is
+// attached. In local dev, Vite proxies /api/* to http://localhost:7071 (see vite.config.js).
+const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  (window.location.hostname === 'localhost'
+    ? '/api'
+    : 'https://quizpulse-app-api-av5z18.azurewebsites.net/api')
 
 export async function apiFetch(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {

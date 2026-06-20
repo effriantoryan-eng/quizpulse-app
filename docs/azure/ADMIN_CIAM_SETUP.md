@@ -53,6 +53,18 @@ tenant-wide and is already active for the teacher app registration.
 No additional API permissions beyond the default `openid` and `offline_access` are required.
 These are already granted by default on new registrations.
 
+### Associate the app with a user flow — REQUIRED
+
+> **Without this step, sign-in fails with "account doesn't exist" even for valid tenant users.**
+> In Entra External ID (CIAM), an app registration cannot authenticate users until it is added
+> to a sign-up/sign-in **user flow**. The teacher app reg was added to a flow during Sprint 1;
+> the new admin reg must be added to the **same** flow.
+
+1. Entra External ID (`quizpulseid` tenant) → **External Identities → User flows**.
+2. Open the existing sign-up/sign-in user flow (the one the teacher app uses).
+3. **Applications → Add application** → select **QuizPulse Admin Portal** → Add.
+4. Retry sign-in — the same tenant account now resolves.
+
 ---
 
 ## Part 3 — Provision the admin SWA and link it

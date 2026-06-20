@@ -33,7 +33,6 @@ export const msalConfig = {
 
 // openid + offline_access yield a signed ID token + refresh token.
 // The ID token (RS256, contains oid claim) is used as the bearer to Azure Functions.
-// TODO Sprint 3: expose an API scope in the portal and switch to an access token.
 export const loginRequest = {
   scopes: ['openid', 'offline_access'],
 }
