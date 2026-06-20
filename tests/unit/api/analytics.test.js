@@ -1,17 +1,23 @@
 // Unit test for analytics accuracy — mirrors buildQuestionBreakdown() in api/analytics.js.
-// Verifies per-option counts against 5 known responses across 2 questions.
+// Verifies per-option counts and confidentButIncorrect aggregate (Confidence Layer v3.2).
+
+const CONFIDENT_VALUES = new Set(['sure', 'pretty_sure']);
 
 function buildQuestionBreakdown(questions, responses) {
   return questions.map(q => {
     const optionCount = (q.options || []).length;
     const counts = Array(optionCount).fill(0);
+    let confidentButIncorrect = 0;
     responses.forEach(r => {
       const answer = (r.answers || []).find(a => a.questionId === q.id);
       if (answer && answer.selectedIndex >= 0 && answer.selectedIndex < optionCount) {
         counts[answer.selectedIndex]++;
+        if (CONFIDENT_VALUES.has(answer.confidence) && answer.selectedIndex !== q.correctIndex) {
+          confidentButIncorrect++;
+        }
       }
     });
-    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts };
+    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect };
   });
 }
 
@@ -50,5 +56,44 @@ describe('analytics — accuracy with 5 known responses', () => {
     const breakdown = buildQuestionBreakdown(questions, partial);
     const q1 = breakdown.find(q => q.id === 'q1');
     expect(q1.counts.reduce((a, b) => a + b, 0)).toBe(4);
+  });
+});
+
+describe('analytics — confidentButIncorrect signal', () => {
+  const questions = [
+    { id: 'q1', text: 'Capital of France?', options: ['Paris', 'Rome', 'Berlin', 'Madrid'], correctIndex: 0 },
+  ];
+
+  test('counts sure+wrong and pretty_sure+wrong as confidentButIncorrect', () => {
+    const responses = [
+      { studentId: 's1', answers: [{ questionId: 'q1', selectedIndex: 1, confidence: 'sure' }] },        // wrong, sure -> counts
+      { studentId: 's2', answers: [{ questionId: 'q1', selectedIndex: 2, confidence: 'pretty_sure' }] }, // wrong, pretty_sure -> counts
+      { studentId: 's3', answers: [{ questionId: 'q1', selectedIndex: 3, confidence: 'guessing' }] },    // wrong, guessing -> does NOT count
+      { studentId: 's4', answers: [{ questionId: 'q1', selectedIndex: 0, confidence: 'sure' }] },        // correct, sure -> does NOT count
+    ];
+    const breakdown = buildQuestionBreakdown(questions, responses);
+    expect(breakdown[0].confidentButIncorrect).toBe(2);
+  });
+
+  test('returns 0 when all confident students answered correctly', () => {
+    const responses = [
+      { studentId: 's1', answers: [{ questionId: 'q1', selectedIndex: 0, confidence: 'sure' }] },
+      { studentId: 's2', answers: [{ questionId: 'q1', selectedIndex: 0, confidence: 'pretty_sure' }] },
+    ];
+    const breakdown = buildQuestionBreakdown(questions, responses);
+    expect(breakdown[0].confidentButIncorrect).toBe(0);
+  });
+
+  test('returns 0 when no confidence data is present (legacy responses)', () => {
+    const responses = [
+      { studentId: 's1', answers: [{ questionId: 'q1', selectedIndex: 1 }] }, // no confidence field
+    ];
+    const breakdown = buildQuestionBreakdown(questions, responses);
+    expect(breakdown[0].confidentButIncorrect).toBe(0);
+  });
+
+  test('confidentButIncorrect is always present in the output (0 when none)', () => {
+    const breakdown = buildQuestionBreakdown(questions, []);
+    expect(breakdown[0]).toHaveProperty('confidentButIncorrect', 0);
   });
 });

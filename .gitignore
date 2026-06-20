@@ -17,6 +17,7 @@ __queuestorage__/
 .env.*.local
 
 # Test artifacts (the committed sprint report lives in tests/reports/, transient runs are ignored)
+test-report.html
 test-results/
 playwright-report/
 playwright/.cache/

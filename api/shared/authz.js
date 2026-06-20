@@ -35,7 +35,14 @@ class ScopeError extends Error {
 // and every caller scopes as a plain 'teacher' — a missing claim never grants extra access.
 function getCallerScope(claims) {
   const teacherId = claims.oid || claims.sub || null;
-  const role = typeof claims.role === 'string' && claims.role ? claims.role : 'teacher';
+  // Entra External ID emits assigned app roles as a `roles` array (per
+  // docs/azure/ROLE_CLAIMS_SETUP.md). Read that first; fall back to a singular `role` claim
+  // (used by tests and any claims-mapping policy that flattens it) then default to 'teacher'.
+  // A missing/empty claim never grants extra access (fails closed).
+  const role =
+    (Array.isArray(claims.roles) && typeof claims.roles[0] === 'string' && claims.roles[0]) ||
+    (typeof claims.role === 'string' && claims.role) ||
+    'teacher';
   const schoolId = typeof claims.schoolId === 'string' && claims.schoolId ? claims.schoolId : null;
   return { teacherId, role, schoolId };
 }
