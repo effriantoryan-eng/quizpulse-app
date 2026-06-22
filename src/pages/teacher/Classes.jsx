@@ -18,6 +18,10 @@ function Classes() {
   const [editStudentCount, setEditStudentCount] = useState('')
   const [editError, setEditError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
+  const [creatingDemo, setCreatingDemo] = useState(false)
+
+  const realClasses = classes.filter(c => !c.isDemo)
+  const hasDemoClass = classes.some(c => c.isDemo)
 
   useEffect(() => { fetchClasses() }, [])
 
@@ -62,6 +66,24 @@ function Classes() {
       setCreateError('Could not connect to the server. Please try again.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleCreateDemo() {
+    setCreatingDemo(true)
+    try {
+      const res = await fetch(`${API_BASE}/classes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isDemo: true, name: 'Demo class' }),
+      })
+      const data = await res.json()
+      if (!res.ok) { alert(data.error || 'Could not create the demo class. Please try again.'); return }
+      await fetchClasses()
+    } catch {
+      alert('Could not connect to the server. Please try again.')
+    } finally {
+      setCreatingDemo(false)
     }
   }
 
@@ -115,22 +137,39 @@ function Classes() {
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', gap: '8px', flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0 }}>Classes</h2>
-        <button
-          data-testid="class-new-btn"
-          onClick={() => { setCreating(true); setCreateError(null) }}
-          disabled={creating || classes.length >= 20}
-          title={classes.length >= 20 ? 'Maximum 20 classes reached' : 'Add a new class'}
-          style={{
-            padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-            borderRadius: '8px', fontSize: '13px', fontWeight: '500',
-            cursor: classes.length >= 20 ? 'not-allowed' : 'pointer',
-            opacity: classes.length >= 20 ? 0.5 : 1,
-          }}
-        >
-          + New class
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {!hasDemoClass && (
+            <button
+              data-testid="class-demo-btn"
+              onClick={handleCreateDemo}
+              disabled={creatingDemo}
+              title="Create a class with practice students so you can try sending a quiz right away"
+              style={{
+                padding: '8px 16px', background: '#EEEDFE', color: '#3C3489', border: '1px solid #d6d2f5',
+                borderRadius: '8px', fontSize: '13px', fontWeight: '500',
+                cursor: creatingDemo ? 'wait' : 'pointer', opacity: creatingDemo ? 0.7 : 1,
+              }}
+            >
+              {creatingDemo ? 'Setting up…' : 'Try with a demo class'}
+            </button>
+          )}
+          <button
+            data-testid="class-new-btn"
+            onClick={() => { setCreating(true); setCreateError(null) }}
+            disabled={creating || realClasses.length >= 20}
+            title={realClasses.length >= 20 ? 'Maximum 20 classes reached' : 'Add a new class'}
+            style={{
+              padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
+              borderRadius: '8px', fontSize: '13px', fontWeight: '500',
+              cursor: realClasses.length >= 20 ? 'not-allowed' : 'pointer',
+              opacity: realClasses.length >= 20 ? 0.5 : 1,
+            }}
+          >
+            + New class
+          </button>
+        </div>
       </div>
 
       {creating && (
@@ -226,19 +265,34 @@ function Classes() {
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
+                <div style={{ fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {c.name}
+                  {c.isDemo && (
+                    <span
+                      data-testid={`class-demo-pill-${c.id}`}
+                      style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
+                    >
+                      Demo
+                    </span>
+                  )}
+                </div>
                 <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
                   {c.studentCount} student{c.studentCount !== 1 ? 's' : ''}
-                  {' · '}
-                  Code: <span style={{ fontFamily: 'monospace', letterSpacing: '0.5px', color: '#555' }}>{c.joinCode}</span>
+                  {c.isDemo ? (
+                    <> · practice students — no one is notified</>
+                  ) : (
+                    <> · Code: <span style={{ fontFamily: 'monospace', letterSpacing: '0.5px', color: '#555' }}>{c.joinCode}</span></>
+                  )}
                 </div>
               </div>
-              <Link
-                to={`/teacher/roster?classId=${c.id}`}
-                style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0, textDecoration: 'none' }}
-              >
-                Roster
-              </Link>
+              {!c.isDemo && (
+                <Link
+                  to={`/teacher/roster?classId=${c.id}`}
+                  style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0, textDecoration: 'none' }}
+                >
+                  Roster
+                </Link>
+              )}
               <button
                 data-testid={`class-edit-${c.id}`}
                 onClick={() => { setEditingId(c.id); setEditName(c.name); setEditStudentCount(String(c.studentCount ?? '')); setEditError(null) }}
@@ -259,9 +313,9 @@ function Classes() {
         </div>
       ))}
 
-      {classes.length > 0 && (
+      {realClasses.length > 0 && (
         <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'right', marginTop: '8px' }}>
-          {classes.length} / 20 classes
+          {realClasses.length} / 20 classes
         </p>
       )}
     </div>
