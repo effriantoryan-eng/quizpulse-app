@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { loginRequest, signUpRequest } from '../authConfig'
 
@@ -37,6 +38,19 @@ function isIosStandalone() {
 // CIAM to jump straight to that identity provider instead of showing the chooser page.
 function Login() {
   const { instance } = useMsal()
+  const [authError, setAuthError] = useState(null)
+
+  // main.jsx stashes a hint here when a sign-in/sign-up redirect comes back with an error,
+  // so the user sees something actionable instead of silently landing back on this page.
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('qp_auth_error')
+      if (stored) {
+        setAuthError(stored)
+        sessionStorage.removeItem('qp_auth_error')
+      }
+    } catch { /* sessionStorage unavailable */ }
+  }, [])
 
   function signIn(domainHint) {
     instance.loginRedirect({
@@ -144,7 +158,21 @@ function Login() {
     <div style={card}>
       <div style={logo}>⚡</div>
       <h1 style={{ fontSize: '22px', fontWeight: '500', marginBottom: '8px' }}>QuizPulse</h1>
-      <p style={{ fontSize: '14px', color: '#888', marginBottom: '32px' }}>Sign in to access the teacher dashboard</p>
+      <p style={{ fontSize: '14px', color: '#888', marginBottom: authError ? '16px' : '32px' }}>Sign in to access the teacher dashboard</p>
+
+      {authError && (
+        <div
+          data-testid="auth-error"
+          style={{
+            background: 'var(--dangerBg)', color: 'var(--danger)',
+            border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
+            boxShadow: 'var(--shadow)', padding: '12px 14px', marginBottom: '20px',
+            fontSize: '13px', textAlign: 'left', lineHeight: '1.5',
+          }}
+        >
+          That didn't go through. Please try again — if you're new, use <strong>Create an account</strong> below to register first.
+        </div>
+      )}
 
       <button
         data-testid="login-microsoft"

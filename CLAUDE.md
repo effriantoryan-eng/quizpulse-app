@@ -566,11 +566,22 @@ sprint's scope.
 | GET /api/manage/schools (all schools + teacher/class counts) | [CURRENT] v3.1.0 complete |
 | GET /api/manage/teachers (all teachers, paginated, searchable) | [CURRENT] v3.1.0 complete |
 | GET /api/manage/audit (paginated audit log query for admin UI) | [CURRENT] v3.1.0 complete |
+| Roster approval fix (restored `rateLimit` import in joinRequests.js — Sprint 6 APIM regression) | [CURRENT] v3.2.2 complete — diagnosis in docs/fixes/ROSTER_APPROVAL_DIAGNOSIS.md |
+| Two-path public landing (student/teacher cards, Preview gallery link, DemoNav signed-out branch) | [CURRENT] v3.2.2 complete |
+| PWA install button (usePwaInstall hook, InstallButton — native "Add to your phone" / iOS guide) | [CURRENT] v3.2.2 complete |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
 
 ## Known issues [CURRENT]
+
+### Resolved
+
+~~**Roster approval returned 500 — teachers could not approve students (resolved v3.2.2).**~~
+The Sprint 6 APIM migration (commit `f72f270`) removed `rateLimit` from the import in
+`api/joinRequests.js` but left the four `rateLimit(...)` call sites, so every authed join-request
+handler threw `ReferenceError: rateLimit is not defined` → 500. Fixed by restoring the import. Full
+diagnosis (candidate causes ruled out, regression test path): `docs/fixes/ROSTER_APPROVAL_DIAGNOSIS.md`.
 
 ~~**Sign-in buttons produced total silence in production (resolved v3.0.1).**~~
 The CSP `connect-src` listed `*.b2clogin.com` (old Azure AD B2C domain) instead of `*.ciamlogin.com`

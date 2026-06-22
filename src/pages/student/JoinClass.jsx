@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import API_BASE from '../../api'
+import InstallButton from '../../components/InstallButton'
 
 const STUDENT_NAME_MAX = 80
 
@@ -149,6 +150,13 @@ function JoinClass() {
       <p style={{ margin: '0 0 24px', color: '#666', fontSize: '14px' }}>
         Enter the join code your teacher shared with you.
       </p>
+
+      <div style={{ marginBottom: '24px' }}>
+        <InstallButton
+          align="left"
+          description="Add QuizPulse to your phone so your teacher's check-ins reach your lock screen."
+        />
+      </div>
 
       <form onSubmit={handleSubmit}>
         <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
