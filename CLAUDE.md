@@ -19,7 +19,7 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — Sprint 6 (v3.0.0 — MAJOR), on top of Sprint 5 (v2.1.0).**
+**[CURRENT] state of the app — v3.2.0 (Confidence Layer), on top of Sprint 6 (v3.0.0 — MAJOR) / v3.0.1.**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -203,7 +203,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 
 - `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
 - `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt }
-- `responses` — { id, quizId, questionIndex, selectedIndex, simulated, createdAt }
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer). Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
 - `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt } (pk `/teacherId`)
@@ -258,7 +258,7 @@ the portal steps to complete the SWA → Standard upgrade and backend linking.
 
 For local dev, `localhost:5173` (Vite) still hits `localhost:7071` (func start) directly.
 
-### Auth [CURRENT — Sprint 1 complete]
+### Auth [CURRENT — Sprint 1 complete; sign-up added v3.2.1]
 
 Microsoft Entra External ID (CIAM) with MSAL (`@azure/msal-browser` + `@azure/msal-react`).
 Tenant: `quizpulseid.onmicrosoft.com` (tenant ID `19567cd0-0f52-46f7-9ac5-699538443ed1`);
@@ -272,6 +272,21 @@ Bearer token is the MSAL ID token (RS256, signed by CIAM); backend validates via
 `src/msalInstance.js` patches `window.fetch` to attach bearer tokens to all API calls silently.
 New teachers are gated through `/onboarding` (`GET /api/me` → `onboarded: false` → redirect).
 See `docs/azure/B2C_SETUP.md` for manual tenant configuration steps.
+
+**Sign-up flow (v3.2.1):** `src/authConfig.js` exports `signUpRequest = { scopes: ['openid',
+'offline_access'], prompt: 'create' }`. `Login.jsx` has a "Create an account" button that
+calls `instance.loginRedirect(signUpRequest)`. Entra External ID (CIAM) interprets
+`prompt=create` as a request to show the account-creation form rather than the sign-in form
+— same authority URL, same redirect URI, no extra portal config beyond enabling self-service
+sign-up on the external tenant (see `docs/fixes/SIGNUP_SETUP.md` for the portal steps).
+After CIAM sign-up the app receives a normal token and routes through the same onboarding
+flow as a sign-in: `GET /api/me` → `{ onboarded: false }` → `/onboarding` → school name →
+`POST /api/onboarding` (idempotent, role always server-set to `'teacher'`).
+
+**Redirect URIs the app depends on:**
+- `https://nice-field-0127b5b00.7.azurestaticapps.net` — production (sign-in + sign-up)
+- `http://localhost:5173` — local dev (sign-in + sign-up)
+Both are registered under the same app registration. No separate URI is needed for sign-up.
 
 ### Service worker [CURRENT — Sprint 4]
 
@@ -371,9 +386,9 @@ etc.) MUST call `assertScope` from `api/shared/authz.js` before reading or mutat
   trusting it.
 - **Step-up re-auth (`api/shared/stepUp.js`):** `assertStepUp(claims)` verifies the signed
   `auth_time`/`iat` claim is within a 10-minute window before allowing a destructive owner
-  action through — currently gates `POST /api/manage/schools/merge` only. Built ahead of the
-  Sprint 7 admin UI that will actually trigger a re-auth prompt; until then this just means the
-  merge endpoint 401s if the caller's token is more than 10 minutes old.
+  action through — gates `POST /api/manage/schools/merge` only. The Sprint 7 admin portal
+  (`admin/src/pages/MergeTool.jsx`) handles the `{ reauthRequired: true }` response by calling
+  `instance.loginRedirect` with `prompt: 'login'` so the owner can re-authenticate and retry.
 - **Audit trail (`api/shared/auditLog.js`):** every admin mutation (`schoolAdmin.js`,
   `institutions.js`) calls `writeAudit()` after success, appending to the `audit_log` container.
   No update/delete path exists for it, on purpose.
@@ -539,7 +554,19 @@ sprint's scope.
 | Generic product positioning (no VIC-specific copy; beta not demo) | [CURRENT] v3.0.1 complete |
 | Encouragement line on quiz completion (src/data/encouragements.js) | [CURRENT] v3.0.1 complete — placeholder, expand/curate later |
 | Mockup file (quizpulse_mockups_v301.html, 5 screens, reference only) | [CURRENT] v3.0.1 complete |
-| Admin frontend (super admin UI for the above) | [PLANNED — Sprint 7, separate site] |
+| Confidence layer — data model (confidence + responseTimeMs on responses) | [CURRENT] v3.2.0 complete |
+| Confidence layer — student UI (3-button selector, first-time explainer, response-time capture) | [CURRENT] v3.2.0 complete |
+| Confidence layer — misconception analytics (confidentButIncorrect per question, teacher callout) | [CURRENT] v3.2.0 complete |
+| Sign-up flow (Create an account button, prompt: 'create', CIAM self-service sign-up) | [CURRENT] v3.2.1 complete — portal self-service sign-up must be enabled (see SIGNUP_SETUP.md) |
+| Admin portal — CIAM audience separation (authenticateAdmin, separate app reg) | [CURRENT] v3.1.0 complete — portal steps in docs/azure/ADMIN_CIAM_SETUP.md |
+| Admin portal — React+Vite SWA scaffold (admin/, port 5174, 30-min idle timeout) | [CURRENT] v3.1.0 complete — provision SWA + replace ADMIN_SWA_ORIGIN_PLACEHOLDER in api/host.json |
+| Admin portal — school list/validate/merge/institution/invite pages | [CURRENT] v3.1.0 complete |
+| Admin portal — monitoring dashboard (metrics + log export) | [CURRENT] v3.1.0 complete |
+| Admin portal — audit log viewer + role management (owner-gated) | [CURRENT] v3.1.0 complete |
+| GET /api/manage/schools (all schools + teacher/class counts) | [CURRENT] v3.1.0 complete |
+| GET /api/manage/teachers (all teachers, paginated, searchable) | [CURRENT] v3.1.0 complete |
+| GET /api/manage/audit (paginated audit log query for admin UI) | [CURRENT] v3.1.0 complete |
+| Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
 
@@ -578,6 +605,68 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
 9. **`question_upvotes` and `question_reports` env vars** must be set in the Function App:
    `COSMOS_CONTAINER_QUESTION_UPVOTES=question_upvotes`,
    `COSMOS_CONTAINER_QUESTION_REPORTS=question_reports`.
+10. **Admin portal is live** at `https://ambitious-sand-054490e00.7.azurestaticapps.net` (SWA
+    `quizpulse-admin-av5z18`, admin app reg `ADMIN_AUTH_CLIENT_ID=6fa86528-3a7b-4c03-bc55-c0e7073b8eb7`).
+    Three production realities differ from the original Sprint 7 design — see
+    `memory/reference_admin_portal_auth_gotchas.md` for the full debugging story:
+    - **The admin SWA has NO linked Function App backend** (a Function App links to only one SWA,
+      and it's linked to the teacher SWA). So `admin/src/api.js` calls the Function App by
+      **absolute URL** in prod (`https://quizpulse-app-api-av5z18.azurewebsites.net/api`), not the
+      relative `/api`. The Function App CORS and the admin CSP `connect-src` both list that host.
+    - **App Service Easy Auth was disabled** on the Function App. It was a retired-since-Sprint-1
+      leftover (`enabled:true`, unconfigured) that 401'd admin-audience tokens at the platform layer
+      before any function code ran. All API auth now relies on app-level JWKS validation (by design).
+    - **CIAM stamps token `iss` with the tenant-GUID host**, not the subdomain. `api/auth.js`'s
+      `ISSUER` is now an array accepting both forms; `getCallerScope` reads the `roles[]` array claim.
+      Owner role is assigned to the **self-service-signup principal** (the account you actually sign
+      in as), and the admin app reg must be added to the CIAM `SignUpSignIn` user flow.
+
+---
+
+## Planned expansion — Companion Layer (Phase 2)
+
+**What IS built (v3.2.0 — Confidence Layer / Sprint A):** per-question confidence capture
+(3 coarse levels: Sure / Pretty sure / Just guessing), response-time logging as a noisy
+aggregate signal, first-time-only explainer, and misconception surfacing in teacher analytics
+(`confidentButIncorrect` per question — cohort/question level only, never individual).
+
+**What is NOT yet built — gated behind (a) pilot validation and (b) durable student identity:**
+
+The following pieces were deliberately excluded from v3.2.0 and should not be added until
+the core push hypothesis is validated through a real pilot, and until named per-student accounts
+exist (the current device-UUID model can't support longitudinal per-student state):
+
+- **Persistent per-student room.** A private visual space that grows as the student participates.
+  Requires a stable student identity across sessions and devices — the current device-UUID model
+  doesn't provide this.
+- **Monthly creature cadence.** One creature made available per active month; missed months
+  cause the creature to drift to a shared city pool (opportunity, not loss). Requires month-boundary
+  logic and a participation-history record per student.
+- **Depth-accrues / breadth-resets engine.** Returning to a topic deepens an existing creature;
+  exploring a new topic adds a new one. Requires per-student topic-response history.
+- **Adoption loop + curated encouragement.** The creature naming/personalisation and curated text
+  for interaction moments. Curated text only — no free-text, no AI-generated content (minors).
+- **Teacher ambient room view.** Teacher sees the class's aggregate creature collection as an
+  ambient engagement signal (not routed to leadership or admin). Never exposed via reporting APIs.
+- **Statistical anti-farming model.** Detect and discount suspiciously fast/uniform responses
+  when computing creature advancement. Confidence + responseTimeMs captured now are the forward-
+  compatible data foundation for this; the detection logic is not yet built.
+
+**Design non-negotiables to honour in Phase 2 (record here so future sessions don't drift):**
+
+- **Participation, not correctness.** Creatures and room growth must never depend on getting
+  answers right — only on participating. Wrong answers with high confidence are as valuable a
+  learning signal as correct answers. Never tie creature advancement to score.
+- **No rarity tiers, no leaderboards, no comparative display.** This is a personal collection,
+  not a competition. Students must never see each other's rooms or creature counts.
+- **Missed = opportunity, not loss.** A missed month means the creature drifts to the city pool
+  (the student can still see it there); it does not disappear or decay. Framing is gentle.
+- **Measure, don't enforce.** Response time is captured as data only — it must never gate,
+  block, warn, or create minimum-dwell timers. Confidence is buttons only — no free-text ever.
+- **Curated text only.** All creature names, room labels, and encouragement text must be
+  human-curated. No AI-generated copy, no user-submitted text (content surface for minors).
+- **Teacher room view is never routed to leadership.** The ambient class-room view is a teacher
+  engagement signal. It must not appear in admin dashboards, reports, or monitoring endpoints.
 
 ---
 

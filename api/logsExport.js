@@ -1,6 +1,6 @@
 const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
-const { authenticateTeacher } = require('./auth');
+const { authenticateAdmin } = require('./auth');
 const { getCallerScope, requireRole, ScopeError, ROLES } = require('./shared/authz');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
@@ -34,7 +34,7 @@ app.http('manageLogsExport', {
     }
 
     try {
-      const auth = await authenticateTeacher(request);
+      const auth = await authenticateAdmin(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const caller = getCallerScope(auth.claims);
 

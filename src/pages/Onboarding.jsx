@@ -40,10 +40,10 @@ function Onboarding() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '80px auto', padding: '48px 32px', textAlign: 'center', border: '1px solid #eee', borderRadius: '16px' }}>
-      <div style={{ width: '48px', height: '48px', borderRadius: '10px', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '24px' }}>⚡</div>
-      <h1 style={{ fontSize: '22px', fontWeight: '600', marginBottom: '8px' }}>Welcome to QuizPulse</h1>
-      <p style={{ fontSize: '14px', color: '#888', marginBottom: '32px' }}>
+    <div style={{ maxWidth: 480, margin: '80px auto', padding: '44px 32px', textAlign: 'center', background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)' }}>
+      <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: 'var(--logoGrad)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '26px', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--shadowField)' }}>⚡</div>
+      <h1 style={{ fontSize: '30px', fontWeight: '700', marginBottom: '8px' }}>Welcome to QuizPulse</h1>
+      <p style={{ fontSize: '15px', color: 'var(--muted)', marginBottom: '32px' }}>
         Enter your school name to finish setting up your account.
       </p>
 
@@ -60,12 +60,12 @@ function Onboarding() {
           placeholder="e.g. Westfield Secondary College"
           style={{
             width: '100%', padding: '10px 12px', borderRadius: '8px',
-            border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box',
+            border: 'var(--bw) solid var(--border)', fontSize: '14px', boxSizing: 'border-box',
           }}
           disabled={submitting}
         />
         {error && (
-          <p style={{ color: '#c0392b', fontSize: '13px', marginTop: '8px' }}>{error}</p>
+          <p style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '8px', fontWeight: 600 }}>{error}</p>
         )}
         <button
           data-testid="onboarding-submit"
@@ -73,7 +73,7 @@ function Onboarding() {
           disabled={submitting}
           style={{
             width: '100%', marginTop: '20px', padding: '12px',
-            background: '#534AB7', color: 'white', border: 'none',
+            background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
             borderRadius: '8px', fontSize: '14px', fontWeight: '500',
             cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
           }}

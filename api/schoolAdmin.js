@@ -1,10 +1,10 @@
 const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
-const { authenticateTeacher } = require('./auth');
+const { authenticateAdmin } = require('./auth');
 const { getCallerScope, requireRole, ScopeError, ROLES } = require('./shared/authz');
 const { assertStepUp, StepUpError } = require('./shared/stepUp');
 const { writeAudit } = require('./shared/auditLog');
-const { getClientIp } = require('./rateLimit');
+const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 
 // Serialises school merges: only 1 may be in flight at a time platform-wide.
@@ -36,7 +36,7 @@ app.http('schoolValidate', {
     }
 
     try {
-      const auth = await authenticateTeacher(request);
+      const auth = await authenticateAdmin(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const caller = getCallerScope(auth.claims);
 
@@ -106,7 +106,7 @@ app.http('schoolMerge', {
     }
 
     try {
-      const auth = await authenticateTeacher(request);
+      const auth = await authenticateAdmin(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const caller = getCallerScope(auth.claims);
 

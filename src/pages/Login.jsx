@@ -1,5 +1,5 @@
 import { useMsal } from '@azure/msal-react'
-import { loginRequest } from '../authConfig'
+import { loginRequest, signUpRequest } from '../authConfig'
 
 // Returns true when running inside a social-app in-app browser (Meta IAB, Instagram,
 // LinkedIn, Snapchat, Twitter/X, TikTok, Line, etc.) or a generic Android WebView.
@@ -45,23 +45,36 @@ function Login() {
     })
   }
 
+  // prompt: 'create' tells CIAM to show the account-creation form rather than the
+  // sign-in form. Uses the same authority and redirect URI as sign-in — no extra
+  // portal config needed beyond enabling self-service sign-up on the external tenant.
+  function signUp() {
+    instance.loginRedirect(signUpRequest)
+  }
+
   const card = {
-    maxWidth: 380, margin: '100px auto', padding: '48px 32px',
-    textAlign: 'center', border: '1px solid #eee', borderRadius: '16px',
+    maxWidth: 400, margin: '80px auto', padding: '44px 32px',
+    textAlign: 'center', background: 'var(--surface)',
+    border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
+    boxShadow: 'var(--shadow)',
   }
   const logo = {
-    width: '48px', height: '48px', borderRadius: '10px', background: '#534AB7',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    margin: '0 auto 20px', fontSize: '24px',
+    width: '52px', height: '52px', borderRadius: '12px', background: 'var(--logoGrad)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+    margin: '0 auto 20px', fontSize: '26px',
+    border: 'var(--bw) solid var(--border)', boxShadow: 'var(--shadowField)',
   }
   const providerButton = {
-    width: '100%', padding: '12px', borderRadius: '8px', fontSize: '14px',
-    fontWeight: '500', cursor: 'pointer', marginBottom: '10px',
+    width: '100%', padding: '14px', borderRadius: 'var(--radius)', fontSize: '15px',
+    fontWeight: '700', cursor: 'pointer', marginBottom: '12px',
+    fontFamily: 'var(--heading)',
+    border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
   }
   const infoBox = {
-    background: '#f5f4ff', borderRadius: '10px', padding: '20px',
-    fontSize: '14px', color: '#444', lineHeight: '1.6', textAlign: 'left',
+    background: 'var(--tipBg)', border: 'var(--bw) solid var(--border)',
+    borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', padding: '20px',
+    fontSize: '14px', color: 'var(--text)', lineHeight: '1.6', textAlign: 'left',
     marginBottom: '8px',
   }
 
@@ -84,7 +97,7 @@ function Login() {
             navigator.clipboard?.writeText(window.location.href).catch(() => {})
           }}
           style={{
-            ...providerButton, background: '#534AB7', color: 'white', border: 'none',
+            ...providerButton, background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
             marginTop: '8px',
           }}
         >
@@ -103,10 +116,10 @@ function Login() {
         <h1 style={{ fontSize: '22px', fontWeight: '500', marginBottom: '8px' }}>QuizPulse</h1>
         <div style={{ ...infoBox, marginTop: '24px' }}>
           <strong style={{ display: 'block', marginBottom: '8px' }}>
-            Sign in via Safari first
+            Sign in or create an account via Safari first
           </strong>
-          To sign in from the home screen app on iPhone, open QuizPulse in Safari, sign in
-          there, then return here. Your session will carry over.
+          To sign in or sign up from the home screen app on iPhone, open QuizPulse in Safari,
+          complete sign-in or account creation there, then return here. Your session will carry over.
         </div>
         <a
           data-testid="open-in-safari-link"
@@ -115,7 +128,7 @@ function Login() {
           rel="noreferrer"
           style={{
             display: 'block', width: '100%', padding: '12px', borderRadius: '8px',
-            fontSize: '14px', fontWeight: '500', background: '#534AB7', color: 'white',
+            fontSize: '14px', fontWeight: '500', background: 'var(--primary)', color: 'white',
             textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box',
             marginTop: '8px',
           }}
@@ -126,7 +139,7 @@ function Login() {
     )
   }
 
-  // Standard browser: show the normal sign-in buttons.
+  // Standard browser: show the normal sign-in buttons + sign-up section.
   return (
     <div style={card}>
       <div style={logo}>⚡</div>
@@ -136,7 +149,7 @@ function Login() {
       <button
         data-testid="login-microsoft"
         onClick={() => signIn('login.microsoftonline.com')}
-        style={{ ...providerButton, background: '#534AB7', color: 'white', border: 'none' }}
+        style={{ ...providerButton, background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)' }}
       >
         Sign in with Microsoft
       </button>
@@ -144,7 +157,7 @@ function Login() {
       <button
         data-testid="login-google"
         onClick={() => signIn('google.com')}
-        style={{ ...providerButton, background: 'white', color: '#444', border: '1px solid #ddd' }}
+        style={{ ...providerButton, background: 'white', color: 'var(--text)' }}
       >
         Sign in with Google
       </button>
@@ -152,9 +165,24 @@ function Login() {
       <button
         data-testid="login-chooser"
         onClick={() => signIn(null)}
-        style={{ background: 'none', border: 'none', color: '#7B6EDE', fontSize: '13px', cursor: 'pointer', marginTop: '6px' }}
+        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '13px', cursor: 'pointer', marginTop: '6px' }}
       >
         More sign-in options
+      </button>
+
+      {/* Divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0 20px' }}>
+        <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+        <span style={{ fontSize: '12px', color: '#bbb', whiteSpace: 'nowrap' }}>New to QuizPulse?</span>
+        <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+      </div>
+
+      <button
+        data-testid="signup-button"
+        onClick={signUp}
+        style={{ ...providerButton, background: 'var(--primarySoft)', color: 'var(--text)', border: 'var(--bw) solid var(--primary)', marginBottom: 0 }}
+      >
+        Create an account
       </button>
     </div>
   )

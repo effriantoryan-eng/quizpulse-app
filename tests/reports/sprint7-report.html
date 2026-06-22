@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>QuizPulse — Sprint 7 (v3.1.0) Test Report</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 24px 40px; background: #f8fafc; color: #1a1a1a; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 32px; }
+  .summary { display: flex; gap: 16px; margin-bottom: 32px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; min-width: 140px; }
+  .card .num { font-size: 32px; font-weight: 700; }
+  .card .lbl { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .card.pass .num { color: #16a34a; }
+  .card.skip .num { color: #d97706; }
+  .card.fail .num { color: #dc2626; }
+  section { margin-bottom: 32px; }
+  h2 { font-size: 15px; font-weight: 700; color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f1f5f9; padding: 8px 12px; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
+  td { padding: 8px 12px; border-bottom: 1px solid #f8fafc; vertical-align: top; }
+  .pass { color: #16a34a; font-weight: 600; }
+  .skip { color: #d97706; font-weight: 600; }
+  .note { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-unit { background: #eff6ff; color: #1e40af; }
+  .badge-int { background: #f0fdf4; color: #166534; }
+  .badge-e2e { background: #fdf4ff; color: #7e22ce; }
+  .warn { background: #fef9c3; border: 1px solid #fde68a; border-radius: 4px; padding: 8px 14px; font-size: 13px; color: #854d0e; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<h1>QuizPulse — Sprint 7 Test Report</h1>
+<div class="subtitle">v3.1.0-rc1 &nbsp;·&nbsp; Admin Portal &nbsp;·&nbsp; Branch: release/v3.1-sprint7</div>
+
+<div class="summary">
+  <div class="card pass"><div class="num">9</div><div class="lbl">Unit tests added</div></div>
+  <div class="card pass"><div class="num">170</div><div class="lbl">Total unit pass</div></div>
+  <div class="card skip"><div class="num">11</div><div class="lbl">Integration (skipped — RUN_INTEGRATION not set)</div></div>
+  <div class="card skip"><div class="num">5</div><div class="lbl">E2E (skipped — RUN_E2E not set)</div></div>
+  <div class="card fail"><div class="num">0</div><div class="lbl">Failures</div></div>
+</div>
+
+<div class="warn">
+  Integration and E2E tests require a running Function App (<code>func start</code>), Cosmos emulator, and
+  <code>ADMIN_AUTH_CLIENT_ID</code> set in <code>api/local.settings.json</code>. Run with
+  <code>RUN_INTEGRATION=true</code> and <code>RUN_E2E=true</code> respectively. The E2E admin flows
+  (merge with step-up, role assignment, monitoring download) require a real CIAM admin account and should
+  be run manually against the deployed admin portal.
+</div>
+
+<!-- Unit tests -->
+<section>
+  <h2>Unit tests — audience separation (<code>tests/unit/api/adminAudience.test.js</code>)</h2>
+  <table>
+    <tr><th>Test</th><th>Type</th><th>Result</th></tr>
+    <tr>
+      <td>authenticateTeacher accepts teacher-audience token<div class="note">aud = AUTH_CLIENT_ID → pass</div></td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>authenticateTeacher rejects admin-audience token (401)<div class="note">aud = ADMIN_AUTH_CLIENT_ID → rejected</div></td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>authenticateTeacher accepts no-aud token (legacy compat)<div class="note">Existing tests mint tokens without aud; must continue to work</div></td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>authenticateTeacher returns 401 when no Authorization header</td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>authenticateAdmin accepts admin-audience token<div class="note">aud = ADMIN_AUTH_CLIENT_ID → pass</div></td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>authenticateAdmin rejects teacher-audience token (401)<div class="note">aud = AUTH_CLIENT_ID → rejected</div></td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>authenticateAdmin accepts no-aud token (legacy compat)<div class="note">Tokens without aud bypass check in DEV_MODE</div></td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>authenticateAdmin returns 401 when no Authorization header</td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+    <tr>
+      <td>Cross-portal isolation: same token accepted by one portal, rejected by the other</td>
+      <td><span class="badge badge-unit">unit</span></td>
+      <td class="pass">PASS</td>
+    </tr>
+  </table>
+</section>
+
+<!-- Integration tests -->
+<section>
+  <h2>Integration tests (<code>tests/integration/api/sprint7.test.js</code>)</h2>
+  <table>
+    <tr><th>Test</th><th>Type</th><th>Result</th></tr>
+    <tr>
+      <td>Teacher-app token rejected 401 by /api/manage/metrics</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Admin token with no role gets 404 from metrics (role gate)</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Admin token with owner role passes metrics (200)</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Teacher-app token rejected 401 by /api/manage/schools</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Admin platform_admin token returns 200 + schools array</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Non-owner admin token gets 404 from role assignment</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Teacher-app token rejected 401 from role assignment</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>CORS: unknown origin has no ACAO header</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>CORS: localhost:5174 gets ACAO allow header</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Teacher-app token rejected 401 by /api/manage/audit</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Admin owner token returns 200 + paginated entries from audit</td>
+      <td><span class="badge badge-int">integration</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+  </table>
+  <div class="note" style="margin-top:8px">* Skipped — set <code>RUN_INTEGRATION=true</code> and start the Function App to run</div>
+</section>
+
+<!-- E2E tests -->
+<section>
+  <h2>E2E tests (<code>tests/e2e/sprint7.spec.js</code>)</h2>
+  <table>
+    <tr><th>Test</th><th>Type</th><th>Result</th></tr>
+    <tr>
+      <td>Unauthenticated visit to / redirects to CIAM sign-in</td>
+      <td><span class="badge badge-e2e">E2E</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Unauthenticated visit to /schools also redirects</td>
+      <td><span class="badge badge-e2e">E2E</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Teacher token rejected 401 by /api/manage/metrics (API-level)</td>
+      <td><span class="badge badge-e2e">E2E</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Teacher token rejected 401 by /api/manage/schools (API-level)</td>
+      <td><span class="badge badge-e2e">E2E</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+    <tr>
+      <td>Teacher token rejected 401 by /api/manage/audit (API-level)</td>
+      <td><span class="badge badge-e2e">E2E</span></td>
+      <td class="skip">SKIP*</td>
+    </tr>
+  </table>
+  <div class="note" style="margin-top:8px">* Skipped — set <code>RUN_E2E=true</code> and start both the admin app (<code>npm run dev</code> in <code>admin/</code>) and the Function App to run</div>
+</section>
+
+<!-- Regression check -->
+<section>
+  <h2>Regression — full unit suite</h2>
+  <table>
+    <tr><th>Stat</th><th>Sprint 6 / v3.2.1</th><th>Sprint 7 / v3.1.0-rc1</th></tr>
+    <tr><td>Unit test suites</td><td>17</td><td class="pass">18 ✓</td></tr>
+    <tr><td>Unit tests total</td><td>161</td><td class="pass">170 ✓</td></tr>
+    <tr><td>Failures</td><td>0</td><td class="pass">0 ✓</td></tr>
+  </table>
+</section>
+
+</body>
+</html>

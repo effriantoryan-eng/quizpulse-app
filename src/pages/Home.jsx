@@ -14,7 +14,7 @@ function Pill({ label, variant = 'neutral' }) {
     neutral: { bg: '#F3F3F3', color: '#666' },
     red:     { bg: '#FCEBEB', color: '#A32D2D' },
     green:   { bg: '#EAF3DE', color: '#3B6D11' },
-    purple:  { bg: '#EEEDFE', color: '#3C3489' },
+    purple:  { bg: 'var(--surface2)', color: 'var(--text)' },
   }
   const s = styles[variant]
   return (
@@ -39,23 +39,23 @@ function Svg01({ qMarkRef }) {
     <svg width="160" height="100" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ display: 'block', margin: '0 auto 12px', maxWidth: '100%', height: 'auto' }}>
       {/* Faded question mark — animates */}
       <g ref={qMarkRef}>
-        <text x="100" y="88" fontSize="90" fill="#534AB7" fillOpacity="0.07" fontWeight="700" fontFamily="serif">?</text>
+        <text x="100" y="88" fontSize="90" fill="var(--primary)" fillOpacity="0.07" fontWeight="700" fontFamily="serif">?</text>
       </g>
       {/* Whiteboard */}
-      <rect x="10" y="15" width="68" height="45" rx="3" fill="#F5F4FF" stroke="#C5C0F0" strokeWidth="1.5"/>
-      <line x1="18" y1="27" x2="58" y2="27" stroke="#A09BD6" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="18" y1="34" x2="52" y2="34" stroke="#A09BD6" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="18" y1="41" x2="55" y2="41" stroke="#A09BD6" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="18" y1="48" x2="46" y2="48" stroke="#A09BD6" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="44" y1="60" x2="38" y2="72" stroke="#C5C0F0" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="44" y1="60" x2="50" y2="72" stroke="#C5C0F0" strokeWidth="1.5" strokeLinecap="round"/>
+      <rect x="10" y="15" width="68" height="45" rx="3" fill="var(--surface2)" stroke="var(--border)" strokeWidth="1.5"/>
+      <line x1="18" y1="27" x2="58" y2="27" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="18" y1="34" x2="52" y2="34" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="18" y1="41" x2="55" y2="41" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="18" y1="48" x2="46" y2="48" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="44" y1="60" x2="38" y2="72" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="44" y1="60" x2="50" y2="72" stroke="var(--border)" strokeWidth="1.5" strokeLinecap="round"/>
       {/* Teacher figure */}
-      <rect x="88" y="44" width="12" height="18" rx="4" fill="#534AB7" fillOpacity="0.7"/>
-      <circle cx="94" cy="38" r="7" fill="#534AB7" fillOpacity="0.7"/>
-      <line x1="91" y1="62" x2="87" y2="76" stroke="#534AB7" strokeOpacity="0.7" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="97" y1="62" x2="103" y2="74" stroke="#534AB7" strokeOpacity="0.7" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="88" y1="50" x2="82" y2="60" stroke="#534AB7" strokeOpacity="0.7" strokeWidth="2.5" strokeLinecap="round"/>
-      <line x1="100" y1="50" x2="106" y2="58" stroke="#534AB7" strokeOpacity="0.7" strokeWidth="2.5" strokeLinecap="round"/>
+      <rect x="88" y="44" width="12" height="18" rx="4" fill="var(--primary)" fillOpacity="0.7"/>
+      <circle cx="94" cy="38" r="7" fill="var(--primary)" fillOpacity="0.7"/>
+      <line x1="91" y1="62" x2="87" y2="76" stroke="var(--primary)" strokeOpacity="0.7" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="97" y1="62" x2="103" y2="74" stroke="var(--primary)" strokeOpacity="0.7" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="88" y1="50" x2="82" y2="60" stroke="var(--primary)" strokeOpacity="0.7" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="100" y1="50" x2="106" y2="58" stroke="var(--primary)" strokeOpacity="0.7" strokeWidth="2.5" strokeLinecap="round"/>
       <line x1="112" y1="30" x2="112" y2="78" stroke="#DDD" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   )
@@ -84,7 +84,7 @@ function Svg02({ arrowRef }) {
       {/* App header */}
       <rect x="32" y="19" width="84" height="15" fill="#F2F2F7"/>
       {/* Back chevron */}
-      <path d="M39 26.5 l-3-3 l3-3" stroke="#534AB7" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M39 26.5 l-3-3 l3-3" stroke="var(--primary)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
       <text x="76" y="29.5" textAnchor="middle" fontSize="6.5" fontWeight="700" fill="#1C1C1E" fontFamily="system-ui">Year 9 Science 🔬</text>
       {/* Divider */}
       <line x1="32" y1="34" x2="116" y2="34" stroke="#E5E5EA" strokeWidth="0.5"/>
@@ -94,7 +94,7 @@ function Svg02({ arrowRef }) {
       <text x="61" y="44.7" textAnchor="middle" fontSize="5" fill="#333" fontFamily="system-ui">any hw tonight? 😅</text>
 
       {/* Teacher link bubble — right (sent) */}
-      <rect x="62" y="51" width="50" height="17" rx="7" fill="#534AB7"/>
+      <rect x="62" y="51" width="50" height="17" rx="7" fill="var(--primary)"/>
       <text x="87" y="58.8" textAnchor="middle" fontSize="5" fontWeight="700" fill="white" fontFamily="system-ui">📋 Quiz Check-in</text>
       <text x="87" y="65.6" textAnchor="middle" fontSize="4.3" fill="rgba(255,255,255,0.72)" fontFamily="system-ui">forms.gle/yr9quiz</text>
 
@@ -127,9 +127,9 @@ function Svg03({ notifCardRef }) {
       {/* Phone frame */}
       <rect x="35" y="0" width="90" height="118" rx="14" fill="#0D0D0D"/>
       {/* Screen — dark wallpaper */}
-      <rect x="37" y="2" width="86" height="114" rx="12" fill="#1A103A"/>
+      <rect x="37" y="2" width="86" height="114" rx="12" fill="var(--text)"/>
       {/* Subtle wallpaper gradient suggestion */}
-      <ellipse cx="80" cy="55" rx="55" ry="40" fill="#2D1B69" fillOpacity="0.4"/>
+      <ellipse cx="80" cy="55" rx="55" ry="40" fill="var(--text)" fillOpacity="0.4"/>
       {/* Punch-hole camera */}
       <circle cx="80" cy="10" r="3" fill="#0D0D0D"/>
       {/* Status bar */}
@@ -151,7 +151,7 @@ function Svg03({ notifCardRef }) {
         <rect x="40" y="70" width="80" height="40" rx="12" fill="white" fillOpacity="0.14"/>
         <rect x="40" y="70" width="80" height="40" rx="12" stroke="white" strokeOpacity="0.08" strokeWidth="0.5"/>
         {/* App icon */}
-        <rect x="45" y="75" width="11" height="11" rx="3" fill="#534AB7"/>
+        <rect x="45" y="75" width="11" height="11" rx="3" fill="var(--primary)"/>
         <text x="50.5" y="83.5" textAnchor="middle" fontSize="7" fill="white">⚡</text>
         {/* App name + time */}
         <text x="60" y="81" fontSize="6" fontWeight="700" fill="white" fontFamily="system-ui" letterSpacing="0.2">QUIZPULSE</text>
@@ -161,7 +161,7 @@ function Svg03({ notifCardRef }) {
         <text x="45" y="98.5" fontSize="5" fill="rgba(255,255,255,0.6)" fontFamily="system-ui">Photosynthesis · 3 q's · 90s</text>
         {/* Divider + action buttons */}
         <line x1="40" y1="104" x2="120" y2="104" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
-        <text x="69" y="111" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="#A89EFF" fontFamily="system-ui">Start quiz</text>
+        <text x="69" y="111" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="var(--primary)" fontFamily="system-ui">Start quiz</text>
         <line x1="80" y1="104" x2="80" y2="112" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
         <text x="100" y="111" textAnchor="middle" fontSize="6.5" fill="rgba(255,255,255,0.4)" fontFamily="system-ui">Later</text>
       </g>
@@ -176,12 +176,12 @@ function Svg04({ answerBRef }) {
   return (
     <svg width="160" height="100" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ display: 'block', margin: '0 auto 12px', maxWidth: '100%', height: 'auto' }}>
       {/* Student figure */}
-      <circle cx="28" cy="22" r="8" fill="#534AB7" fillOpacity="0.6"/>
-      <rect x="21" y="32" width="14" height="18" rx="4" fill="#534AB7" fillOpacity="0.6"/>
-      <line x1="25" y1="50" x2="22" y2="64" stroke="#534AB7" strokeOpacity="0.6" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="33" y1="50" x2="36" y2="64" stroke="#534AB7" strokeOpacity="0.6" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="21" y1="38" x2="15" y2="48" stroke="#534AB7" strokeOpacity="0.6" strokeWidth="2.5" strokeLinecap="round"/>
-      <rect x="35" y="34" width="16" height="24" rx="3" fill="#534AB7" fillOpacity="0.6"/>
+      <circle cx="28" cy="22" r="8" fill="var(--primary)" fillOpacity="0.6"/>
+      <rect x="21" y="32" width="14" height="18" rx="4" fill="var(--primary)" fillOpacity="0.6"/>
+      <line x1="25" y1="50" x2="22" y2="64" stroke="var(--primary)" strokeOpacity="0.6" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="33" y1="50" x2="36" y2="64" stroke="var(--primary)" strokeOpacity="0.6" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="21" y1="38" x2="15" y2="48" stroke="var(--primary)" strokeOpacity="0.6" strokeWidth="2.5" strokeLinecap="round"/>
+      <rect x="35" y="34" width="16" height="24" rx="3" fill="var(--primary)" fillOpacity="0.6"/>
       {/* Quiz card */}
       <rect x="60" y="8" width="88" height="84" rx="8" fill="white" stroke="#E8E8E8" strokeWidth="1.5"/>
       <rect x="67" y="16" width="72" height="5" rx="2" fill="#E8E8E8"/>
@@ -191,8 +191,8 @@ function Svg04({ answerBRef }) {
       <text x="75" y="44" fontSize="7" fill="#888" fontFamily="system-ui">A   Glucose + oxygen</text>
       {/* Option B — highlighted purple, animates */}
       <g ref={answerBRef} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
-        <rect x="67" y="51" width="74" height="12" rx="4" fill="#EEEDFE" stroke="#534AB7" strokeWidth="1.5"/>
-        <text x="75" y="60" fontSize="7" fill="#534AB7" fontWeight="600" fontFamily="system-ui">B   Carbon dioxide + water</text>
+        <rect x="67" y="51" width="74" height="12" rx="4" fill="var(--surface2)" stroke="var(--primary)" strokeWidth="1.5"/>
+        <text x="75" y="60" fontSize="7" fill="var(--primary)" fontWeight="600" fontFamily="system-ui">B   Carbon dioxide + water</text>
       </g>
       {/* Option C */}
       <rect x="67" y="67" width="74" height="12" rx="4" fill="#F5F5F5" stroke="#E0E0E0" strokeWidth="1"/>
@@ -210,7 +210,7 @@ function Svg05({ badgeRef, q2BarRef }) {
     <svg width="180" height="100" viewBox="0 0 180 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ display: 'block', margin: '0 auto 12px', maxWidth: '100%', height: 'auto' }}>
       {/* Dashboard card */}
       <rect x="8" y="5" width="164" height="90" rx="8" fill="white" stroke="#E8E8E8" strokeWidth="1.5"/>
-      <text x="18" y="21" fontSize="8" fontWeight="700" fill="#1a1433" fontFamily="system-ui">Week 4 Quiz — Results</text>
+      <text x="18" y="21" fontSize="8" fontWeight="700" fill="var(--text)" fontFamily="system-ui">Week 4 Quiz — Results</text>
       <rect x="120" y="12" width="44" height="13" rx="6" fill="#EAF3DE"/>
       <text x="142" y="21" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="#3B6D11" fontFamily="system-ui">26 / 28 answered</text>
       <line x1="18" y1="28" x2="162" y2="28" stroke="#F0F0F0" strokeWidth="1"/>
@@ -358,7 +358,7 @@ function NarrativePanels() {
   }, [])
 
   const panelBase  = { padding: '20px 16px 18px', background: 'white', position: 'relative' }
-  const captionHead = { fontSize: '13px', fontWeight: '600', color: '#1a1433', marginBottom: '4px', lineHeight: '1.4' }
+  const captionHead = { fontSize: '13px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px', lineHeight: '1.4' }
   const captionSub  = { fontSize: '12px', color: '#777', lineHeight: '1.5', margin: 0 }
   const pillRow     = { display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }
   const srOnly      = { position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }
@@ -368,7 +368,7 @@ function NarrativePanels() {
 
   return (
     <div ref={sectionRef} style={{ marginBottom: '48px' }}>
-      <div style={{ border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden', background: '#eee' }}>
+      <div style={{ border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', background: 'var(--border)', boxShadow: 'var(--shadow)' }}>
 
         {/* Top row — 3 columns (collapses to 1 on mobile via CSS) */}
         <div className="qp-top-row" style={{ display: 'grid', gap: '1px' }}>
@@ -467,39 +467,27 @@ export default function Home() {
         <div style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: '64px', height: '64px', borderRadius: '16px',
-          background: 'linear-gradient(135deg, #534AB7 0%, #7B6EDE 100%)',
+          background: 'var(--logoGrad)', color: '#fff',
           fontSize: '28px', marginBottom: '20px',
-          boxShadow: '0 8px 24px rgba(83,74,183,0.35)',
+          border: 'var(--bw) solid var(--border)', boxShadow: 'var(--shadow)',
         }}>⚡</div>
 
-        <h1 style={{ fontSize: '32px', fontWeight: '700', color: '#1a1433', marginBottom: '12px', letterSpacing: '-0.5px' }}>
+        <h1 style={{ fontSize: '46px', fontWeight: '700', color: 'var(--text)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
           QuizPulse
         </h1>
-        <p style={{ fontSize: '16px', color: '#666', maxWidth: '420px', margin: '0 auto 28px', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '17px', color: 'var(--muted)', maxWidth: '440px', margin: '0 auto 28px', lineHeight: '1.6' }}>
           Low-stakes classroom check-ins for school teachers.
           No grades. Just participation.
         </p>
 
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => navigate('/teacher/create')}
-            style={{
-              padding: '12px 28px', borderRadius: '8px',
-              background: '#534AB7', color: 'white',
-              border: 'none', fontSize: '15px', fontWeight: '500',
-              cursor: 'pointer', boxShadow: '0 4px 12px rgba(83,74,183,0.35)',
-            }}
-          >
+        <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button className="bp-btn" onClick={() => navigate('/teacher/create')}>
             Get started →
           </button>
           <button
+            className="bp-btn"
             onClick={() => navigate('/demo')}
-            style={{
-              padding: '12px 28px', borderRadius: '8px',
-              background: 'white', color: '#534AB7',
-              border: '1px solid #534AB7', fontSize: '15px', fontWeight: '500',
-              cursor: 'pointer',
-            }}
+            style={{ background: 'var(--surface)', color: 'var(--text)' }}
           >
             Preview mockups
           </button>
@@ -521,22 +509,23 @@ export default function Home() {
               onClick={() => step.path && navigate(step.path)}
               style={{
                 padding: '20px',
-                borderRadius: '12px',
-                border: '1px solid #eee',
-                background: 'white',
+                borderRadius: 'var(--radius)',
+                border: 'var(--bw) solid var(--border)',
+                background: 'var(--surface)',
+                boxShadow: 'var(--shadow)',
                 cursor: step.path ? 'pointer' : 'default',
-                transition: 'box-shadow 0.15s, border-color 0.15s',
+                transition: 'transform 0.1s, box-shadow 0.1s',
               }}
-              onMouseEnter={e => { if (step.path) { e.currentTarget.style.boxShadow = '0 4px 16px rgba(83,74,183,0.12)'; e.currentTarget.style.borderColor = '#c5c0f0' } }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#eee' }}
+              onMouseEnter={e => { if (step.path) { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = '6px 6px 0 #111111' } }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   width: '28px', height: '28px', borderRadius: '7px',
-                  background: '#EEEDFE', fontSize: '14px', flexShrink: 0,
+                  background: 'var(--surface2)', fontSize: '14px', flexShrink: 0,
                 }}>{step.icon}</span>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#1a1433' }}>{i + 1}. {step.label}</span>
+                <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text)' }}>{i + 1}. {step.label}</span>
               </div>
               <p style={{ fontSize: '13px', color: '#777', lineHeight: '1.5', margin: 0 }}>{step.desc}</p>
             </div>
@@ -549,16 +538,16 @@ export default function Home() {
         maxWidth: 680, margin: '0 auto',
         padding: '20px 24px',
         borderRadius: '12px',
-        background: 'linear-gradient(135deg, #f5f4ff 0%, #ede9ff 100%)',
-        border: '1px solid #c5c0f0',
+        background: 'linear-gradient(135deg, var(--surface2) 0%, var(--surface2) 100%)',
+        border: 'var(--bw) solid var(--border)',
         display: 'flex', gap: '16px', alignItems: 'flex-start',
       }}>
         <span style={{ fontSize: '22px', flexShrink: 0, marginTop: '2px' }}>🎓</span>
         <div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: '#3C3489', marginBottom: '4px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>
             Teacher view
           </div>
-          <p style={{ fontSize: '13px', color: '#5a5298', lineHeight: '1.6', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--primary)', lineHeight: '1.6', margin: 0 }}>
             QuizPulse is a working beta shown here from the teacher's perspective. When you send a quiz,
             students receive a real notification and analytics update live as they respond.
             Some flows are shown as mockups in the{' '}
