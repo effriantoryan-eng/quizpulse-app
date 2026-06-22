@@ -76,6 +76,7 @@ function Analytics() {
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('analytics')
   const [quizName, setQuizName] = useState('')
+  const [isDemo, setIsDemo] = useState(false)
   const [classSize, setClassSize] = useState(null)
   const [totalResponses, setTotalResponses] = useState(0)
   const [questions, setQuestions] = useState([])
@@ -100,6 +101,7 @@ function Analytics() {
         if (cancelled) return
 
         setQuizName(data.quizName)
+        setIsDemo(data.isDemo === true)
         setClassSize(data.classSize ?? null)
         setTotalResponses(data.totalResponses)
         setQuestions(data.questions)
@@ -161,7 +163,17 @@ function Analytics() {
           ← Back
         </button>
         <div style={{ flex: 1 }}>
-          <h2 style={{ margin: 0, fontSize: '20px' }}>{quizName || 'Quiz Analytics'}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ margin: 0, fontSize: '20px' }}>{quizName || 'Quiz Analytics'}</h2>
+            {isDemo && (
+              <span
+                data-testid="analytics-demo-pill"
+                style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
+              >
+                Demo data
+              </span>
+            )}
+          </div>
           <div style={{ fontSize: '13px', color: '#888', marginTop: '2px' }}>Quiz ID: {quizId}</div>
         </div>
         <button

@@ -2,6 +2,61 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.3.0] — Simulated demo class (MINOR)
+
+Lets a teacher explore the full Send → Analytics loop with simulated students, without recruiting
+anyone. Non-breaking: every new field defaults off and legacy documents are treated as non-demo.
+
+### New features
+
+#### Demo class data model (`feat/v3.3-demo-class-data-model`)
+- `isDemo` (default `false`) added to the `classes`, `quizzes`, and `responses` containers. Docs
+  written before v3.3.0 (no field) are treated as `isDemo=false` everywhere.
+- Demo classes additionally carry `demoStudents: [{ studentId, name }]` — 24 distinct curated
+  names generated server-side at create time (`api/shared/demoNames.js`, ~80-name pool, shuffle-24),
+  never client-provided.
+- `POST /api/classes` accepts `isDemo: true` → generates 24 `demoStudents`, sets `studentCount=24`,
+  omits `joinCode` (never joinable) and `nameList`. Max **1 demo class per teacher** (409 "Demo
+  class limit reached"); demo classes do **not** count toward the 20-real-class cap.
+- `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped
+  from the list payload).
+
+#### Simulated responses (`feat/v3.3-simulate-responses-endpoint`)
+- `api/shared/runSimulation.js`: one simulated response per demo student — correct option with
+  probability 0.65; confidence weighted sure/pretty_sure/guessing 0.40/0.40/0.20; bimodal
+  per-question response time (30% 2–5s, 70% 10–35s); `quizDurationMs` = sum; `completedAt` =
+  `sentAt` + 20–40s; `isDemo`/`simulated` flags. Idempotent (409 if already simulated).
+- `POST /api/simulate-responses { quizId }`: rate-limited (5/min/teacher), ownership-checked
+  (404 cross-tenant), demo-class-gated (400 "Not a demo class").
+- `api/sendNotification.js`: when the quiz's class is a demo class, push is skipped entirely and
+  `runSimulation()` runs instead. From the teacher's UI, Send → Analytics is unchanged.
+- `api/quizzes.js` stamps `isDemo` on a quiz at creation when it targets a demo class;
+  `api/analytics.js` is demo-aware (resolves `demoStudents` as the approved roster, returns `isDemo`).
+
+#### Demo class UI (`feat/v3.3-demo-class-ui`)
+- `Classes.jsx`: "Try with a demo class" button (shown only when the teacher has no demo class) +
+  purple "Demo" pill (`#EEEDFE`/`#3C3489`); demo cards hide the join code and Roster link; the
+  20-class cap counts real classes only.
+- `SendQuiz.jsx`: inline note "This is a demo class. Responses are generated automatically — no one
+  is notified." and demo-aware success messaging.
+- `Analytics.jsx`: "Demo data" pill beside the quiz title; all analytics features render unchanged.
+- `quizpulse_mockups_v301.html`: three demo-class reference screens added.
+
+### Security / data integrity
+
+#### Demo class isolation (`feat/v3.3-monitoring-isolation`)
+- `api/shared/excludeDemo.js` defines the rule in one place (`EXCLUDE_DEMO_FRAGMENT`). Any
+  reporting/monitoring endpoint that aggregates across teachers excludes demo data: `metrics.js`
+  (real cross-teacher COUNT totals), `schoolsList.js` (per-school class counts), `logsExport.js`
+  (`type=security` drops audit entries whose target class is a demo class). Per-teacher Analytics
+  is exempt — the teacher is viewing their own demo data on purpose.
+
+### Tests
+- Unit (`demoData.test.js`, `demoSendNotification.test.js`), integration (`v3-3.test.js`, gated),
+  E2E (`v3-3-demo-class.spec.ts`). Report: `tests/reports/v3.3.0-report.html`. Unit suite green
+  (195 passing). `jest.config.cjs` now resolves `api/node_modules` so unit tests can require real
+  handler modules with mocks; `metrics.js` switched to lazy Cosmos init.
+
 ## [v3.2.2] — Polish (PATCH)
 
 ### Bug fixes
