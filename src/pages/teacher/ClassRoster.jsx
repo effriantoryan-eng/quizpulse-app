@@ -110,16 +110,16 @@ function ClassRoster() {
       </p>
 
       {/* Join code panel */}
-      <div style={{ background: '#f8f8f8', border: '1px solid #eee', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+      <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
         <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Join code</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '22px', letterSpacing: '2px', fontWeight: '600', color: '#534AB7' }}>
+          <span style={{ fontFamily: 'monospace', fontSize: '22px', letterSpacing: '2px', fontWeight: '600', color: 'var(--primary)' }}>
             {cls.joinCode}
           </span>
           <button
             onClick={regenerateCode}
             disabled={regenerating}
-            style={{ padding: '5px 12px', background: 'white', color: '#534AB7', border: '1px solid #C5C0F0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', opacity: regenerating ? 0.5 : 1 }}
+            style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', opacity: regenerating ? 0.5 : 1 }}
           >
             {regenerating ? '…' : 'Regenerate'}
           </button>
@@ -127,7 +127,7 @@ function ClassRoster() {
       </div>
 
       {/* Name list toggle */}
-      <div style={{ background: '#f8f8f8', border: '1px solid #eee', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px' }}>
+      <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: '13px', fontWeight: '500' }}>Name list validation</div>
@@ -140,7 +140,7 @@ function ClassRoster() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Link
               to={`/teacher/classes/settings?classId=${classId}`}
-              style={{ fontSize: '12px', color: '#534AB7', textDecoration: 'none' }}
+              style={{ fontSize: '12px', color: 'var(--primary)', textDecoration: 'none' }}
             >
               Edit list
             </Link>
@@ -148,8 +148,8 @@ function ClassRoster() {
               onClick={() => toggleNameList(!cls.nameListEnabled)}
               disabled={togglingNameList}
               style={{
-                padding: '4px 12px', fontSize: '12px', border: '1px solid #ddd', borderRadius: '6px',
-                background: cls.nameListEnabled ? '#534AB7' : 'white',
+                padding: '4px 12px', fontSize: '12px', border: 'var(--bw) solid var(--border)', borderRadius: '6px',
+                background: cls.nameListEnabled ? 'var(--primary)' : 'white',
                 color: cls.nameListEnabled ? 'white' : '#555',
                 cursor: 'pointer', opacity: togglingNameList ? 0.5 : 1,
               }}
@@ -165,7 +165,7 @@ function ClassRoster() {
         <div style={{ marginBottom: '16px' }}>
           <Link
             to={`/teacher/pending-requests?classId=${classId}`}
-            style={{ fontSize: '13px', color: '#534AB7', textDecoration: 'none', fontWeight: '500' }}
+            style={{ fontSize: '13px', color: 'var(--primary)', textDecoration: 'none', fontWeight: '500' }}
           >
             → Review {pendingCount + queuedCount} pending / queued request{pendingCount + queuedCount !== 1 ? 's' : ''}
           </Link>
@@ -180,7 +180,7 @@ function ClassRoster() {
       {approved.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '13px', border: '1px dashed #eee', borderRadius: '10px' }}>
           No approved students yet.{' '}
-          <Link to={`/teacher/pending-requests?classId=${classId}`} style={{ color: '#534AB7' }}>
+          <Link to={`/teacher/pending-requests?classId=${classId}`} style={{ color: 'var(--primary)' }}>
             Review join requests
           </Link>
         </div>
@@ -189,7 +189,7 @@ function ClassRoster() {
       {approved.map(req => (
         <div
           key={req.id}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #eee', borderRadius: '10px', padding: '10px 14px', marginBottom: '8px', background: 'white' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '10px 14px', marginBottom: '8px', background: 'white' }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.studentName}</div>

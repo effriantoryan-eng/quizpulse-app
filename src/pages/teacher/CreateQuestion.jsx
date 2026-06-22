@@ -59,81 +59,89 @@ function CreateQuestion() {
   }
 
   return (
-    <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h2 style={{ margin: 0 }}>Create question</h2>
+    <div style={{ maxWidth: 720 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <h1 style={{ margin: 0 }}>Create question</h1>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: '1px solid #C5C0F0', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: '#7B6EDE', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', color: 'var(--primary)', fontSize: '15px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadowField)', flex: 'none' }}>?</button>
         )}
       </div>
       {hintVisible && (
         <HintBanner
-          text="Write a question, fill in 4 options, mark the correct answer, and choose a topic. Click Save — you can create as many as you like before building a quiz."
+          text="Write a question, fill in four options, mark the correct answer, and choose a topic. Save it — you can create as many as you like before building a quiz."
           onDismiss={dismissHint}
         />
       )}
 
       {saved && (
-        <div style={{ padding: '10px 14px', background: '#EAF3DE', color: '#3B6D11', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>
+        <div style={{ padding: '14px 18px', background: 'var(--okBg)', color: 'var(--ok)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', marginBottom: '20px', fontSize: '15px', fontWeight: 600 }}>
           ✓ Question saved to bank!
         </div>
       )}
 
       {error && (
-        <div style={{ padding: '10px 14px', background: '#FCEBEB', color: '#A32D2D', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>
+        <div style={{ padding: '14px 18px', background: 'var(--dangerBg)', color: 'var(--danger)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', marginBottom: '20px', fontSize: '15px', fontWeight: 600 }}>
           {error}
         </div>
       )}
 
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Question</label>
+      <div style={{ marginBottom: '28px' }}>
+        <label className="bp-label">Question</label>
         <textarea
           rows={3}
-          style={{ width: '100%', padding: '10px', fontSize: '14px', boxSizing: 'border-box' }}
+          style={{ width: '100%', fontSize: '17px', fontWeight: 500 }}
           placeholder="Type your question here…"
           value={question}
           onChange={e => setQuestion(e.target.value)}
         />
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Answer options — select the correct one</label>
-        {options.map((opt, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <input
-              type="radio"
-              name="correct"
-              checked={correctIndex === i}
-              onChange={() => setCorrectIndex(i)}
-            />
-            <input
-              type="text"
-              style={{ flex: 1, padding: '8px 10px', fontSize: '14px' }}
-              placeholder={`Option ${String.fromCharCode(65 + i)}`}
-              value={opt}
-              onChange={e => handleOptionChange(i, e.target.value)}
-            />
-            {correctIndex === i && (
-              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: '#EAF3DE', color: '#3B6D11' }}>Correct</span>
-            )}
-          </div>
-        ))}
+      <div style={{ marginBottom: '28px' }}>
+        <label className="bp-label">Answer options — select the correct one</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {options.map((opt, i) => {
+            const selected = correctIndex === i
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <span
+                  onClick={() => setCorrectIndex(i)}
+                  role="radio"
+                  aria-checked={selected}
+                  style={{
+                    width: '22px', height: '22px', borderRadius: '50%', flex: 'none', cursor: 'pointer',
+                    border: `2px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  {selected && <span style={{ width: '11px', height: '11px', borderRadius: '50%', background: 'var(--primary)' }} />}
+                </span>
+                <input
+                  type="text"
+                  style={{
+                    flex: 1, fontSize: '16px',
+                    fontWeight: selected ? 600 : 500,
+                    border: `2px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
+                    background: selected ? 'var(--primarySoft)' : 'var(--surface)',
+                    boxShadow: selected ? 'none' : 'var(--shadowField)',
+                  }}
+                  placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                  value={opt}
+                  onChange={e => handleOptionChange(i, e.target.value)}
+                />
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Topic tag</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      <div style={{ marginBottom: '28px' }}>
+        <label className="bp-label">Topic tag</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           {topics.map(t => (
             <button
               key={t}
+              className={`bp-chip ${topic === t ? 'active' : ''}`}
               onClick={() => setTopic(t)}
-              style={{
-                padding: '4px 12px', borderRadius: '20px',
-                border: '1px solid #AFA9EC',
-                background: topic === t ? '#534AB7' : '#EEEDFE',
-                color: topic === t ? 'white' : '#3C3489',
-                cursor: 'pointer', fontSize: '13px'
-              }}
             >
               {t}
             </button>
@@ -141,20 +149,20 @@ function CreateQuestion() {
         </div>
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Year level (optional)</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      <div style={{ marginBottom: '36px' }}>
+        <label className="bp-label">Year level (optional)</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           <button
+            className={`bp-chip ${yearLevel === null ? 'active' : ''}`}
             onClick={() => setYearLevel(null)}
-            style={{ padding: '4px 12px', borderRadius: '20px', border: '1px solid #ddd', background: yearLevel === null ? '#534AB7' : 'white', color: yearLevel === null ? 'white' : '#555', cursor: 'pointer', fontSize: '13px' }}
           >
             All years
           </button>
           {yearLevels.map(y => (
             <button
               key={y}
+              className={`bp-chip ${yearLevel === y ? 'active' : ''}`}
               onClick={() => setYearLevel(y)}
-              style={{ padding: '4px 12px', borderRadius: '20px', border: '1px solid #ddd', background: yearLevel === y ? '#534AB7' : 'white', color: yearLevel === y ? 'white' : '#555', cursor: 'pointer', fontSize: '13px' }}
             >
               Year {y}
             </button>
@@ -162,13 +170,16 @@ function CreateQuestion() {
         </div>
       </div>
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        style={{ width: '100%', padding: '12px', background: saving ? '#aaa' : '#534AB7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer' }}
-      >
-        {saving ? 'Saving...' : 'Save to question bank'}
-      </button>
+      <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+        <button className="bp-btn" onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving…' : 'Save question'}
+          {!saving && (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          )}
+        </button>
+      </div>
     </div>
   )
 }

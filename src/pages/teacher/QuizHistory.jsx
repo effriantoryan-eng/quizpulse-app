@@ -50,11 +50,11 @@ export default function QuizHistory() {
         <h2 style={{ margin: 0, fontSize: '20px' }}>Quiz history</h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {!hintVisible && (
-            <button onClick={showHint} style={{ background: 'none', border: '1px solid #C5C0F0', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: '#7B6EDE', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+            <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
           )}
           <button
             onClick={() => navigate('/teacher/build')}
-            style={{ padding: '8px 16px', background: '#534AB7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+            style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
           >
             + New quiz
           </button>
@@ -72,7 +72,7 @@ export default function QuizHistory() {
           No quizzes sent yet.{' '}
           <span
             onClick={() => navigate('/teacher/build')}
-            style={{ color: '#534AB7', cursor: 'pointer', textDecoration: 'underline' }}
+            style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
           >
             Build your first quiz
           </span>
@@ -91,22 +91,23 @@ export default function QuizHistory() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '16px',
                   padding: '16px 18px', marginBottom: '10px',
-                  background: 'white', border: '1px solid #eee', borderRadius: '10px',
-                  cursor: 'pointer', transition: 'box-shadow 0.15s, border-color 0.15s',
+                  background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
+                  boxShadow: 'var(--shadow)',
+                  cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(83,74,183,0.1)'; e.currentTarget.style.borderColor = '#c5c0f0' }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#eee' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = '6px 6px 0 #111111' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow)' }}
               >
                 {/* Icon */}
                 <div style={{
                   width: '40px', height: '40px', borderRadius: '10px',
-                  background: '#EEEDFE', display: 'flex', alignItems: 'center',
+                  background: 'var(--surface2)', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', fontSize: '18px', flexShrink: 0,
                 }}>📋</div>
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1433', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {quiz.name}
                   </div>
                   <div style={{ fontSize: '12px', color: '#888' }}>
@@ -117,7 +118,7 @@ export default function QuizHistory() {
                 {/* Class size / status */}
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   {quiz.classSize > 0 && (
-                    <div style={{ fontSize: '13px', fontWeight: '500', color: '#534AB7' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--primary)' }}>
                       {quiz.classSize} students
                     </div>
                   )}

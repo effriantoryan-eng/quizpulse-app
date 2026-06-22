@@ -4,8 +4,8 @@ import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
 
-const OPTION_COLORS = ['#E6F1FB', '#EEEDFE', '#FAEEDA', '#FBEAF0']
-const OPTION_BORDER = ['#185FA5', '#534AB7', '#633806', '#4B1528']
+const OPTION_COLORS = ['#E6F1FB', 'var(--surface2)', '#FAEEDA', '#FBEAF0']
+const OPTION_BORDER = ['#185FA5', 'var(--primary)', '#633806', '#4B1528']
 const CORRECT_BG = '#EAF3DE'
 const CORRECT_BORDER = '#3B6D11'
 
@@ -38,7 +38,7 @@ function TimelineChart({ timeline, classSize }) {
   for (let m = 0; m <= maxMinutes; m += tickInterval) xTicks.push(m)
 
   return (
-    <div style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+    <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
       <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
         Response timeline
       </div>
@@ -53,9 +53,9 @@ function TimelineChart({ timeline, classSize }) {
         <text x={PAD_L - 4} y={ty(maxCount * 0.5) + 4} fontSize="9" fill="#bbb" textAnchor="end">{Math.round(maxCount * 0.5)}</text>
         <text x={PAD_L - 4} y={ty(0) + 1} fontSize="9" fill="#bbb" textAnchor="end">0</text>
         {/* Area fill */}
-        <polygon points={areaPoints} fill="#534AB7" opacity="0.08" />
+        <polygon points={areaPoints} fill="var(--primary)" opacity="0.08" />
         {/* Line */}
-        <polyline points={points} fill="none" stroke="#534AB7" strokeWidth="1.5" strokeLinejoin="round" />
+        <polyline points={points} fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinejoin="round" />
         {/* X-axis ticks */}
         {xTicks.map(m => (
           <g key={m}>
@@ -156,7 +156,7 @@ function Analytics() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
         <button
           onClick={() => navigate('/teacher/quizzes')}
-          style={{ background: 'none', border: '1px solid #e0e0e0', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '13px', color: '#666' }}
+          style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '13px', color: '#666' }}
         >
           ← Back
         </button>
@@ -167,12 +167,12 @@ function Analytics() {
         <button
           onClick={handleExportCsv}
           disabled={exporting}
-          style={{ background: 'white', border: '1px solid #534AB7', color: '#534AB7', borderRadius: '8px', padding: '6px 12px', cursor: exporting ? 'not-allowed' : 'pointer', fontSize: '13px', flexShrink: 0 }}
+          style={{ background: 'white', border: 'var(--bw) solid var(--primary)', color: 'var(--primary)', borderRadius: '8px', padding: '6px 12px', cursor: exporting ? 'not-allowed' : 'pointer', fontSize: '13px', flexShrink: 0 }}
         >
           {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: '1px solid #C5C0F0', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: '#7B6EDE', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>?</button>
+          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -190,7 +190,7 @@ function Analytics() {
 
       {/* Summary card */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '28px' }}>
-        <div style={{ background: '#534AB7', borderRadius: '12px', padding: '20px', color: 'white', textAlign: 'center' }}>
+        <div style={{ background: 'var(--primary)', borderRadius: '12px', padding: '20px', color: 'white', textAlign: 'center' }}>
           <div style={{ fontSize: '36px', fontWeight: '600' }}>
             {classSize ? `${totalResponses} / ${classSize}` : totalResponses}
           </div>
@@ -219,7 +219,7 @@ function Analytics() {
         const total = counts.reduce((a, b) => a + b, 0)
 
         return (
-          <div key={q.id} style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
+          <div key={q.id} style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
             
             <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
               Question {qi + 1}
@@ -295,7 +295,7 @@ function Analytics() {
       )}
 
       {nonResponders.length > 0 && (
-        <div style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '20px', marginTop: '8px' }}>
+        <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginTop: '8px' }}>
           <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
             Haven't responded yet ({nonResponders.length})
           </div>

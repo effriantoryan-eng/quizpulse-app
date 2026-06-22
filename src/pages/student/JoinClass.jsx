@@ -111,7 +111,7 @@ function JoinClass() {
             </p>
             <button
               onClick={() => { setSubmitted(false); setJoinCode(''); setStudentName(''); setError(null) }}
-              style={{ marginTop: '16px', padding: '8px 20px', background: '#534AB7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
+              style={{ marginTop: '16px', padding: '8px 20px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
             >
               Try again
             </button>
@@ -164,7 +164,7 @@ function JoinClass() {
           disabled={submitting}
           style={{
             width: '100%', padding: '10px 12px', fontSize: '18px', fontFamily: 'monospace',
-            letterSpacing: '2px', border: '1px solid #ddd', borderRadius: '8px',
+            letterSpacing: '2px', border: 'var(--bw) solid var(--border)', borderRadius: '8px',
             boxSizing: 'border-box', marginBottom: '16px', textTransform: 'uppercase',
           }}
         />
@@ -181,7 +181,7 @@ function JoinClass() {
           disabled={submitting}
           style={{
             width: '100%', padding: '10px 12px', fontSize: '14px',
-            border: '1px solid #ddd', borderRadius: '8px',
+            border: 'var(--bw) solid var(--border)', borderRadius: '8px',
             boxSizing: 'border-box', marginBottom: '16px',
           }}
         />
@@ -194,7 +194,7 @@ function JoinClass() {
           type="submit"
           disabled={submitting}
           style={{
-            width: '100%', padding: '12px', background: '#534AB7', color: 'white',
+            width: '100%', padding: '12px', background: 'var(--primary)', color: 'white',
             border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '500',
             cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1,
           }}

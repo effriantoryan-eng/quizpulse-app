@@ -104,8 +104,8 @@ function ClassSettings() {
             type="button"
             onClick={() => setNameListEnabled(v => !v)}
             style={{
-              padding: '4px 14px', fontSize: '13px', border: '1px solid #ddd', borderRadius: '20px',
-              background: nameListEnabled ? '#534AB7' : 'white',
+              padding: '4px 14px', fontSize: '13px', border: 'var(--bw) solid var(--border)', borderRadius: '20px',
+              background: nameListEnabled ? 'var(--primary)' : 'white',
               color: nameListEnabled ? 'white' : '#555',
               cursor: 'pointer',
             }}
@@ -140,7 +140,7 @@ function ClassSettings() {
           type="submit"
           disabled={saving || overLimit}
           style={{
-            padding: '10px 24px', background: '#534AB7', color: 'white', border: 'none',
+            padding: '10px 24px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
             borderRadius: '8px', fontSize: '14px', fontWeight: '500',
             cursor: saving || overLimit ? 'not-allowed' : 'pointer',
             opacity: saving || overLimit ? 0.6 : 1,

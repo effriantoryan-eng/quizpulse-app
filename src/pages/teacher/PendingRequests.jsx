@@ -174,7 +174,7 @@ function PendingRequests() {
             <button
               onClick={approveAll}
               disabled={actionInProgress}
-              style={{ padding: '7px 14px', background: '#534AB7', color: 'white', border: 'none', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', opacity: actionInProgress ? 0.6 : 1 }}
+              style={{ padding: '7px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', opacity: actionInProgress ? 0.6 : 1 }}
             >
               Accept all ({pendingCount})
             </button>
@@ -213,7 +213,7 @@ function PendingRequests() {
           key={req.id}
           style={{
             display: 'flex', alignItems: 'center', gap: '12px',
-            border: '1px solid #eee', borderRadius: '10px', padding: '12px 14px',
+            border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '12px 14px',
             marginBottom: '8px', background: req.status === 'queued' ? '#fafafa' : 'white',
             opacity: req.status === 'queued' ? 0.75 : 1,
           }}
