@@ -299,6 +299,28 @@
       <div class="desc">Two-path entry: students join a class, teachers sign in or create an account.</div>
     </a>
   </div>
+
+  <p class="section-label">Demo class — v3.3.0</p>
+  <div class="screen-grid">
+    <a href="#" class="screen-card" onclick="show('t-classes-demo'); return false">
+      <div class="thumb">🧪</div>
+      <span class="who who-teacher">Teacher</span>
+      <div class="title">Classes — with demo class</div>
+      <div class="desc">"Try with a demo class" button + a class card carrying the purple Demo pill.</div>
+    </a>
+    <a href="#" class="screen-card" onclick="show('t-send-demo'); return false">
+      <div class="thumb">📤</div>
+      <span class="who who-teacher">Teacher</span>
+      <div class="title">Send quiz — demo note</div>
+      <div class="desc">Inline note: responses generated automatically, no one is notified.</div>
+    </a>
+    <a href="#" class="screen-card" onclick="show('t-analytics-demo'); return false">
+      <div class="thumb">📊</div>
+      <span class="who who-teacher">Teacher</span>
+      <div class="title">Analytics — Demo data pill</div>
+      <div class="desc">All analytics unchanged, with a "Demo data" pill beside the quiz title.</div>
+    </a>
+  </div>
 </div>
 
 
@@ -801,6 +823,153 @@
     <!-- Install button (secondary weight, centered) -->
     <div style="text-align:center;">
       <button style="padding:10px 18px;background:#fff;color:#534AB7;border:1px solid #534AB7;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">📲 Add to your phone</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 7 — Teacher: Classes with a demo class (v3.3.0)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="t-classes-demo" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Classes — with demo class (teacher)</span>
+  </nav>
+
+  <div class="teacher-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+      <h2 style="font-size:20px;font-weight:700;margin:0;">Classes</h2>
+      <div style="display:flex;gap:8px;">
+        <!-- Demo button only shows when the teacher has no demo class yet -->
+        <button style="padding:8px 16px;background:#EEEDFE;color:#3C3489;border:1px solid #d6d2f5;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">Try with a demo class</button>
+        <button style="padding:8px 16px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">+ New class</button>
+      </div>
+    </div>
+
+    <!-- Demo class card with purple pill, no join code, no Roster -->
+    <div class="card" style="display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;">
+          Demo class
+          <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489;">Demo</span>
+        </div>
+        <div style="font-size:12px;color:var(--sub);margin-top:2px;">24 students · practice students — no one is notified</div>
+      </div>
+      <button class="btn btn-outline btn-sm">Edit</button>
+      <button class="btn btn-outline btn-sm" style="color:#c0392b;border-color:#e8b4b0;">Delete</button>
+    </div>
+
+    <!-- A real class for contrast: shows join code + Roster -->
+    <div class="card" style="display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:500;">Year 9 Science</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:2px;">28 students · Code: <span style="font-family:monospace;letter-spacing:0.5px;color:#555;">K7M4QPZ3</span></div>
+      </div>
+      <button class="btn btn-outline btn-sm">Roster</button>
+      <button class="btn btn-outline btn-sm">Edit</button>
+      <button class="btn btn-outline btn-sm" style="color:#c0392b;border-color:#e8b4b0;">Delete</button>
+    </div>
+
+    <p style="font-size:12px;color:var(--sub);text-align:right;margin-top:8px;">1 / 20 classes</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 8 — Teacher: Send quiz to a demo class (v3.3.0)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="t-send-demo" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Send quiz — demo class (teacher)</span>
+  </nav>
+
+  <div class="teacher-wrap" style="max-width:480px;">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">Send quiz</h2>
+
+    <div class="card" style="display:flex;align-items:center;gap:14px;background:#f8f8f8;">
+      <div style="width:36px;height:36px;border-radius:8px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
+      <div>
+        <div style="font-size:14px;font-weight:500;">Week 9 — Photosynthesis check-in</div>
+        <div style="font-size:12px;color:var(--sub);">3 questions</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin:16px 0 10px;">Send to class</div>
+
+    <!-- Selected demo class -->
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border:2px solid #534AB7;border-radius:8px;background:#EEEDFE;">
+      <div style="width:20px;height:20px;border-radius:50%;background:#534AB7;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;">✓</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;">Demo class <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#fff;color:#3C3489;">Demo</span></div>
+        <div style="font-size:12px;color:var(--sub);">24 students</div>
+      </div>
+    </div>
+
+    <!-- Inline demo note -->
+    <div style="padding:12px 14px;background:#EEEDFE;border:1px solid #d6d2f5;border-radius:8px;font-size:13px;color:#3C3489;margin-top:12px;">
+      This is a demo class. Responses are generated automatically — no one is notified.
+    </div>
+
+    <div style="border-top:1px solid #eee;margin:20px 0;"></div>
+    <label style="display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:6px;">Quiz stays open for (minutes)</label>
+    <input type="number" value="30" style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;margin-bottom:16px;">
+
+    <button style="width:100%;padding:12px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;">Send to 24 students →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 9 — Teacher: Analytics for a demo quiz (v3.3.0)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="t-analytics-demo" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Analytics — demo data (teacher)</span>
+  </nav>
+
+  <div class="teacher-wrap">
+    <!-- Quiz header with Demo data pill beside the title -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <h2 style="font-size:20px;font-weight:700;margin:0;">Week 9 — Photosynthesis check-in</h2>
+          <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489;">Demo data</span>
+        </div>
+        <div style="font-size:13px;color:var(--sub);margin-top:4px;">Sent · Demo class · 3 questions</div>
+      </div>
+      <button class="btn btn-outline btn-sm">Export CSV</button>
+    </div>
+
+    <!-- Live counter (identical treatment to the real analytics screen) -->
+    <div class="card" style="background:var(--green-l);border-color:var(--green);">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="text-align:center;">
+          <div style="font-size:36px;font-weight:700;color:var(--green);line-height:1;">24</div>
+          <div style="font-size:11px;color:var(--green);margin-top:2px;">of 24 responded</div>
+        </div>
+        <div style="flex:1;">
+          <div style="height:10px;background:rgba(0,0,0,0.1);border-radius:5px;overflow:hidden;">
+            <div style="height:100%;background:var(--green);border-radius:5px;width:100%;"></div>
+          </div>
+          <div style="margin-top:5px;font-size:11px;color:var(--green);">100% participation</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confident-but-incorrect callout — unchanged from the real screen -->
+    <div style="font-size:14px;font-weight:600;margin:20px 0 12px;">Question breakdown</div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;line-height:1.4;">Q2 — Where does the light-dependent reaction occur?</div>
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span><strong>B — Thylakoid membrane ✓</strong></span><span style="color:var(--green);font-weight:600;">15 students</span></div>
+        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:var(--green);border-radius:4px;width:63%;"></div></div>
+      </div>
+      <div style="margin-top:14px;padding:10px 14px;background:#FFF8E6;border:1px solid #F5C842;border-radius:8px;font-size:13px;color:#7A5C00;">
+        6 students were confident but got this wrong — worth revisiting.
+      </div>
     </div>
   </div>
 </div>

@@ -13,6 +13,7 @@ const client = new CosmosClient({
 const database = client.database(process.env.COSMOS_DATABASE);
 const container = database.container(process.env.COSMOS_CONTAINER_QUIZZES);
 const questionsContainer = database.container(process.env.COSMOS_CONTAINER_QUESTIONS);
+const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
 
 const MIN_QUIZ_DURATION_MS = 5 * 60 * 1000;     // Security limits table — Quiz min duration (closedAt), 5 min
 const MAX_PENDING_SCHEDULED = 50;                // Security limits table — Scheduled quizzes pending, 50 per teacher
@@ -220,18 +221,35 @@ app.http('quizzes', {
           resolvedScheduledFor = scheduledFor;
         }
 
+        const resolvedClassIds = Array.isArray(classIds) ? classIds.map(id => String(id).trim().slice(0, 100)) : [];
+
+        // A quiz targeting a demo class is itself a demo quiz: send-notification simulates rather
+        // than pushing, and analytics renders the "Demo data" pill. Resolved at create time so the
+        // send path (manual + scheduled) and analytics never have to re-derive it.
+        let isDemoQuiz = false;
+        if (resolvedClassIds.length > 0) {
+          const cParams = resolvedClassIds.map((id, i) => ({ name: `@c${i}`, value: id }));
+          const cList = cParams.map(p => p.name).join(', ');
+          const { resources: cls } = await classesContainer.items.query({
+            query: `SELECT c.id, c.isDemo FROM c WHERE c.id IN (${cList})`,
+            parameters: cParams,
+          }).fetchAll();
+          isDemoQuiz = cls.some(c => c.isDemo === true);
+        }
+
         const quiz = {
           id: require('crypto').randomUUID(),
           teacherId,
           name: name.trim(),
           questionIds: questionIds.map(id => id.trim()),
-          classIds: Array.isArray(classIds) ? classIds.map(id => String(id).trim().slice(0, 100)) : [],
+          classIds: resolvedClassIds,
           classSize: typeof classSize === 'number' && Number.isInteger(classSize) && classSize >= 0 ? classSize : 0,
           status: resolvedStatus,
           sentAt: sentAt || null,
           closedAt,
           scheduledFor: resolvedScheduledFor,
           durationMinutes: typeof durationMinutes === 'number' ? durationMinutes : null,
+          isDemo: isDemoQuiz,
           createdAt: new Date().toISOString()
         };
 

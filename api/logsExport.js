@@ -11,6 +11,7 @@ const client = new CosmosClient({
 });
 const database = client.database(process.env.COSMOS_DATABASE);
 const auditLogContainer = database.container(process.env.COSMOS_CONTAINER_AUDIT_LOG || 'audit_log');
+const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
 
 const ALLOWED_TYPES = ['errors', 'security', 'usage'];
 const MAX_EXPORT_BYTES = 50 * 1024 * 1024; // Security limits table — Log export size, 50 MB per request
@@ -76,10 +77,27 @@ app.http('manageLogsExport', {
       if (to) { conditions.push('c.createdAt <= @to'); parameters.push({ name: '@to', value: new Date(to).toISOString() }); }
       const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-      const { resources: entries } = await auditLogContainer.items.query({
+      const { resources: rawEntries } = await auditLogContainer.items.query({
         query: `SELECT * FROM c ${whereClause} ORDER BY c.createdAt ASC`,
         parameters,
       }).fetchAll();
+
+      // Demo class isolation: drop audit entries whose target is a demo class. The audit_log has
+      // no isDemo flag of its own, so resolve which class targets are demo and filter in code.
+      const classTargetIds = [...new Set(
+        rawEntries.filter(e => e.targetType === 'class' && e.targetId).map(e => e.targetId)
+      )];
+      let demoClassIds = new Set();
+      if (classTargetIds.length > 0) {
+        const idParams = classTargetIds.map((id, i) => ({ name: `@cid${i}`, value: id }));
+        const idList = idParams.map(p => p.name).join(', ');
+        const { resources: demoClasses } = await classesContainer.items.query({
+          query: `SELECT c.id FROM c WHERE c.id IN (${idList}) AND c.isDemo = true`,
+          parameters: idParams,
+        }).fetchAll();
+        demoClassIds = new Set(demoClasses.map(c => c.id));
+      }
+      const entries = rawEntries.filter(e => !(e.targetType === 'class' && demoClassIds.has(e.targetId)));
 
       let jsonl = '';
       let truncated = false;

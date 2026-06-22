@@ -3,6 +3,27 @@ const { authenticateAdmin } = require('./auth');
 const { getCallerScope, requireRole, ScopeError, ROLES } = require('./shared/authz');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
+const { EXCLUDE_DEMO_FRAGMENT } = require('./shared/excludeDemo');
+
+// Lazy container init — keeps `require('./metrics')` (e.g. metrics.test.js importing
+// buildStubbedMetrics) from constructing a CosmosClient when no Cosmos env is configured.
+let _containers = null;
+function getContainers() {
+  if (!_containers) {
+    const { CosmosClient } = require('@azure/cosmos');
+    const client = new CosmosClient({
+      endpoint: process.env.COSMOS_ENDPOINT,
+      key: process.env.COSMOS_KEY,
+    });
+    const database = client.database(process.env.COSMOS_DATABASE);
+    _containers = {
+      responsesContainer: database.container(process.env.COSMOS_CONTAINER_RESPONSES || 'responses'),
+      quizzesContainer: database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes'),
+      classesContainer: database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes'),
+    };
+  }
+  return _containers;
+}
 
 const ALLOWED_RANGES = ['today', '7d', '30d'];
 const METRICS_RATE_LIMIT = 60; // Security limits table — Metrics API calls/hr
@@ -49,13 +70,36 @@ app.http('manageMetrics', {
         return respond(400, { error: `range must be one of: ${ALLOWED_RANGES.join(', ')}` }, caller.teacherId);
       }
 
-      return respond(200, buildStubbedMetrics(range), caller.teacherId);
+      // The App Insights metric groups are still stubbed, but the cross-teacher COUNT totals below
+      // are real Cosmos aggregates — and every one of them excludes demo-class data via
+      // EXCLUDE_DEMO_FRAGMENT (Demo class isolation, CLAUDE.md). A teacher exploring a demo class
+      // must never move platform-wide numbers.
+      const totals = await buildRealTotals();
+
+      return respond(200, { ...buildStubbedMetrics(range), totals }, caller.teacherId);
     } catch (err) {
       context.error('manageMetrics error:', err.message);
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
   },
 });
+
+// Real cross-teacher COUNT totals, demo-excluded. Counts the whole container (range filtering
+// belongs with the App Insights wiring, not yet built); the point here is the demo-isolation rule.
+async function buildRealTotals() {
+  const { responsesContainer, quizzesContainer, classesContainer } = getContainers();
+  const countQuery = `SELECT VALUE COUNT(1) FROM c WHERE ${EXCLUDE_DEMO_FRAGMENT}`;
+  const [resp, quiz, cls] = await Promise.all([
+    responsesContainer.items.query(countQuery).fetchAll(),
+    quizzesContainer.items.query(countQuery).fetchAll(),
+    classesContainer.items.query(countQuery).fetchAll(),
+  ]);
+  return {
+    responses: resp.resources[0] || 0,
+    quizzes: quiz.resources[0] || 0,
+    classes: cls.resources[0] || 0,
+  };
+}
 
 function buildStubbedMetrics(range) {
   return {
@@ -70,4 +114,4 @@ function buildStubbedMetrics(range) {
   };
 }
 
-module.exports = { buildStubbedMetrics };
+module.exports = { buildStubbedMetrics, buildRealTotals };

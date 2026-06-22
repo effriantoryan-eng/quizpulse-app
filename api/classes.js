@@ -5,6 +5,7 @@ const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
 const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
+const { selectDemoStudents } = require('./shared/demoNames');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -15,7 +16,9 @@ const database = client.database(process.env.COSMOS_DATABASE);
 const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
 
 const CLASS_NAME_MAX = 80;       // Security limits table — Class name length
-const CLASSES_PER_TEACHER = 20;  // Security limits table — Classes per teacher
+const CLASSES_PER_TEACHER = 20;  // Security limits table — Classes per teacher (real classes only)
+const DEMO_CLASSES_PER_TEACHER = 1;  // v3.3.0 — at most one simulated demo class per teacher
+const DEMO_STUDENT_COUNT = 24;       // v3.3.0 — demo students generated per demo class
 
 // 8-char alphanumeric join code, excluding visually ambiguous characters (0/O, 1/I/L).
 function generateJoinCode() {
@@ -49,7 +52,16 @@ app.http('classesGet', {
         parameters: [{ name: '@tid', value: teacherId }],
       }).fetchAll();
 
-      return respond(200, resources, teacherId);
+      // Normalise the demo fields so the frontend can render the demo pill and student count
+      // without leaking the simulated student names: expose isDemo (default false for legacy
+      // docs) and demoStudentCount, and drop the raw demoStudents array from the list payload.
+      const shaped = resources.map(({ demoStudents, ...rest }) => ({
+        ...rest,
+        isDemo: rest.isDemo === true,
+        demoStudentCount: Array.isArray(demoStudents) ? demoStudents.length : 0,
+      }));
+
+      return respond(200, shaped, teacherId);
     } catch (err) {
       context.error('classesGet error:', err.message);
       logRequest(context, { endpoint: 'classes', method: 'GET', status: 500, durationMs: Date.now() - start });
@@ -87,6 +99,7 @@ app.http('classesCreate', {
       }
 
       const { name, studentCount } = body;
+      const isDemo = body.isDemo === true;
       if (typeof name !== 'string' || !name.trim()) {
         return respond(400, { error: 'name is required and must be a non-empty string' }, teacherId);
       }
@@ -97,16 +110,49 @@ app.http('classesCreate', {
         return respond(400, { error: 'studentCount must be a non-negative number' }, teacherId);
       }
 
-      // Enforce the 20-class-per-teacher limit before writing.
+      const teacher = await getTeacher(teacherId);
+
+      if (isDemo) {
+        // At most one demo class per teacher. Demo classes are deliberately separate from the
+        // 20-real-class cap (counted below), so a teacher can always try one without giving up a slot.
+        const { resources: demoCounts } = await classesContainer.items.query({
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND c.isDemo = true',
+          parameters: [{ name: '@tid', value: teacherId }],
+        }).fetchAll();
+        if ((demoCounts[0] || 0) >= DEMO_CLASSES_PER_TEACHER) {
+          return respond(409, { error: 'Demo class limit reached' }, teacherId);
+        }
+
+        // demoStudents is generated server-side, never client-provided — a fresh shuffle of 24
+        // distinct curated names, each with its own device UUID. No join code (a demo class is
+        // never joinable), no name list.
+        const demoStudents = selectDemoStudents(DEMO_STUDENT_COUNT);
+        const doc = {
+          id: crypto.randomUUID(),
+          teacherId,
+          schoolId: teacher?.schoolId || null,
+          name: name.trim(),
+          studentCount: DEMO_STUDENT_COUNT,
+          nameListEnabled: false,
+          cap: 40,
+          isDemo: true,
+          demoStudents,
+          createdAt: new Date().toISOString(),
+        };
+        const { resource } = await classesContainer.items.create(doc);
+        return respond(201, resource, teacherId);
+      }
+
+      // Real class: enforce the 20-real-class-per-teacher limit before writing. Demo classes are
+      // excluded from this count (isDemo != true, tolerating legacy docs with no field).
       const { resources: counts } = await classesContainer.items.query({
-        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid',
+        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND (NOT IS_DEFINED(c.isDemo) OR c.isDemo = false)',
         parameters: [{ name: '@tid', value: teacherId }],
       }).fetchAll();
       if ((counts[0] || 0) >= CLASSES_PER_TEACHER) {
         return respond(429, { error: `You can have at most ${CLASSES_PER_TEACHER} classes.` }, teacherId);
       }
 
-      const teacher = await getTeacher(teacherId);
       const doc = {
         id: crypto.randomUUID(),
         teacherId,
@@ -117,6 +163,7 @@ app.http('classesCreate', {
         nameList: [],
         nameListEnabled: false,
         cap: 40,
+        isDemo: false,
         createdAt: new Date().toISOString(),
       };
       const { resource } = await classesContainer.items.create(doc);

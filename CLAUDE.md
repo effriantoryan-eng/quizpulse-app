@@ -202,11 +202,11 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 ### [CURRENT] containers
 
 - `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
-- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt }
-- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer). Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field.
+- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`.
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
-- `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt } (pk `/teacherId`)
+- `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload).
 - `audit_log` [Sprint 5] (pk `/actorId`) — { id, actorId, actorRole, action, targetType, targetId,
   before, after, ip, createdAt }. Append-only — `api/shared/auditLog.js` exports only
   `writeAudit()`, no update/delete path. Manual provisioning:
@@ -399,6 +399,25 @@ etc.) MUST call `assertScope` from `api/shared/authz.js` before reading or mutat
   similar) for any admin endpoint, not `admin/...`.
 - Background: `docs/security/SPRINT5_AUDIT.md` is the full audit that motivated this model.
 
+### Demo class isolation [CURRENT — v3.3.0]
+
+A demo class (`isDemo: true`) lets a teacher explore the Send → Analytics loop with simulated
+students, without recruiting anyone. Its data must never leak into platform-wide reporting:
+
+**Any reporting/monitoring endpoint that aggregates across teachers must filter `isDemo` out.
+Per-teacher views (`Analytics.jsx` for an individual demo class) are exempt — the teacher is
+looking at their own demo data on purpose.**
+
+- The rule is defined in ONE place: `api/shared/excludeDemo.js` exports `EXCLUDE_DEMO_FRAGMENT`
+  (`(c.isDemo = false OR NOT IS_DEFINED(c.isDemo))`) plus `andExcludeDemo()`/`isDemoClass()`.
+  Import it — never re-type the predicate.
+- Applied in: `api/metrics.js` (real cross-teacher COUNT totals), `api/schoolsList.js` (per-school
+  class counts), `api/logsExport.js` (`type=security` drops audit_log entries whose target class is
+  a demo class — resolved in code, since `audit_log` has no `isDemo` of its own). Any future App
+  Insights / Kusto wiring in `metrics.js`/`logsExport.js` must carry the same exclusion.
+- `analytics.js` (GET /api/analytics) is per-teacher and intentionally demo-aware, not demo-excluded:
+  it resolves the demo class's `demoStudents` as the approved roster and returns `isDemo: true`.
+
 ---
 
 ## Security limits (enforce server-side)
@@ -569,6 +588,11 @@ sprint's scope.
 | Roster approval fix (restored `rateLimit` import in joinRequests.js — Sprint 6 APIM regression) | [CURRENT] v3.2.2 complete — diagnosis in docs/fixes/ROSTER_APPROVAL_DIAGNOSIS.md |
 | Two-path public landing (student/teacher cards, Preview gallery link, DemoNav signed-out branch) | [CURRENT] v3.2.2 complete |
 | PWA install button (usePwaInstall hook, InstallButton — native "Add to your phone" / iOS guide) | [CURRENT] v3.2.2 complete |
+| Demo class data model (isDemo on classes/quizzes/responses; demoStudents; api/shared/demoNames.js) | [CURRENT] v3.3.0 complete |
+| Demo class creation (POST /api/classes isDemo, 24 demoStudents, no joinCode, 1/teacher, excluded from real cap) | [CURRENT] v3.3.0 complete |
+| Simulated responses (api/shared/runSimulation.js, POST /api/simulate-responses, send-notification demo branch skips push) | [CURRENT] v3.3.0 complete |
+| Demo class UI (Classes "Try with a demo class" + Demo pill, SendQuiz demo note, Analytics "Demo data" pill, mockups) | [CURRENT] v3.3.0 complete |
+| Demo class isolation (api/shared/excludeDemo.js; metrics/schoolsList/logsExport exclude demo from cross-teacher reporting) | [CURRENT] v3.3.0 complete |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
