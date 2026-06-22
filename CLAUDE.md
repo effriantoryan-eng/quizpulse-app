@@ -588,6 +588,11 @@ sprint's scope.
 | Roster approval fix (restored `rateLimit` import in joinRequests.js — Sprint 6 APIM regression) | [CURRENT] v3.2.2 complete — diagnosis in docs/fixes/ROSTER_APPROVAL_DIAGNOSIS.md |
 | Two-path public landing (student/teacher cards, Preview gallery link, DemoNav signed-out branch) | [CURRENT] v3.2.2 complete |
 | PWA install button (usePwaInstall hook, InstallButton — native "Add to your phone" / iOS guide) | [CURRENT] v3.2.2 complete |
+| Demo class data model (isDemo on classes/quizzes/responses; demoStudents; api/shared/demoNames.js) | [CURRENT] v3.3.0 complete |
+| Demo class creation (POST /api/classes isDemo, 24 demoStudents, no joinCode, 1/teacher, excluded from real cap) | [CURRENT] v3.3.0 complete |
+| Simulated responses (api/shared/runSimulation.js, POST /api/simulate-responses, send-notification demo branch skips push) | [CURRENT] v3.3.0 complete |
+| Demo class UI (Classes "Try with a demo class" + Demo pill, SendQuiz demo note, Analytics "Demo data" pill, mockups) | [CURRENT] v3.3.0 complete |
+| Demo class isolation (api/shared/excludeDemo.js; metrics/schoolsList/logsExport exclude demo from cross-teacher reporting) | [CURRENT] v3.3.0 complete |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
