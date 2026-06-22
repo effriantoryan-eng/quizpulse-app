@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { loginRequest, signUpRequest } from '../authConfig'
+import InstallButton from '../components/InstallButton'
 
 // Brand accents for the public landing.
 const BRAND = '#534AB7'
@@ -129,7 +130,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Install button slot — populated in the PWA install feature (v3.2.2). */}
+      {/* Add-to-phone — secondary weight, centered, below the two cards. */}
+      <InstallButton align="center" />
     </div>
   )
 }
