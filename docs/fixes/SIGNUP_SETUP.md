@@ -93,6 +93,14 @@ When `prompt=create` is sent:
 
 ## d. Portal steps — MANUAL ACTIONS REQUIRED (cannot be automated)
 
+> **Observed symptom (2026-06-22): clicking "Create an account" shows the normal sign-in page,
+> NOT an account-creation form.** In Entra External ID, `prompt=create` is only honored when the
+> app registration is attached to a **user flow that has self-service sign-up enabled**. If the
+> teacher app reg (`bf3647a0-e091-42ef-b0c7-dc423d5dc5f3`) is not added to such a flow, CIAM
+> silently ignores `prompt=create` and falls back to sign-in. **The most likely fix is Step 1.5
+> below — adding the teacher app to the user flow's Applications list.** This is the same gotcha
+> that previously blocked the admin app reg (see `memory/reference_admin_portal_auth_gotchas.md`).
+
 ### Step 1 — Confirm the external tenant has self-service sign-up enabled
 
 1. Sign in to `https://entra.microsoft.com`
@@ -106,6 +114,17 @@ When `prompt=create` is sent:
 7. Self-service sign-up is enabled by default on external tenants. If it was disabled:
    go to **User settings > Manage external collaboration settings** and verify
    "Allow users to sign up via self-service" is on
+
+### Step 1.5 — Associate the teacher app registration with the user flow (MOST LIKELY FIX)
+
+1. Still in **Identity > External Identities > User flows**, open the sign-up/sign-in flow.
+2. In the left menu of the flow, open **Applications**.
+3. Click **Add application**, search for the **QuizPulse teacher app**
+   (`bf3647a0-e091-42ef-b0c7-dc423d5dc5f3`), select it, and confirm.
+4. If no sign-up/sign-in user flow exists at all, create one first ("Create user flow"),
+   set the identity providers (Step 1.3) and attributes (Step 1.4), then add the app here.
+
+Without this association, `prompt=create` produces a sign-in page (the reported bug).
 
 ### Step 2 — Verify the redirect URI covers sign-up callbacks
 

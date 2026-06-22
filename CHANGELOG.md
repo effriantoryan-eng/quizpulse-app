@@ -2,6 +2,49 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v3.2.2] — Polish (PATCH)
+
+### Bug fixes
+
+#### Roster approval restored (`fix/v3.2.2-roster-approval-diagnosis`)
+- `api/joinRequests.js`: restored the `rateLimit` import dropped by the Sprint 6 APIM migration
+  (commit `f72f270`), which had removed it from the require while leaving the four `rateLimit(...)`
+  call sites. Every authed join-request handler (approve, approve-batch, reject, list) was throwing
+  `ReferenceError: rateLimit is not defined` → generic **500**, so teachers could not approve
+  students into the roster. (Same class of bug previously fixed in `schoolAdmin.js` in v3.1.0;
+  `joinRequests.js` was the last file still carrying it.)
+- Full diagnosis with candidate causes ruled out: `docs/fixes/ROSTER_APPROVAL_DIAGNOSIS.md`.
+- Regression guard: `tests/integration/api/v322-roster-approval.test.js` (owner approve → 200/
+  `approved`; cross-tenant approve → 404).
+
+### Information architecture
+
+#### Two-path public landing (`feat/v3.2.2-public-landing-split`)
+- `src/pages/Home.jsx` rewritten as a two-path landing: a student card (**Join a class** → `/join`)
+  and a teacher card (**Sign in** / **Create account** via `loginRequest` / `signUpRequest`), with a
+  **Preview gallery** link in the header. Brand accents `#534AB7` / `#EEEDFE`. Authenticated teachers
+  are redirected to their dashboard and never see the landing.
+- `src/components/DemoNav.jsx` (new): branches on `AuthContext.isAuthenticated` — signed-out
+  visitors get a minimal rail (logo + Preview gallery link only); signed-in teachers get the existing
+  `Sidebar` unchanged. `App.jsx` renders `DemoNav` in the shell.
+- Sixth mockup screen **"Public landing — v3.2.2"** added to `quizpulse_mockups_v301.html`.
+
+### Install support
+
+#### Add-to-phone (`feat/v3.2.2-pwa-install`)
+- `src/hooks/usePwaInstall.js`: `{ canInstall, install, isInstalled, platform }`. Handles
+  `beforeinstallprompt` (preventDefault + stash → native), `appinstalled`, iOS detection, and
+  already-installed (`display-mode: standalone` / `navigator.standalone`).
+- `src/components/InstallButton.jsx`: branches on platform — `native` → **"Add to your phone"**
+  button (never "Install"/"Download"); `ios` → reuses the Sprint 3 add-to-home-screen guide;
+  `unsupported` or already-installed → renders nothing. Placed below the cards on Home and above
+  the join-code form on JoinClass (lock-screen check-ins require the installed app on iOS).
+
+### Tests
+- New: `tests/unit/usePwaInstall.test.js`, `tests/unit/demoNav.test.js`,
+  `tests/integration/api/v322-roster-approval.test.js`, `tests/e2e/v322.spec.js`.
+- Report: `tests/reports/v3.2.2-report.html`. Checklist: `SPRINT_TEST_CHECKLIST.md` (v3.2.2 section).
+
 ## [v3.1.0] — Sprint 7: admin portal
 
 Separate admin portal site (`admin/`) built on React + Vite, deployed to its own Azure SWA
