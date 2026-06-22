@@ -98,8 +98,10 @@ function getContainers() {
 // this quiz, returns { error, status: 409 } and writes nothing. On success returns
 // { simulated, total }. Used by both api/simulateResponses.js and the demo branch of
 // api/sendNotification.js (and, transitively, the scheduled-send timer).
-async function runSimulation(quiz, cls, context) {
-  const { responsesContainer, questionsContainer } = getContainers();
+async function runSimulation(quiz, cls, context, deps) {
+  // `deps` lets unit tests inject fake containers; production call sites pass 3 args and use the
+  // lazily-created Cosmos containers.
+  const { responsesContainer, questionsContainer } = deps || getContainers();
 
   // Idempotency — never simulate the same quiz twice.
   const { resources: existing } = await responsesContainer.items.query({
