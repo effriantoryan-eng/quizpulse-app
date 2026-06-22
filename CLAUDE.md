@@ -202,11 +202,11 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 ### [CURRENT] containers
 
 - `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
-- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt }
-- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer). Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field.
+- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`.
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
-- `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt } (pk `/teacherId`)
+- `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload).
 - `audit_log` [Sprint 5] (pk `/actorId`) — { id, actorId, actorRole, action, targetType, targetId,
   before, after, ip, createdAt }. Append-only — `api/shared/auditLog.js` exports only
   `writeAudit()`, no update/delete path. Manual provisioning:
