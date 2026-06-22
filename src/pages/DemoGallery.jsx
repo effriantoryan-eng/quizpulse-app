@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react'
 
 // ─── Design tokens ────────────────────────────────────────────────
 const C = {
-  purple:      '#534AB7',
-  purpleLight: '#EEEDFE',
-  purpleMid:   '#7B6EDE',
-  purpleDark:  '#1a1433',
+  purple:      'var(--primary)',
+  purpleLight: 'var(--surface2)',
+  purpleMid:   'var(--primary)',
+  purpleDark:  'var(--text)',
   green:       '#3B6D11',
   greenLight:  '#EAF3DE',
   red:         '#A32D2D',
   redLight:    '#FCEBEB',
   border:      '#eee',
-  text:        '#1a1433',
+  text:        'var(--text)',
   sub:         '#666',
   muted:       '#aaa',
 }
@@ -282,7 +282,7 @@ const ANALYTICS_DATA = [
   },
 ]
 
-const BAR_COLOURS = [C.purpleMid, '#9B93E8', '#C5C0F0', '#DDD9FF']
+const BAR_COLOURS = [C.purpleMid, 'var(--primary)', 'var(--border)', 'var(--surface2)']
 
 function Card2() {
   const [qIdx, setQIdx] = useState(0)
@@ -414,7 +414,7 @@ function LockScreenPhone() {
         <div style={{ width: '50px', height: '8px', background: '#000', borderRadius: '8px' }} />
       </div>
       {/* screen */}
-      <div style={{ borderRadius: '20px', overflow: 'hidden', minHeight: '280px', background: 'linear-gradient(160deg, #0f3460 0%, #533483 100%)', padding: '10px', position: 'relative' }}>
+      <div style={{ borderRadius: '20px', overflow: 'hidden', minHeight: '280px', background: 'linear-gradient(160deg, #0f3460 0%, var(--primary) 100%)', padding: '10px', position: 'relative' }}>
         {/* status */}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: 'rgba(255,255,255,0.7)', marginBottom: '20px' }}>
           <span>9:41</span><span>●●● 🔋</span>

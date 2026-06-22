@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesque:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  ::selection{background:rgba(124,92,255,.22);}
+  .qp-field::placeholder{color:var(--muted);opacity:.7;}
+  .qp-field:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primarySoft);}
+  .qp-nav::-webkit-scrollbar{display:none;}
+</style>
+</helmet>
+<div style="{{ rootStyle }}; position:relative; min-height:100vh; padding-bottom:140px; overflow:hidden;">
+
+  <!-- TEXTURE -->
+  <div style="position:absolute; inset:0; z-index:0; pointer-events:none; background:var(--deco,none);"></div>
+
+  <!-- TOP NAV -->
+  <sc-if value="{{ isTopNav }}" hint-placeholder-val="{{ true }}">
+  <div style="position:sticky; top:0; z-index:20; background:var(--navBg,#322c24); box-shadow:var(--shadow,0 2px 10px rgba(80,60,30,.06));">
+    <div class="qp-nav" style="max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:18px; padding:14px 26px; overflow-x:auto;">
+      <div style="display:flex; align-items:center; gap:12px; flex:none;">
+        <div style="width:36px; height:36px; border-radius:11px; background:var(--logoGrad,linear-gradient(135deg,#e08a3c,#c75d3c)); display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:var(--btnShadow,0 4px 14px rgba(199,93,60,.30));">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+        </div>
+        <span style="font-family:var(--fontHead,'Bricolage Grotesque'); font-weight:700; font-size:20px; color:var(--navText,#f1e7d5); letter-spacing:-.01em;">QuizPulse</span>
+        <span style="font-size:11px; font-weight:700; letter-spacing:.04em; padding:4px 9px; border-radius:999px; background:var(--badgeBg,#6f8f6a); color:var(--badgeText,#fff); text-transform:lowercase;">beta</span>
+      </div>
+      <div style="flex:1; min-width:14px;"></div>
+      <div style="display:flex; align-items:center; gap:4px; flex:none;">
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:var(--radiusSm,10px); background:transparent; color:var(--navMuted,#b8ac96); font-weight:600; font-size:14px; white-space:nowrap;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 9.5V20h14V9.5"/></svg>Home</div>
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:var(--radiusSm,10px); background:var(--navActiveBg,#c75d3c); color:var(--navActiveText,#fff); font-weight:700; font-size:14px; white-space:nowrap; box-shadow:var(--navActiveShadow,none);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Create Question</div>
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:var(--radiusSm,10px); background:transparent; color:var(--navMuted,#b8ac96); font-weight:600; font-size:14px; white-space:nowrap;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Question Bank</div>
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:var(--radiusSm,10px); background:transparent; color:var(--navMuted,#b8ac96); font-weight:600; font-size:14px; white-space:nowrap;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2.2"/><circle cx="9" cy="16" r="2.2"/></svg>Build Quiz</div>
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:var(--radiusSm,10px); background:transparent; color:var(--navMuted,#b8ac96); font-weight:600; font-size:14px; white-space:nowrap;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Send Quiz</div>
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:var(--radiusSm,10px); background:transparent; color:var(--navMuted,#b8ac96); font-weight:600; font-size:14px; white-space:nowrap;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.4"/><rect x="13" y="4" width="7" height="7" rx="1.4"/><rect x="4" y="13" width="7" height="7" rx="1.4"/><rect x="13" y="13" width="7" height="7" rx="1.4"/></svg>My Quizzes</div>
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:var(--radiusSm,10px); background:transparent; color:var(--navMuted,#b8ac96); font-weight:600; font-size:14px; white-space:nowrap;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Preview</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="display:flex; position:relative; z-index:1; align-items:flex-start;">
+
+    <!-- SIDEBAR NAV (Mono Pro) -->
+    <sc-if value="{{ isSidebar }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none; width:252px; align-self:stretch; min-height:100vh; background:var(--navBg,#102236); padding:22px 16px; position:sticky; top:0;">
+      <div style="display:flex; align-items:center; gap:11px; padding:4px 8px 22px;">
+        <div style="width:34px; height:34px; border-radius:9px; background:var(--logoGrad); display:flex; align-items:center; justify-content:center; color:#fff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div>
+        <span style="font-family:var(--fontHead); font-weight:800; font-size:18px; color:var(--navText); letter-spacing:-.01em;">QuizPulse</span>
+        <span style="font-size:10px; font-weight:700; padding:3px 7px; border-radius:5px; background:var(--badgeBg); color:var(--badgeText); text-transform:lowercase;">beta</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:3px;">
+        <div style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radiusSm); color:var(--navMuted); font-weight:600; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 9.5V20h14V9.5"/></svg>Home</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radiusSm); background:var(--navActiveBg); color:var(--navActiveText); font-weight:700; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Create Question</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radiusSm); color:var(--navMuted); font-weight:600; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Question Bank</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radiusSm); color:var(--navMuted); font-weight:600; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2.2"/><circle cx="9" cy="16" r="2.2"/></svg>Build Quiz</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radiusSm); color:var(--navMuted); font-weight:600; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Send Quiz</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radiusSm); color:var(--navMuted); font-weight:600; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.4"/><rect x="13" y="4" width="7" height="7" rx="1.4"/><rect x="4" y="13" width="7" height="7" rx="1.4"/><rect x="13" y="13" width="7" height="7" rx="1.4"/></svg>My Quizzes</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:var(--radiusSm); color:var(--navMuted); font-weight:600; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Preview</div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- CONTENT -->
+    <div style="{{ contentStyle }}; flex:1; min-width:0;">
+
+      <!-- HEADING -->
+      <sc-if value="{{ showKicker }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <span style="font-family:var(--fontBody); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--primary); white-space:nowrap; flex:none;">{{ kickerText }}</span>
+          <span style="flex:1; height:1px; background:var(--border);"></span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ marker }}" hint-placeholder-val="{{ false }}">
+        <h1 style="font-family:var(--fontHead); font-weight:700; font-size:var(--h1Size,42px); line-height:1.05; letter-spacing:-.02em; margin:0 0 8px; color:var(--text);"><span style="background:linear-gradient(transparent 58%, var(--primarySoft) 58%); padding:0 8px; box-decoration-break:clone; -webkit-box-decoration-break:clone;">Create question</span></h1>
+      </sc-if>
+      <sc-if value="{{ plainHeading }}" hint-placeholder-val="{{ true }}">
+        <h1 style="font-family:var(--fontHead); font-weight:var(--h1Weight,700); font-size:var(--h1Size,42px); line-height:1.05; letter-spacing:-.02em; margin:0 0 8px; color:var(--text);">Create question</h1>
+      </sc-if>
+
+      <sc-if value="{{ showRule }}" hint-placeholder-val="{{ false }}">
+        <div style="height:2px; background:var(--text); margin:10px 0 6px;"></div>
+        <div style="height:1px; background:var(--text); margin:0 0 26px;"></div>
+      </sc-if>
+      <sc-if value="{{ showSubhead }}" hint-placeholder-val="{{ false }}">
+        <p style="margin:0 0 26px; font-family:var(--fontBody); font-size:16px; color:var(--muted); line-height:1.5;">{{ subheadText }}</p>
+      </sc-if>
+      <sc-if value="{{ plainGap }}" hint-placeholder-val="{{ true }}">
+        <div style="height:16px;"></div>
+      </sc-if>
+
+      <!-- TIP -->
+      <sc-if value="{{ editorialTip }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; gap:18px; padding:20px 22px; background:var(--tipBg); border-top:2px solid var(--text); border-bottom:1px solid var(--text); margin-bottom:34px;">
+          <span style="font-family:var(--fontHead); font-weight:500; font-size:58px; line-height:.78; color:var(--primary); flex:none;">W</span>
+          <p style="margin:0; flex:1; font-family:var(--fontBody); font-size:16px; line-height:1.55; color:var(--text);">rite a question, fill in four options, mark the correct answer, and choose a topic. Save it — you can create as many as you like before assembling a quiz.</p>
+        </div>
+      </sc-if>
+      <sc-if value="{{ defaultTip }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; align-items:flex-start; gap:14px; padding:18px 20px; border-radius:var(--radius,14px); background:var(--tipBg,#f3e7d3); border:var(--bw,1px) solid var(--tipBorder,#e6d4b5); box-shadow:var(--shadow,0 2px 10px rgba(80,60,30,.06)); margin-bottom:30px;">
+          <div style="flex:none; width:30px; height:30px; border-radius:9px; background:var(--primarySoft,#f6e3d8); color:var(--primary,#c75d3c); display:flex; align-items:center; justify-content:center;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.2 1 2.5h6c0-1.3.3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
+          </div>
+          <p style="margin:0; flex:1; font-size:15.5px; line-height:1.5; color:var(--text,#36302a);">Write a question, fill in four options, mark the correct answer, and choose a topic. Save it — you can create as many as you like before building a quiz.</p>
+          <div style="flex:none; color:var(--muted,#978a76); cursor:pointer; padding:2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
+        </div>
+      </sc-if>
+
+      <!-- QUESTION -->
+      <div style="font-family:var(--fontBody); font-weight:700; font-size:12px; letter-spacing:var(--labelSpacing,.09em); text-transform:uppercase; color:var(--muted); margin-bottom:10px; border-top:var(--sectionRule,none); padding-top:var(--sectionPad,0);">Question</div>
+      <textarea class="qp-field" rows="3" style="width:100%; resize:vertical; padding:16px 18px; border:var(--bw,1px) solid var(--border,#e3d6bf); border-radius:var(--radius,14px); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-family:var(--fontBody,'Hanken Grotesque'); font-weight:500; font-size:17px; line-height:1.45; outline:none; box-shadow:var(--shadowField,none);">Which gas do plants take in to make their food?</textarea>
+
+      <!-- OPTIONS -->
+      <div style="font-family:var(--fontBody); font-weight:700; font-size:12px; letter-spacing:var(--labelSpacing,.09em); text-transform:uppercase; color:var(--muted); margin:28px 0 14px; border-top:var(--sectionRule,none); padding-top:var(--sectionPad,0);">Answer options — select the correct one</div>
+
+      <sc-if value="{{ lettered }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:baseline; gap:16px; padding:14px 4px; border-top:1px solid var(--border);"><span style="font-family:var(--fontHead); font-style:italic; font-size:22px; color:var(--muted); width:28px; flex:none;">A.</span><span style="flex:1; font-family:var(--fontBody); font-size:18px; color:var(--text);">Oxygen</span></div>
+          <div style="display:flex; align-items:baseline; gap:16px; padding:14px 4px; border-top:1px solid var(--border); background:var(--primarySoft);"><span style="font-family:var(--fontHead); font-style:italic; font-size:22px; color:var(--primary); width:28px; flex:none;">B.</span><span style="flex:1; font-family:var(--fontBody); font-size:18px; font-weight:600; color:var(--text);">Carbon dioxide</span><span style="font-family:var(--fontBody); font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--primary); flex:none;">Correct</span></div>
+          <div style="display:flex; align-items:baseline; gap:16px; padding:14px 4px; border-top:1px solid var(--border);"><span style="font-family:var(--fontHead); font-style:italic; font-size:22px; color:var(--muted); width:28px; flex:none;">C.</span><span style="flex:1; font-family:var(--fontBody); font-size:18px; color:var(--text);">Nitrogen</span></div>
+          <div style="display:flex; align-items:baseline; gap:16px; padding:14px 4px; border-top:1px solid var(--border); border-bottom:1px solid var(--border);"><span style="font-family:var(--fontHead); font-style:italic; font-size:22px; color:var(--muted); width:28px; flex:none;">D.</span><span style="flex:1; font-family:var(--fontBody); font-size:18px; color:var(--text);">Hydrogen</span></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ radios }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="flex:none; width:22px; height:22px; border-radius:50%; border:2px solid var(--border,#e3d6bf);"></div>
+            <input class="qp-field" value="Oxygen" style="flex:1; padding:14px 16px; border:var(--bw,1px) solid var(--border,#e3d6bf); border-radius:var(--radiusSm,10px); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-family:var(--fontBody,'Hanken Grotesque'); font-weight:500; font-size:16px; outline:none; box-shadow:var(--shadowField,none);">
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="flex:none; width:22px; height:22px; border-radius:50%; border:2px solid var(--primary,#c75d3c); display:flex; align-items:center; justify-content:center;"><div style="width:11px; height:11px; border-radius:50%; background:var(--primary,#c75d3c);"></div></div>
+            <input class="qp-field" value="Carbon dioxide" style="flex:1; padding:14px 16px; border:2px solid var(--primary,#c75d3c); border-radius:var(--radiusSm,10px); background:var(--primarySoft,#f6e3d8); color:var(--text,#36302a); font-family:var(--fontBody,'Hanken Grotesque'); font-weight:600; font-size:16px; outline:none;">
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="flex:none; width:22px; height:22px; border-radius:50%; border:2px solid var(--border,#e3d6bf);"></div>
+            <input class="qp-field" value="Nitrogen" style="flex:1; padding:14px 16px; border:var(--bw,1px) solid var(--border,#e3d6bf); border-radius:var(--radiusSm,10px); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-family:var(--fontBody,'Hanken Grotesque'); font-weight:500; font-size:16px; outline:none; box-shadow:var(--shadowField,none);">
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="flex:none; width:22px; height:22px; border-radius:50%; border:2px solid var(--border,#e3d6bf);"></div>
+            <input class="qp-field" value="Hydrogen" style="flex:1; padding:14px 16px; border:var(--bw,1px) solid var(--border,#e3d6bf); border-radius:var(--radiusSm,10px); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-family:var(--fontBody,'Hanken Grotesque'); font-weight:500; font-size:16px; outline:none; box-shadow:var(--shadowField,none);">
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- TOPIC -->
+      <div style="font-family:var(--fontBody); font-weight:700; font-size:12px; letter-spacing:var(--labelSpacing,.09em); text-transform:uppercase; color:var(--muted); margin:30px 0 14px; border-top:var(--sectionRule,none); padding-top:var(--sectionPad,0);">Topic tag</div>
+      <div style="display:flex; flex-wrap:wrap; gap:10px;">
+        <div style="padding:9px 18px; border-radius:var(--chipRadius,999px); border:var(--chipBorder,var(--bw,1px) solid var(--border,#e3d6bf)); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-weight:600; font-size:14px;">Mathematics</div>
+        <div style="padding:9px 18px; border-radius:var(--chipRadius,999px); border:2px solid var(--primary,#c75d3c); background:var(--primary,#c75d3c); color:var(--primaryInk,#fff); font-weight:700; font-size:14px; box-shadow:var(--btnShadow,0 4px 14px rgba(199,93,60,.30));">Science</div>
+        <div style="padding:9px 18px; border-radius:var(--chipRadius,999px); border:var(--chipBorder,var(--bw,1px) solid var(--border,#e3d6bf)); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-weight:600; font-size:14px;">English</div>
+        <div style="padding:9px 18px; border-radius:var(--chipRadius,999px); border:var(--chipBorder,var(--bw,1px) solid var(--border,#e3d6bf)); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-weight:600; font-size:14px;">History</div>
+        <div style="padding:9px 18px; border-radius:var(--chipRadius,999px); border:var(--chipBorder,var(--bw,1px) solid var(--border,#e3d6bf)); background:var(--surface,#fffcf6); color:var(--text,#36302a); font-weight:600; font-size:14px;">Geography</div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div style="display:flex; align-items:center; gap:14px; margin-top:36px;">
+        <div style="display:flex; align-items:center; gap:9px; padding:14px 26px; border-radius:var(--radius,14px); background:var(--primary,#c75d3c); color:var(--primaryInk,#fff); font-family:var(--fontHead,'Bricolage Grotesque'); font-weight:700; font-size:16px; cursor:pointer; box-shadow:var(--btnShadow,0 4px 14px rgba(199,93,60,.30));">Save question<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        <div style="padding:14px 22px; border-radius:var(--radius,14px); background:transparent; border:var(--bw,1px) solid var(--border,#e3d6bf); color:var(--muted,#978a76); font-weight:600; font-size:15px; cursor:pointer;">Reset</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- THEME SWITCHER -->
+  <sc-if value="{{ showSwitcher }}" hint-placeholder-val="{{ true }}">
+  <div style="position:fixed; left:50%; bottom:20px; transform:translateX(-50%); z-index:50; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:5px; max-width:min(900px,94vw); padding:9px 12px; border-radius:22px; background:rgba(17,18,24,.93); box-shadow:0 14px 44px rgba(0,0,0,.45); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);">
+    <span style="font-family:'Space Grotesk',sans-serif; font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.45); padding:0 8px;">Theme</span>
+    <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="8">
+      <button onClick="{{ chip.onClick }}" style="{{ chip.style }}">
+        <span style="{{ chip.dotStyle }}"></span>{{ chip.name }}
+      </button>
+    </sc-for>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:860},&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;warm&quot;,&quot;calm&quot;,&quot;minimal&quot;,&quot;mono&quot;,&quot;bold&quot;,&quot;vapor&quot;,&quot;arcade&quot;],&quot;default&quot;:&quot;calm&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showSwitcher&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { theme: null };
+
+  themes() {
+    return [
+      { id:'warm', name:'Warm Organic', dot:'#c75d3c',
+        sig:{ layout:'top', marker:true, lettered:false, editorialTip:false, kicker:'', subhead:'' },
+        vars:{
+        '--bg':'#f4ebdc','--surface':'#fffcf6','--surface2':'#efe4d1','--border':'#e3d6bf','--bw':'1px',
+        '--text':'#36302a','--muted':'#978a76','--primary':'#c75d3c','--primaryInk':'#fffaf3','--primarySoft':'#f6dcc9',
+        '--navBg':'#322c24','--navText':'#f1e7d5','--navMuted':'#b8ac96','--navActiveBg':'#c75d3c','--navActiveText':'#ffffff','--navActiveShadow':'none',
+        '--radius':'14px','--radiusSm':'10px','--h1Size':'44px','--chipRadius':'9px','--chipBorder':'1.5px dashed #cdb795',
+        '--shadow':'0 2px 10px rgba(80,60,30,.06)','--shadowField':'none','--btnShadow':'0 4px 14px rgba(199,93,60,.28)',
+        '--fontHead':"'Bricolage Grotesque'",'--fontBody':"'Hanken Grotesque'",
+        '--tipBg':'#f3e7d3','--tipBorder':'#e6d4b5','--logoGrad':'linear-gradient(135deg,#e08a3c,#c75d3c)',
+        '--badgeBg':'#6f8f6a','--badgeText':'#ffffff',
+        '--deco':'radial-gradient(circle, rgba(120,90,50,.11) 1.4px, transparent 1.6px) 0 0 / 22px 22px'
+      }},
+      { id:'calm', name:'Calm Mind', dot:'#9387d8',
+        sig:{ layout:'top', marker:false, lettered:false, editorialTip:false, kicker:'', subhead:'No timer, no pressure — take a breath and write at your own pace.' },
+        vars:{
+        '--bg':'#f4f1f7','--surface':'#fdfcff','--surface2':'#efeaf5','--border':'#e6dff0','--bw':'1px',
+        '--text':'#3b3550','--muted':'#908aa6','--primary':'#7d75c4','--primaryInk':'#ffffff','--primarySoft':'#ebe6f8',
+        '--navBg':'#4a4366','--navText':'#ece8f5','--navMuted':'#a89fc0','--navActiveBg':'#7d75c4','--navActiveText':'#ffffff','--navActiveShadow':'none',
+        '--radius':'24px','--radiusSm':'18px','--h1Size':'42px','--chipRadius':'999px',
+        '--shadow':'0 8px 30px rgba(90,70,140,.10)','--shadowField':'none','--btnShadow':'0 10px 26px rgba(125,117,196,.28)',
+        '--fontHead':"'Newsreader'",'--fontBody':"'Hanken Grotesque'",'--h1Weight':'500',
+        '--tipBg':'#efeaf8','--tipBorder':'#e2daf2','--logoGrad':'linear-gradient(135deg,#f3b9c8,#9387d8)',
+        '--badgeBg':'#e7e0f5','--badgeText':'#6b5fb0',
+        '--deco':'radial-gradient(48% 42% at 12% 6%, rgba(243,185,200,.42), transparent 60%), radial-gradient(52% 48% at 90% 2%, rgba(147,135,216,.32), transparent 62%), radial-gradient(62% 52% at 50% 114%, rgba(150,200,220,.30), transparent 60%)'
+      }},
+      { id:'minimal', name:'Clean Minimal', dot:'#4f46e5',
+        sig:{ layout:'top', marker:false, lettered:false, editorialTip:false, kicker:'', subhead:'' },
+        vars:{
+        '--bg':'#fbfbfa','--surface':'#ffffff','--surface2':'#f4f4f3','--border':'#e6e6e4','--bw':'1px',
+        '--text':'#1a1a1a','--muted':'#8a8a86','--primary':'#4f46e5','--primaryInk':'#ffffff','--primarySoft':'#eef0fe',
+        '--navBg':'#ffffff','--navText':'#1a1a1a','--navMuted':'#9a9a96','--navActiveBg':'#eef0fe','--navActiveText':'#4f46e5','--navActiveShadow':'none',
+        '--radius':'10px','--radiusSm':'8px','--h1Size':'40px','--chipRadius':'999px',
+        '--shadow':'0 1px 2px rgba(0,0,0,.05)','--shadowField':'none','--btnShadow':'0 1px 2px rgba(79,70,229,.25)',
+        '--fontHead':"'Manrope'",'--fontBody':"'Manrope'",
+        '--tipBg':'#f6f7fb','--tipBorder':'#e9eaf0','--logoGrad':'linear-gradient(135deg,#6366f1,#4f46e5)',
+        '--badgeBg':'#eef0fe','--badgeText':'#4f46e5',
+        '--deco':'none'
+      }},
+      { id:'mono', name:'Mono Pro', dot:'#15539e',
+        sig:{ layout:'sidebar', marker:false, lettered:false, editorialTip:false, kicker:'Workspace · Questions', subhead:'' },
+        vars:{
+        '--bg':'#f4f6f9','--surface':'#ffffff','--surface2':'#eef1f6','--border':'#dce2ea','--bw':'1px',
+        '--text':'#16202e','--muted':'#6b7686','--primary':'#15539e','--primaryInk':'#ffffff','--primarySoft':'#e4edf8',
+        '--navBg':'#102236','--navText':'#e8eef5','--navMuted':'#8ea0b5','--navActiveBg':'#1c3a5c','--navActiveText':'#ffffff','--navActiveShadow':'none',
+        '--radius':'8px','--radiusSm':'7px','--h1Size':'30px','--chipRadius':'7px','--labelSpacing':'.12em',
+        '--shadow':'0 1px 3px rgba(20,40,70,.10)','--shadowField':'none','--btnShadow':'0 2px 8px rgba(21,83,158,.28)',
+        '--fontHead':"'Manrope'",'--fontBody':"'Manrope'",
+        '--tipBg':'#e9f0f8','--tipBorder':'#d3e0f0','--logoGrad':'linear-gradient(135deg,#2b76d9,#15539e)',
+        '--badgeBg':'#e4edf8','--badgeText':'#15539e',
+        '--deco':'linear-gradient(rgba(20,40,70,.045) 1px, transparent 1px) 0 0 / 100% 32px, linear-gradient(90deg, rgba(20,40,70,.045) 1px, transparent 1px) 0 0 / 32px 100%'
+      }},
+      { id:'bold', name:'Bold Pop', dot:'#ff2e63',
+        sig:{ layout:'sidebar', marker:false, lettered:false, editorialTip:false, kicker:'', subhead:'' },
+        vars:{
+        '--bg':'#fff8ec','--surface':'#ffffff','--surface2':'#fff0d6','--border':'#111111','--bw':'2px',
+        '--text':'#141414','--muted':'#6b6b6b','--primary':'#ff2e63','--primaryInk':'#ffffff','--primarySoft':'#ffe14d',
+        '--navBg':'#111111','--navText':'#ffffff','--navMuted':'#9a9a9a','--navActiveBg':'#ffd000','--navActiveText':'#111111','--navActiveShadow':'3px 3px 0 #ff2e63',
+        '--radius':'8px','--radiusSm':'6px','--h1Size':'46px','--chipRadius':'999px',
+        '--shadow':'4px 4px 0 #111111','--shadowField':'3px 3px 0 #111111','--btnShadow':'4px 4px 0 #111111',
+        '--fontHead':"'Space Grotesk'",'--fontBody':"'Space Grotesk'",
+        '--tipBg':'#ffe14d','--tipBorder':'#111111','--logoGrad':'linear-gradient(135deg,#ff2e63,#ff8a00)',
+        '--badgeBg':'#00d4a0','--badgeText':'#111111',
+        '--deco':'none'
+      }},
+      { id:'vapor', name:'Y2K Vapor', dot:'#ff5fb0',
+        sig:{ layout:'top', marker:false, lettered:false, editorialTip:false, kicker:'', subhead:'' },
+        vars:{
+        '--bg':'#efe7ff','--surface':'#ffffff','--surface2':'#ffe9f6','--border':'#e4c8f5','--bw':'1.5px',
+        '--text':'#3a2a52','--muted':'#9b7fb8','--primary':'#ff5fb0','--primaryInk':'#ffffff','--primarySoft':'#ffe0f1',
+        '--navBg':'#2a1a44','--navText':'#f0e6ff','--navMuted':'#b9a3d6','--navActiveBg':'#ff5fb0','--navActiveText':'#ffffff','--navActiveShadow':'none',
+        '--radius':'16px','--radiusSm':'12px','--h1Size':'42px','--chipRadius':'999px',
+        '--shadow':'0 6px 22px rgba(150,90,200,.18)','--shadowField':'none','--btnShadow':'0 6px 20px rgba(255,95,176,.40)',
+        '--fontHead':"'Space Grotesk'",'--fontBody':"'Hanken Grotesque'",
+        '--tipBg':'#fce4f7','--tipBorder':'#f3c4e8','--logoGrad':'linear-gradient(135deg,#7af0e0,#ff5fb0)',
+        '--badgeBg':'#5fe0d0','--badgeText':'#134a45',
+        '--deco':'radial-gradient(55% 45% at 82% 2%, rgba(122,240,224,.40), transparent 70%), radial-gradient(50% 45% at 8% 18%, rgba(255,95,176,.22), transparent 70%)'
+      }},
+      { id:'arcade', name:'Dark Arcade', dot:'#7c5cff',
+        sig:{ layout:'top', marker:false, lettered:false, editorialTip:false, kicker:'', subhead:'' },
+        vars:{
+        '--bg':'#0d0f17','--surface':'#161a26','--surface2':'#1d2230','--border':'#2a3042','--bw':'1px',
+        '--text':'#e7eaf3','--muted':'#8b93a7','--primary':'#7c5cff','--primaryInk':'#ffffff','--primarySoft':'rgba(124,92,255,.16)',
+        '--navBg':'#11141f','--navText':'#e7eaf3','--navMuted':'#7e879b','--navActiveBg':'rgba(124,92,255,.18)','--navActiveText':'#b9a6ff','--navActiveShadow':'none',
+        '--radius':'12px','--radiusSm':'9px','--h1Size':'40px','--chipRadius':'999px',
+        '--shadow':'0 6px 20px rgba(0,0,0,.45)','--shadowField':'none','--btnShadow':'0 0 22px rgba(124,92,255,.55)',
+        '--fontHead':"'Space Grotesk'",'--fontBody':"'Hanken Grotesque'",
+        '--tipBg':'rgba(124,92,255,.10)','--tipBorder':'rgba(124,92,255,.28)','--logoGrad':'linear-gradient(135deg,#7c5cff,#22d3ee)',
+        '--badgeBg':'rgba(34,211,238,.16)','--badgeText':'#67e8f9',
+        '--deco':'radial-gradient(60% 45% at 50% 0%, rgba(124,92,255,.18), transparent 70%), linear-gradient(rgba(124,92,255,.045) 1px, transparent 1px) 0 0 / 100% 36px'
+      }}
+    ];
+  }
+
+  renderVals() {
+    const themes = this.themes();
+    const activeId = this.state.theme || this.props.defaultTheme || 'mono';
+    const active = themes.find(t => t.id === activeId) || themes[0];
+    const v = active.vars, s = active.sig;
+
+    let rootStyle = Object.entries(v).map(([k,val]) => `${k}:${val}`).join(';');
+    rootStyle += `;background-color:${v['--bg']};color:${v['--text']};`
+      + `font-family:${v['--fontBody']},system-ui,sans-serif`;
+
+    const isSidebar = s.layout === 'sidebar';
+    const contentStyle = isSidebar
+      ? 'max-width:860px; margin:0; padding:42px 52px 0'
+      : 'max-width:780px; margin:0 auto; padding:40px 26px 0';
+
+    const hasKicker = !!s.kicker;
+    const hasSubhead = !!s.subhead;
+    const showRule = active.id === 'editorial';
+
+    const chips = themes.map(t => {
+      const on = t.id === activeId;
+      return {
+        id: t.id, name: t.name,
+        onClick: () => this.setState({ theme: t.id }),
+        style: `display:flex;align-items:center;gap:7px;border:none;cursor:pointer;`
+          + `padding:8px 13px;border-radius:999px;`
+          + `font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;white-space:nowrap;`
+          + (on
+              ? `background:rgba(255,255,255,.15);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);`
+              : `background:transparent;color:rgba(255,255,255,.55);`),
+        dotStyle: `display:inline-block;width:9px;height:9px;border-radius:50%;background:${t.dot};`
+          + (on ? `box-shadow:0 0 8px ${t.dot};` : `opacity:.85;`)
+      };
+    });
+
+    return {
+      rootStyle, contentStyle, chips,
+      isTopNav: !isSidebar,
+      isSidebar,
+      showKicker: hasKicker, kickerText: s.kicker,
+      marker: !!s.marker,
+      plainHeading: !s.marker,
+      showRule,
+      showSubhead: hasSubhead, subheadText: s.subhead,
+      plainGap: !showRule && !hasSubhead,
+      editorialTip: !!s.editorialTip,
+      defaultTip: !s.editorialTip,
+      lettered: !!s.lettered,
+      radios: !s.lettered,
+      showSwitcher: this.props.showSwitcher !== false
+    };
+  }
+}
+</script>
+</body>
+</html>

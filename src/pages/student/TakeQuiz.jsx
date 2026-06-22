@@ -52,7 +52,7 @@ function ConfidenceExplainer({ onDone }) {
           {CONFIDENCE_LEVELS.map(({ label }) => (
             <div key={label} style={{
               padding: '10px 14px', borderRadius: '8px',
-              border: '1px solid #e0e0e0', fontSize: '14px', color: '#333',
+              border: 'var(--bw) solid var(--border)', fontSize: '14px', color: '#333',
               background: '#fafafa',
             }}>
               {label}
@@ -63,7 +63,7 @@ function ConfidenceExplainer({ onDone }) {
           onClick={onDone}
           style={{
             width: '100%', padding: '12px',
-            background: '#534AB7', color: 'white', border: 'none',
+            background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
             borderRadius: '8px', fontSize: '15px', fontWeight: '500', cursor: 'pointer',
           }}
         >
@@ -88,10 +88,10 @@ function ConfidenceSelector({ questionId, value, onChange }) {
               onClick={() => onChange(questionId, cv)}
               style={{
                 flex: 1, padding: '7px 4px', fontSize: '12px', fontWeight: selected ? '600' : '400',
-                border: `1.5px solid ${selected ? '#534AB7' : '#d0d0d0'}`,
+                border: `1.5px solid ${selected ? 'var(--primary)' : '#d0d0d0'}`,
                 borderRadius: '8px',
-                background: selected ? '#EEEDFE' : 'white',
-                color: selected ? '#534AB7' : '#555',
+                background: selected ? 'var(--surface2)' : 'white',
+                color: selected ? 'var(--primary)' : '#555',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
@@ -296,7 +296,7 @@ function TakeQuiz() {
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>All done — your answers have been sent to your teacher.</h2>
         <p
           data-testid="encouragement-line"
-          style={{ fontSize: '15px', color: '#5a5298', fontStyle: 'italic', marginTop: '16px', lineHeight: '1.6' }}
+          style={{ fontSize: '15px', color: 'var(--primary)', fontStyle: 'italic', marginTop: '16px', lineHeight: '1.6' }}
         >
           {encouragement}
         </p>
@@ -334,7 +334,7 @@ function TakeQuiz() {
         </p>
 
         {questions.map((q, qi) => (
-          <div key={q.id} style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
+          <div key={q.id} style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
             <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
               Question {qi + 1}
             </div>
@@ -348,8 +348,8 @@ function TakeQuiz() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
                     padding: '10px 12px', marginBottom: '8px', borderRadius: '8px',
-                    border: `1px solid ${isSelected ? '#534AB7' : '#e0e0e0'}`,
-                    background: isSelected ? '#EEEDFE33' : 'white',
+                    border: `1px solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
+                    background: isSelected ? 'var(--surface2)33' : 'white',
                     cursor: 'pointer',
                   }}
                 >
@@ -385,7 +385,7 @@ function TakeQuiz() {
           onClick={handleSubmit}
           style={{
             width: '100%', padding: '12px',
-            background: !allAnswered || submitting ? '#ccc' : '#534AB7',
+            background: !allAnswered || submitting ? '#ccc' : 'var(--primary)',
             color: 'white', border: 'none', borderRadius: '8px',
             fontSize: '15px', fontWeight: '500',
             cursor: !allAnswered || submitting ? 'not-allowed' : 'pointer',

@@ -125,7 +125,7 @@ function Subscribe() {
             onClick={handleSubscribe}
             disabled={status === 'loading'}
             style={{
-              width: '100%', padding: '12px', background: status === 'loading' ? '#ccc' : '#534AB7',
+              width: '100%', padding: '12px', background: status === 'loading' ? '#ccc' : 'var(--primary)',
               color: 'white', border: 'none', borderRadius: '8px',
               fontSize: '15px', fontWeight: '500',
               cursor: status === 'loading' ? 'not-allowed' : 'pointer',

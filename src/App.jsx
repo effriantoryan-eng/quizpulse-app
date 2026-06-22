@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { getOnboarded, setOnboarded as markOnboarded } from './onboardingCache'
 import API_BASE from './api'
@@ -14,7 +14,7 @@ import BuildQuiz from './pages/teacher/BuildQuiz'
 import SendQuiz from './pages/teacher/SendQuiz'
 import Analytics from './pages/teacher/Analytics'
 import QuizHistory from './pages/teacher/QuizHistory'
-import DemoNav from './components/DemoNav'
+import Sidebar from './components/Sidebar'
 import AdminLog from './pages/AdminLog'
 import JoinClass from './pages/student/JoinClass'
 import TakeQuiz from './pages/student/TakeQuiz'
@@ -76,33 +76,49 @@ function RequireTeacher({ children }) {
   return children
 }
 
+// Public, full-bleed routes (student-facing + auth) render without the teacher sidebar.
+const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/quiz', '/join', '/student/subscribe']
+
 function AppRoutes() {
   usePageView()
   useDocumentTitle()
+  const { pathname } = useLocation()
+  const hideSidebar = FULL_WIDTH_ROUTES.some(p => pathname === p || pathname.startsWith(p + '/'))
+
+  const routes = (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/demo" element={<DemoGallery />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+      <Route path="/teacher/classes" element={<RequireTeacher><Classes /></RequireTeacher>} />
+      <Route path="/teacher/create" element={<RequireTeacher><CreateQuestion /></RequireTeacher>} />
+      <Route path="/teacher/bank" element={<RequireTeacher><QuestionBank /></RequireTeacher>} />
+      <Route path="/teacher/build" element={<RequireTeacher><BuildQuiz /></RequireTeacher>} />
+      <Route path="/teacher/send" element={<RequireTeacher><SendQuiz /></RequireTeacher>} />
+      <Route path="/teacher/quizzes" element={<RequireTeacher><QuizHistory /></RequireTeacher>} />
+      <Route path="/teacher/analytics/:quizId" element={<RequireTeacher><Analytics /></RequireTeacher>} />
+      <Route path="/admin/log" element={<RequireTeacher><AdminLog /></RequireTeacher>} />
+      <Route path="/join" element={<JoinClass />} />
+      <Route path="/quiz" element={<TakeQuiz />} />
+      <Route path="/student/subscribe" element={<Subscribe />} />
+      <Route path="/teacher/pending-requests" element={<RequireTeacher><PendingRequests /></RequireTeacher>} />
+      <Route path="/teacher/roster" element={<RequireTeacher><ClassRoster /></RequireTeacher>} />
+      <Route path="/teacher/classes/settings" element={<RequireTeacher><ClassSettings /></RequireTeacher>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+
   return (
     <>
-      <DemoNav />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/demo" element={<DemoGallery />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
-        <Route path="/teacher/classes" element={<RequireTeacher><Classes /></RequireTeacher>} />
-        <Route path="/teacher/create" element={<RequireTeacher><CreateQuestion /></RequireTeacher>} />
-        <Route path="/teacher/bank" element={<RequireTeacher><QuestionBank /></RequireTeacher>} />
-        <Route path="/teacher/build" element={<RequireTeacher><BuildQuiz /></RequireTeacher>} />
-        <Route path="/teacher/send" element={<RequireTeacher><SendQuiz /></RequireTeacher>} />
-        <Route path="/teacher/quizzes" element={<RequireTeacher><QuizHistory /></RequireTeacher>} />
-        <Route path="/teacher/analytics/:quizId" element={<RequireTeacher><Analytics /></RequireTeacher>} />
-        <Route path="/admin/log" element={<RequireTeacher><AdminLog /></RequireTeacher>} />
-        <Route path="/join" element={<JoinClass />} />
-        <Route path="/quiz" element={<TakeQuiz />} />
-        <Route path="/student/subscribe" element={<Subscribe />} />
-        <Route path="/teacher/pending-requests" element={<RequireTeacher><PendingRequests /></RequireTeacher>} />
-        <Route path="/teacher/roster" element={<RequireTeacher><ClassRoster /></RequireTeacher>} />
-        <Route path="/teacher/classes/settings" element={<RequireTeacher><ClassSettings /></RequireTeacher>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      {hideSidebar ? routes : (
+        <div className="app-shell">
+          <Sidebar />
+          <main className="app-content">
+            <div className="app-content-inner">{routes}</div>
+          </main>
+        </div>
+      )}
       <SWUpdateBanner />
       <IosInstallBanner />
     </>

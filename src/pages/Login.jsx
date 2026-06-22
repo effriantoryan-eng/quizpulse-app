@@ -53,22 +53,28 @@ function Login() {
   }
 
   const card = {
-    maxWidth: 380, margin: '100px auto', padding: '48px 32px',
-    textAlign: 'center', border: '1px solid #eee', borderRadius: '16px',
+    maxWidth: 400, margin: '80px auto', padding: '44px 32px',
+    textAlign: 'center', background: 'var(--surface)',
+    border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
+    boxShadow: 'var(--shadow)',
   }
   const logo = {
-    width: '48px', height: '48px', borderRadius: '10px', background: '#534AB7',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    margin: '0 auto 20px', fontSize: '24px',
+    width: '52px', height: '52px', borderRadius: '12px', background: 'var(--logoGrad)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+    margin: '0 auto 20px', fontSize: '26px',
+    border: 'var(--bw) solid var(--border)', boxShadow: 'var(--shadowField)',
   }
   const providerButton = {
-    width: '100%', padding: '12px', borderRadius: '8px', fontSize: '14px',
-    fontWeight: '500', cursor: 'pointer', marginBottom: '10px',
+    width: '100%', padding: '14px', borderRadius: 'var(--radius)', fontSize: '15px',
+    fontWeight: '700', cursor: 'pointer', marginBottom: '12px',
+    fontFamily: 'var(--heading)',
+    border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
   }
   const infoBox = {
-    background: '#f5f4ff', borderRadius: '10px', padding: '20px',
-    fontSize: '14px', color: '#444', lineHeight: '1.6', textAlign: 'left',
+    background: 'var(--tipBg)', border: 'var(--bw) solid var(--border)',
+    borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', padding: '20px',
+    fontSize: '14px', color: 'var(--text)', lineHeight: '1.6', textAlign: 'left',
     marginBottom: '8px',
   }
 
@@ -91,7 +97,7 @@ function Login() {
             navigator.clipboard?.writeText(window.location.href).catch(() => {})
           }}
           style={{
-            ...providerButton, background: '#534AB7', color: 'white', border: 'none',
+            ...providerButton, background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
             marginTop: '8px',
           }}
         >
@@ -122,7 +128,7 @@ function Login() {
           rel="noreferrer"
           style={{
             display: 'block', width: '100%', padding: '12px', borderRadius: '8px',
-            fontSize: '14px', fontWeight: '500', background: '#534AB7', color: 'white',
+            fontSize: '14px', fontWeight: '500', background: 'var(--primary)', color: 'white',
             textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box',
             marginTop: '8px',
           }}
@@ -143,7 +149,7 @@ function Login() {
       <button
         data-testid="login-microsoft"
         onClick={() => signIn('login.microsoftonline.com')}
-        style={{ ...providerButton, background: '#534AB7', color: 'white', border: 'none' }}
+        style={{ ...providerButton, background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)' }}
       >
         Sign in with Microsoft
       </button>
@@ -151,7 +157,7 @@ function Login() {
       <button
         data-testid="login-google"
         onClick={() => signIn('google.com')}
-        style={{ ...providerButton, background: 'white', color: '#444', border: '1px solid #ddd' }}
+        style={{ ...providerButton, background: 'white', color: 'var(--text)' }}
       >
         Sign in with Google
       </button>
@@ -159,7 +165,7 @@ function Login() {
       <button
         data-testid="login-chooser"
         onClick={() => signIn(null)}
-        style={{ background: 'none', border: 'none', color: '#7B6EDE', fontSize: '13px', cursor: 'pointer', marginTop: '6px' }}
+        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '13px', cursor: 'pointer', marginTop: '6px' }}
       >
         More sign-in options
       </button>
@@ -174,7 +180,7 @@ function Login() {
       <button
         data-testid="signup-button"
         onClick={signUp}
-        style={{ ...providerButton, background: 'white', color: '#534AB7', border: '1.5px solid #534AB7', marginBottom: 0 }}
+        style={{ ...providerButton, background: 'var(--primarySoft)', color: 'var(--text)', border: 'var(--bw) solid var(--primary)', marginBottom: 0 }}
       >
         Create an account
       </button>

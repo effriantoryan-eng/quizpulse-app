@@ -47,7 +47,7 @@ function SendQuiz() {
         </p>
         <button
           onClick={() => navigate('/teacher/build')}
-          style={{ padding: '10px 20px', background: '#534AB7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
+          style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
         >
           Go to Build quiz
         </button>
@@ -149,7 +149,7 @@ function SendQuiz() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Send quiz</h2>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: '1px solid #C5C0F0', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: '#7B6EDE', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -160,8 +160,8 @@ function SendQuiz() {
       )}
 
       {/* Quiz summary */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', background: '#f8f8f8', borderRadius: '10px', marginBottom: '24px', border: '1px solid #eee' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}>📋</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', background: '#f8f8f8', borderRadius: '10px', marginBottom: '24px', border: 'var(--bw) solid var(--border)' }}>
+        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}>📋</div>
         <div>
           <div style={{ fontSize: '14px', fontWeight: '500' }}>{quizName}</div>
           <div style={{ fontSize: '12px', color: '#888' }}>{questionIds.length} question{questionIds.length !== 1 ? 's' : ''}</div>
@@ -210,7 +210,7 @@ function SendQuiz() {
             <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
               No classes yet.{' '}
               <span
-                style={{ color: '#534AB7', cursor: 'pointer', textDecoration: 'underline' }}
+                style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
                 onClick={() => navigate('/teacher/classes')}
               >
                 Create a class first
@@ -228,15 +228,15 @@ function SendQuiz() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '12px 14px', marginBottom: '8px',
-                  border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? '#534AB7' : '#e0e0e0'}`,
-                  borderRadius: '8px', background: isSelected ? '#EEEDFE11' : 'white',
+                  border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
+                  borderRadius: '8px', background: isSelected ? 'var(--surface2)11' : 'white',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
                 <div style={{
                   width: '20px', height: '20px', borderRadius: '50%',
-                  border: `1px solid ${isSelected ? '#534AB7' : '#ccc'}`,
-                  background: isSelected ? '#534AB7' : 'white',
+                  border: `1px solid ${isSelected ? 'var(--primary)' : '#ccc'}`,
+                  background: isSelected ? 'var(--primary)' : 'white',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0, fontSize: '12px', color: 'white',
                 }}>
@@ -256,23 +256,23 @@ function SendQuiz() {
               onClick={() => setMode('now')}
               style={{
                 padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
-                border: `2px solid ${mode === 'now' ? '#534AB7' : '#e0e0e0'}`,
-                background: mode === 'now' ? '#EEEDFE22' : '#fafafa',
+                border: `2px solid ${mode === 'now' ? 'var(--primary)' : '#e0e0e0'}`,
+                background: mode === 'now' ? 'var(--surface2)22' : '#fafafa',
               }}
             >
               <div style={{ fontSize: '20px', marginBottom: '6px' }}>📤</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'now' ? '#534AB7' : '#888' }}>Send now</div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'now' ? 'var(--primary)' : '#888' }}>Send now</div>
             </div>
             <div
               onClick={() => setMode('schedule')}
               style={{
                 padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
-                border: `2px solid ${mode === 'schedule' ? '#534AB7' : '#e0e0e0'}`,
-                background: mode === 'schedule' ? '#EEEDFE22' : '#fafafa',
+                border: `2px solid ${mode === 'schedule' ? 'var(--primary)' : '#e0e0e0'}`,
+                background: mode === 'schedule' ? 'var(--surface2)22' : '#fafafa',
               }}
             >
               <div style={{ fontSize: '20px', marginBottom: '6px' }}>🕐</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'schedule' ? '#534AB7' : '#888' }}>Schedule</div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'schedule' ? 'var(--primary)' : '#888' }}>Schedule</div>
             </div>
           </div>
 
@@ -284,7 +284,7 @@ function SendQuiz() {
             min={5}
             value={durationMinutes}
             onChange={e => setDurationMinutes(Number(e.target.value))}
-            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
           />
 
           {mode === 'schedule' && (
@@ -296,13 +296,13 @@ function SendQuiz() {
                 type="datetime-local"
                 value={scheduledFor}
                 onChange={e => setScheduledFor(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
+                style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
               />
             </>
           )}
 
           {sending && sendingMsg && (
-            <div style={{ padding: '10px 14px', background: '#EEEDFE', border: '1px solid #c5c0f0', borderRadius: '8px', fontSize: '13px', color: '#534AB7', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '10px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', color: 'var(--primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>⏳</span>
               {sendingMsg}
             </div>
@@ -318,7 +318,7 @@ function SendQuiz() {
             disabled={selectedClasses.length === 0 || sending}
             style={{
               width: '100%', padding: '12px',
-              background: selectedClasses.length === 0 || sending ? '#ccc' : '#534AB7',
+              background: selectedClasses.length === 0 || sending ? '#ccc' : 'var(--primary)',
               color: 'white', border: 'none', borderRadius: '8px',
               fontSize: '15px', fontWeight: '500',
               cursor: selectedClasses.length === 0 || sending ? 'not-allowed' : 'pointer',

@@ -9,7 +9,7 @@ const TOPIC_COLORS = {
   History: { bg: '#FAEEDA', color: '#633806' },
   Mathematics: { bg: '#E6F1FB', color: '#0C447C' },
   English: { bg: '#FBEAF0', color: '#4B1528' },
-  Geography: { bg: '#EEEDFE', color: '#3C3489' },
+  Geography: { bg: 'var(--surface2)', color: 'var(--text)' },
 }
 
 const ALLOWED_TOPICS = ['Science', 'History', 'Mathematics', 'English', 'Geography']
@@ -41,29 +41,29 @@ function VisibilityPill({ value, onChange }) {
 }
 
 function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, onCancelEdit, onSaveEdit, onDelete, onVisibilityChange, editForm, setEditForm, saving, editError, showActions = true }) {
-  const topicStyle = TOPIC_COLORS[q.topic] || { bg: '#EEEDFE', color: '#3C3489' }
+  const topicStyle = TOPIC_COLORS[q.topic] || { bg: 'var(--surface2)', color: 'var(--text)' }
 
   if (isEditing) {
     return (
-      <div style={{ padding: '16px', marginBottom: '10px', border: '2px solid #534AB7', borderRadius: '10px', background: '#FAFAFE' }}>
+      <div style={{ padding: '16px', marginBottom: '10px', border: '2px solid var(--primary)', borderRadius: '10px', background: 'var(--bg)' }}>
         <div style={{ marginBottom: '10px' }}>
           <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Question</label>
           <textarea
             value={editForm.text}
             onChange={e => setEditForm(f => ({ ...f, text: e.target.value }))}
             rows={2}
-            style={{ width: '100%', padding: '8px', fontSize: '14px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box', resize: 'vertical' }}
+            style={{ width: '100%', padding: '8px', fontSize: '14px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', resize: 'vertical' }}
           />
         </div>
         <div style={{ marginBottom: '10px' }}>
           <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Options (select correct answer)</label>
           {editForm.options.map((opt, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <input type="radio" name={`correct-${q.id}`} checked={editForm.correctIndex === i} onChange={() => setEditForm(f => ({ ...f, correctIndex: i }))} style={{ accentColor: '#534AB7' }} />
+              <input type="radio" name={`correct-${q.id}`} checked={editForm.correctIndex === i} onChange={() => setEditForm(f => ({ ...f, correctIndex: i }))} style={{ accentColor: 'var(--primary)' }} />
               <input
                 value={opt}
                 onChange={e => { const opts = [...editForm.options]; opts[i] = e.target.value; setEditForm(f => ({ ...f, options: opts })); }}
-                style={{ flex: 1, padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: `1px solid ${editForm.correctIndex === i ? '#534AB7' : '#ddd'}` }}
+                style={{ flex: 1, padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: `1px solid ${editForm.correctIndex === i ? 'var(--primary)' : '#ddd'}` }}
               />
             </div>
           ))}
@@ -71,20 +71,20 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
         <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
           <div>
             <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Topic</label>
-            <select value={editForm.topic} onChange={e => setEditForm(f => ({ ...f, topic: e.target.value }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #ddd' }}>
+            <select value={editForm.topic} onChange={e => setEditForm(f => ({ ...f, topic: e.target.value }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
               {ALLOWED_TOPICS.map(t => <option key={t}>{t}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Year level</label>
-            <select value={editForm.yearLevel || ''} onChange={e => setEditForm(f => ({ ...f, yearLevel: e.target.value ? parseInt(e.target.value) : null }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #ddd' }}>
+            <select value={editForm.yearLevel || ''} onChange={e => setEditForm(f => ({ ...f, yearLevel: e.target.value ? parseInt(e.target.value) : null }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
               <option value="">All years</option>
               {YEAR_LEVELS.map(y => <option key={y} value={y}>Year {y}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Visibility</label>
-            <select value={editForm.visibility || 'private'} onChange={e => setEditForm(f => ({ ...f, visibility: e.target.value }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #ddd' }}>
+            <select value={editForm.visibility || 'private'} onChange={e => setEditForm(f => ({ ...f, visibility: e.target.value }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
               <option value="private">Private</option>
               <option value="school">School</option>
               <option value="public">Public</option>
@@ -93,10 +93,10 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
         </div>
         {editError && <div style={{ fontSize: '12px', color: '#c0392b', marginBottom: '10px' }}>{editError}</div>}
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={() => onSaveEdit(q.id)} disabled={saving} style={{ padding: '7px 16px', background: saving ? '#ccc' : '#534AB7', color: 'white', border: 'none', borderRadius: '6px', fontSize: '13px', cursor: saving ? 'not-allowed' : 'pointer' }}>
+          <button onClick={() => onSaveEdit(q.id)} disabled={saving} style={{ padding: '7px 16px', background: saving ? '#ccc' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontSize: '13px', cursor: saving ? 'not-allowed' : 'pointer' }}>
             {saving ? 'Saving…' : 'Save'}
           </button>
-          <button onClick={onCancelEdit} style={{ padding: '7px 16px', background: 'white', color: '#555', border: '1px solid #ddd', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={onCancelEdit} style={{ padding: '7px 16px', background: 'white', color: '#555', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
         </div>
       </div>
     )
@@ -108,20 +108,20 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
       style={{
         display: 'flex', alignItems: 'flex-start', gap: '12px',
         padding: '14px 16px', marginBottom: '10px',
-        border: `1px solid ${isSelected ? '#534AB7' : '#e0e0e0'}`,
-        borderRadius: '10px', background: isSelected ? '#EEEDFE22' : 'white',
+        border: `1px solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
+        borderRadius: '10px', background: isSelected ? 'var(--surface2)22' : 'white',
         cursor: showActions && onToggleSelect ? 'pointer' : 'default'
       }}
     >
       {onToggleSelect && (
-        <input type="checkbox" checked={!!isSelected} onChange={() => onToggleSelect(q.id)} style={{ marginTop: '3px', accentColor: '#534AB7' }} />
+        <input type="checkbox" checked={!!isSelected} onChange={() => onToggleSelect(q.id)} style={{ marginTop: '3px', accentColor: 'var(--primary)' }} />
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '14px', marginBottom: '6px', lineHeight: '1.5' }}>{q.text}</div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color }}>{q.topic}</span>
           {q.yearLevel && <span style={{ fontSize: '11px', color: '#888' }}>Year {q.yearLevel}</span>}
-          {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: '#534AB7' }}>▲ {q.upvoteCount}</span>}
+          {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: 'var(--primary)' }}>▲ {q.upvoteCount}</span>}
           {q.usageCount > 0 && <span style={{ fontSize: '11px', color: '#aaa' }}>{q.usageCount} uses</span>}
         </div>
       </div>
@@ -131,10 +131,10 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
             <VisibilityPill value={q.visibility || 'private'} onChange={v => onVisibilityChange(q.id, v)} />
           )}
           {onStartEdit && (
-            <button onClick={e => onStartEdit(q, e)} style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer', color: '#555' }}>Edit</button>
+            <button onClick={e => onStartEdit(q, e)} style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', cursor: 'pointer', color: '#555' }}>Edit</button>
           )}
           {onDelete && (
-            <button onClick={e => onDelete(q.id, e)} style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer', color: '#c0392b' }}>Delete</button>
+            <button onClick={e => onDelete(q.id, e)} style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', cursor: 'pointer', color: '#c0392b' }}>Delete</button>
           )}
         </div>
       )}
@@ -143,35 +143,35 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
 }
 
 function CommunityCard({ q, onUpvote, onCopy, onReport, upvotedIds, copyingId, reportingId }) {
-  const topicStyle = TOPIC_COLORS[q.topic] || { bg: '#EEEDFE', color: '#3C3489' }
+  const topicStyle = TOPIC_COLORS[q.topic] || { bg: 'var(--surface2)', color: 'var(--text)' }
   const upvoted = upvotedIds.has(q.id)
   return (
-    <div style={{ padding: '14px 16px', marginBottom: '10px', border: '1px solid #e0e0e0', borderRadius: '10px', background: 'white' }}>
+    <div style={{ padding: '14px 16px', marginBottom: '10px', border: 'var(--bw) solid var(--border)', borderRadius: '10px', background: 'white' }}>
       <div style={{ fontSize: '14px', marginBottom: '8px', lineHeight: '1.5' }}>{q.text}</div>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
         <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color }}>{q.topic}</span>
         {q.yearLevel && <span style={{ fontSize: '11px', color: '#888' }}>Year {q.yearLevel}</span>}
-        {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: upvoted ? '#534AB7' : '#aaa' }}>▲ {q.upvoteCount}</span>}
+        {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: upvoted ? 'var(--primary)' : '#aaa' }}>▲ {q.upvoteCount}</span>}
         {q.usageCount > 0 && <span style={{ fontSize: '11px', color: '#aaa' }}>{q.usageCount} uses</span>}
       </div>
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={() => onUpvote(q)}
-          style={{ padding: '4px 10px', fontSize: '12px', background: upvoted ? '#EEEDFE' : 'white', border: `1px solid ${upvoted ? '#534AB7' : '#ddd'}`, borderRadius: '6px', cursor: 'pointer', color: upvoted ? '#534AB7' : '#555' }}
+          style={{ padding: '4px 10px', fontSize: '12px', background: upvoted ? 'var(--surface2)' : 'white', border: `1px solid ${upvoted ? 'var(--primary)' : '#ddd'}`, borderRadius: '6px', cursor: 'pointer', color: upvoted ? 'var(--primary)' : '#555' }}
         >
           {upvoted ? '▲ Upvoted' : '▲ Upvote'}
         </button>
         <button
           onClick={() => onCopy(q)}
           disabled={copyingId === q.id}
-          style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: '1px solid #ddd', borderRadius: '6px', cursor: copyingId === q.id ? 'not-allowed' : 'pointer', color: '#555' }}
+          style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', cursor: copyingId === q.id ? 'not-allowed' : 'pointer', color: '#555' }}
         >
           {copyingId === q.id ? 'Copying…' : 'Copy to mine'}
         </button>
         <button
           onClick={() => onReport(q)}
           disabled={reportingId === q.id}
-          style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: '1px solid #ddd', borderRadius: '6px', cursor: reportingId === q.id ? 'not-allowed' : 'pointer', color: '#c0392b' }}
+          style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', cursor: reportingId === q.id ? 'not-allowed' : 'pointer', color: '#c0392b' }}
         >
           {reportingId === q.id ? 'Reported' : 'Report'}
         </button>
@@ -390,7 +390,7 @@ function QuestionBank() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Question bank</h2>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: '1px solid #C5C0F0', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: '#7B6EDE', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -423,8 +423,8 @@ function QuestionBank() {
             onClick={() => setActiveTab(tab.key)}
             style={{
               padding: '8px 18px', background: 'none', border: 'none',
-              borderBottom: activeTab === tab.key ? '2px solid #534AB7' : '2px solid transparent',
-              color: activeTab === tab.key ? '#534AB7' : '#666',
+              borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent',
+              color: activeTab === tab.key ? 'var(--primary)' : '#666',
               fontSize: '13px', fontWeight: activeTab === tab.key ? '600' : '400',
               cursor: 'pointer', marginBottom: '-1px',
             }}
@@ -449,8 +449,8 @@ function QuestionBank() {
                   onClick={() => setFilter(t)}
                   style={{
                     padding: '5px 12px', borderRadius: '20px', border: '1px solid',
-                    borderColor: filter === t ? '#534AB7' : '#ddd',
-                    background: filter === t ? '#534AB7' : 'white',
+                    borderColor: filter === t ? 'var(--primary)' : '#ddd',
+                    background: filter === t ? 'var(--primary)' : 'white',
                     color: filter === t ? 'white' : '#555',
                     cursor: 'pointer', fontSize: '12px', fontWeight: filter === t ? '500' : '400'
                   }}
@@ -484,7 +484,7 @@ function QuestionBank() {
             <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', color: '#666' }}>{selected.length} question{selected.length > 1 ? 's' : ''} selected</span>
               <button
-                style={{ padding: '8px 18px', background: '#534AB7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+                style={{ padding: '8px 18px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
                 onClick={() => alert('Add to quiz — head to Build Quiz and select questions there')}
               >
                 Add to quiz →
@@ -505,8 +505,8 @@ function QuestionBank() {
                 onClick={() => setCommunityMode(m.key)}
                 style={{
                   padding: '6px 14px', borderRadius: '20px', border: '1px solid',
-                  borderColor: communityMode === m.key ? '#534AB7' : '#ddd',
-                  background: communityMode === m.key ? '#534AB7' : 'white',
+                  borderColor: communityMode === m.key ? 'var(--primary)' : '#ddd',
+                  background: communityMode === m.key ? 'var(--primary)' : 'white',
                   color: communityMode === m.key ? 'white' : '#555',
                   cursor: 'pointer', fontSize: '12px', fontWeight: communityMode === m.key ? '500' : '400'
                 }}
@@ -523,18 +523,18 @@ function QuestionBank() {
                 value={communitySearchInput}
                 onChange={e => setCommunitySearchInput(e.target.value)}
                 placeholder="Search questions…"
-                style={{ flex: 1, padding: '6px 10px', fontSize: '13px', borderRadius: '6px', border: '1px solid #ddd', minWidth: 0 }}
+                style={{ flex: 1, padding: '6px 10px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', minWidth: 0 }}
               />
-              <button type="submit" style={{ padding: '6px 12px', background: '#534AB7', color: 'white', border: 'none', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>Go</button>
+              <button type="submit" style={{ padding: '6px 12px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>Go</button>
               {communitySearch && (
-                <button type="button" onClick={() => { setCommunitySearch(''); setCommunitySearchInput('') }} style={{ padding: '6px 10px', background: 'white', border: '1px solid #ddd', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#888' }}>✕</button>
+                <button type="button" onClick={() => { setCommunitySearch(''); setCommunitySearchInput('') }} style={{ padding: '6px 10px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#888' }}>✕</button>
               )}
             </form>
-            <select value={communityTopic} onChange={e => setCommunityTopic(e.target.value)} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #ddd' }}>
+            <select value={communityTopic} onChange={e => setCommunityTopic(e.target.value)} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
               <option value="">All topics</option>
               {ALLOWED_TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
-            <select value={communityYear} onChange={e => setCommunityYear(e.target.value)} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #ddd' }}>
+            <select value={communityYear} onChange={e => setCommunityYear(e.target.value)} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
               <option value="">All years</option>
               {YEAR_LEVELS.map(y => <option key={y} value={String(y)}>Year {y}</option>)}
             </select>
@@ -572,7 +572,7 @@ function QuestionBank() {
             <button
               onClick={loadMore}
               disabled={communityLoading}
-              style={{ width: '100%', padding: '10px', marginTop: '8px', background: 'white', border: '1px solid #ddd', borderRadius: '8px', fontSize: '13px', color: '#555', cursor: communityLoading ? 'not-allowed' : 'pointer' }}
+              style={{ width: '100%', padding: '10px', marginTop: '8px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', color: '#555', cursor: communityLoading ? 'not-allowed' : 'pointer' }}
             >
               {communityLoading ? 'Loading…' : 'Load more'}
             </button>

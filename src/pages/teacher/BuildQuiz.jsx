@@ -10,7 +10,7 @@ const TOPIC_COLORS = {
   History: { bg: '#FAEEDA', color: '#633806' },
   Mathematics: { bg: '#E6F1FB', color: '#0C447C' },
   English: { bg: '#FBEAF0', color: '#4B1528' },
-  Geography: { bg: '#EEEDFE', color: '#3C3489' },
+  Geography: { bg: 'var(--surface2)', color: 'var(--text)' },
 }
 
 function BuildQuiz() {
@@ -87,7 +87,7 @@ function BuildQuiz() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Build quiz</h2>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: '1px solid #C5C0F0', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: '#7B6EDE', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -124,7 +124,7 @@ function BuildQuiz() {
             )}
 
             {selected.map((q, i) => {
-              const topicStyle = TOPIC_COLORS[q.topic] || { bg: '#EEEDFE', color: '#3C3489' }
+              const topicStyle = TOPIC_COLORS[q.topic] || { bg: 'var(--surface2)', color: 'var(--text)' }
               return (
                 <div
                   key={q.id}
@@ -135,9 +135,9 @@ function BuildQuiz() {
                     gap: '10px',
                     padding: '10px 14px',
                     marginBottom: '8px',
-                    border: `1px solid ${previewIndex === i ? '#534AB7' : '#e0e0e0'}`,
+                    border: `1px solid ${previewIndex === i ? 'var(--primary)' : '#e0e0e0'}`,
                     borderRadius: '8px',
-                    background: previewIndex === i ? '#EEEDFE22' : 'white',
+                    background: previewIndex === i ? 'var(--surface2)22' : 'white',
                     cursor: 'pointer',
                     fontSize: '13px'
                   }}
@@ -168,7 +168,7 @@ function BuildQuiz() {
           <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>
             Preview — student view
           </div>
-          <div style={{ background: '#f8f8f8', borderRadius: '12px', padding: '16px', border: '1px solid #eee' }}>
+          <div style={{ background: '#f8f8f8', borderRadius: '12px', padding: '16px', border: 'var(--bw) solid var(--border)' }}>
             {previewQuestion ? (
               <>
                 <div style={{ fontSize: '11px', color: '#aaa', textAlign: 'center', marginBottom: '10px' }}>
@@ -178,7 +178,7 @@ function BuildQuiz() {
                   {previewQuestion.text}
                 </div>
                 {(previewQuestion.options || []).map((opt, i) => (
-                  <div key={i} style={{ background: i === previewQuestion.correctIndex ? '#EEEDFE' : 'white', border: `1px solid ${i === previewQuestion.correctIndex ? '#534AB7' : '#eee'}`, borderRadius: '8px', padding: '10px 14px', marginBottom: '8px', fontSize: '13px', color: i === previewQuestion.correctIndex ? '#3C3489' : '#333' }}>
+                  <div key={i} style={{ background: i === previewQuestion.correctIndex ? 'var(--surface2)' : 'white', border: `1px solid ${i === previewQuestion.correctIndex ? 'var(--primary)' : '#eee'}`, borderRadius: '8px', padding: '10px 14px', marginBottom: '8px', fontSize: '13px', color: i === previewQuestion.correctIndex ? 'var(--text)' : '#333' }}>
                     {opt}
                   </div>
                 ))}
@@ -190,7 +190,7 @@ function BuildQuiz() {
 
           <button
             disabled={selected.length === 0 || !quizName.trim()}
-            style={{ width: '100%', marginTop: '16px', padding: '12px', background: selected.length === 0 || !quizName.trim() ? '#ccc' : '#534AB7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: selected.length === 0 || !quizName.trim() ? 'not-allowed' : 'pointer' }}
+            style={{ width: '100%', marginTop: '16px', padding: '12px', background: selected.length === 0 || !quizName.trim() ? '#ccc' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: selected.length === 0 || !quizName.trim() ? 'not-allowed' : 'pointer' }}
             onClick={() => navigate('/teacher/send', { state: { quizName, questionIds: selected.map(q => q.id), questions: selected } })}
           >
             Save & go to send →
