@@ -399,6 +399,25 @@ etc.) MUST call `assertScope` from `api/shared/authz.js` before reading or mutat
   similar) for any admin endpoint, not `admin/...`.
 - Background: `docs/security/SPRINT5_AUDIT.md` is the full audit that motivated this model.
 
+### Demo class isolation [CURRENT — v3.3.0]
+
+A demo class (`isDemo: true`) lets a teacher explore the Send → Analytics loop with simulated
+students, without recruiting anyone. Its data must never leak into platform-wide reporting:
+
+**Any reporting/monitoring endpoint that aggregates across teachers must filter `isDemo` out.
+Per-teacher views (`Analytics.jsx` for an individual demo class) are exempt — the teacher is
+looking at their own demo data on purpose.**
+
+- The rule is defined in ONE place: `api/shared/excludeDemo.js` exports `EXCLUDE_DEMO_FRAGMENT`
+  (`(c.isDemo = false OR NOT IS_DEFINED(c.isDemo))`) plus `andExcludeDemo()`/`isDemoClass()`.
+  Import it — never re-type the predicate.
+- Applied in: `api/metrics.js` (real cross-teacher COUNT totals), `api/schoolsList.js` (per-school
+  class counts), `api/logsExport.js` (`type=security` drops audit_log entries whose target class is
+  a demo class — resolved in code, since `audit_log` has no `isDemo` of its own). Any future App
+  Insights / Kusto wiring in `metrics.js`/`logsExport.js` must carry the same exclusion.
+- `analytics.js` (GET /api/analytics) is per-teacher and intentionally demo-aware, not demo-excluded:
+  it resolves the demo class's `demoStudents` as the approved roster and returns `isDemo: true`.
+
 ---
 
 ## Security limits (enforce server-side)
