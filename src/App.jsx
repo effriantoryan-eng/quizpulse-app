@@ -14,7 +14,7 @@ import BuildQuiz from './pages/teacher/BuildQuiz'
 import SendQuiz from './pages/teacher/SendQuiz'
 import Analytics from './pages/teacher/Analytics'
 import QuizHistory from './pages/teacher/QuizHistory'
-import Sidebar from './components/Sidebar'
+import DemoNav from './components/DemoNav'
 import AdminLog from './pages/AdminLog'
 import JoinClass from './pages/student/JoinClass'
 import TakeQuiz from './pages/student/TakeQuiz'
@@ -113,7 +113,7 @@ function AppRoutes() {
     <>
       {hideSidebar ? routes : (
         <div className="app-shell">
-          <Sidebar />
+          <DemoNav />
           <main className="app-content">
             <div className="app-content-inner">{routes}</div>
           </main>
