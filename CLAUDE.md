@@ -78,6 +78,12 @@ endpoint + response timeline chart in the analytics UI). New Cosmos containers: 
 - Sprint 5 security audit: `docs/security/SPRINT5_AUDIT.md`
 - Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
+- Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
+  - `graphify-out/graph.json` — queryable JSON graph (697 nodes, 1091 edges)
+  - `graphify-out/GRAPH_REPORT.md` — architecture report
+  - `graphify-out/graph.html` — interactive visualization
+
+**Documentation discipline:** Re-run `graphify update .` (or `graphify . --no-label`) and commit updated `graphify-out/` whenever a sprint adds new files or significant structural changes.
 
 ---
 
