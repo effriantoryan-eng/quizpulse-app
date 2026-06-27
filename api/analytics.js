@@ -49,18 +49,33 @@ async function loadQuizAnalytics(quizId, teacherId) {
   }).fetchAll();
 
   let approvedStudents = [];
+  let isDemo = false;
   const classIds = quiz.classIds || [];
   if (classIds.length > 0) {
     const classIdParams = classIds.map((cid, i) => ({ name: `@cid${i}`, value: cid }));
     const classIdList = classIdParams.map(p => p.name).join(', ');
-    const { resources } = await joinRequestsContainer.items.query({
-      query: `SELECT c.deviceId, c.studentName FROM c WHERE c.status = "approved" AND c.classId IN (${classIdList})`,
+
+    // Demo class: there are no join_requests (a demo class is never joinable), so the "approved"
+    // roster is the class's generated demoStudents. Per-teacher demo analytics is exempt from the
+    // demo-isolation rule — the teacher is looking at their own demo data on purpose.
+    const { resources: cls } = await classesContainer.items.query({
+      query: `SELECT c.isDemo, c.demoStudents FROM c WHERE c.id IN (${classIdList})`,
       parameters: classIdParams,
     }).fetchAll();
-    approvedStudents = resources;
+    const demoClass = cls.find(c => c.isDemo === true && Array.isArray(c.demoStudents));
+    if (demoClass) {
+      isDemo = true;
+      approvedStudents = demoClass.demoStudents.map(s => ({ deviceId: s.studentId, studentName: s.name }));
+    } else {
+      const { resources } = await joinRequestsContainer.items.query({
+        query: `SELECT c.deviceId, c.studentName FROM c WHERE c.status = "approved" AND c.classId IN (${classIdList})`,
+        parameters: classIdParams,
+      }).fetchAll();
+      approvedStudents = resources;
+    }
   }
 
-  return { quiz, questions, responses, approvedStudents };
+  return { quiz, questions, responses, approvedStudents, isDemo };
 }
 
 const CONFIDENT_VALUES = new Set(['sure', 'pretty_sure']);
@@ -135,7 +150,7 @@ app.http('analytics', {
       const quizId = new URL(request.url).searchParams.get('quizId');
       if (!quizId) return respond(400, { error: 'quizId query parameter is required' }, teacherId);
 
-      const { quiz, questions, responses, approvedStudents } = await loadQuizAnalytics(quizId, teacherId);
+      const { quiz, questions, responses, approvedStudents, isDemo } = await loadQuizAnalytics(quizId, teacherId);
 
       const respondedDeviceIds = new Set(responses.map(r => r.studentId));
       const nonResponders = approvedStudents.filter(s => !respondedDeviceIds.has(s.deviceId));
@@ -148,6 +163,7 @@ app.http('analytics', {
         quizName: quiz.name,
         classSize: quiz.classSize || approvedStudents.length,
         totalResponses: responses.length,
+        isDemo,
         questions: buildQuestionBreakdown(questions, responses),
         nonResponders: nonResponders.map(s => ({ studentName: s.studentName })),
         timeline,
