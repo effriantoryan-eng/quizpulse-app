@@ -16,7 +16,7 @@ export default function Home() {
   const { isAuthenticated, login } = useAuth()
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/teacher/classes', { replace: true })
+    if (isAuthenticated) navigate('/teacher/home', { replace: true })
   }, [isAuthenticated, navigate])
 
   // Don't flash the landing while the redirect is in flight.

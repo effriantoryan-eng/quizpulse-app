@@ -13,7 +13,10 @@ import QuestionBank from './pages/teacher/QuestionBank'
 import BuildQuiz from './pages/teacher/BuildQuiz'
 import SendQuiz from './pages/teacher/SendQuiz'
 import Analytics from './pages/teacher/Analytics'
+import Results from './pages/teacher/Results'
+import TeacherHome from './pages/teacher/TeacherHome'
 import QuizHistory from './pages/teacher/QuizHistory'
+import SubNav from './components/SubNav'
 import DemoNav from './components/DemoNav'
 import AdminLog from './pages/AdminLog'
 import JoinClass from './pages/student/JoinClass'
@@ -91,12 +94,14 @@ function AppRoutes() {
       <Route path="/demo" element={<DemoGallery />} />
       <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+      <Route path="/teacher/home" element={<RequireTeacher><TeacherHome /></RequireTeacher>} />
       <Route path="/teacher/classes" element={<RequireTeacher><Classes /></RequireTeacher>} />
       <Route path="/teacher/create" element={<RequireTeacher><CreateQuestion /></RequireTeacher>} />
       <Route path="/teacher/bank" element={<RequireTeacher><QuestionBank /></RequireTeacher>} />
       <Route path="/teacher/build" element={<RequireTeacher><BuildQuiz /></RequireTeacher>} />
       <Route path="/teacher/send" element={<RequireTeacher><SendQuiz /></RequireTeacher>} />
       <Route path="/teacher/quizzes" element={<RequireTeacher><QuizHistory /></RequireTeacher>} />
+      <Route path="/teacher/results" element={<RequireTeacher><Results /></RequireTeacher>} />
       <Route path="/teacher/analytics/:quizId" element={<RequireTeacher><Analytics /></RequireTeacher>} />
       <Route path="/admin/log" element={<RequireTeacher><AdminLog /></RequireTeacher>} />
       <Route path="/join" element={<JoinClass />} />
@@ -115,7 +120,10 @@ function AppRoutes() {
         <div className="app-shell">
           <DemoNav />
           <main className="app-content">
-            <div className="app-content-inner">{routes}</div>
+            <div className="app-content-inner">
+              <SubNav />
+              {routes}
+            </div>
           </main>
         </div>
       )}
