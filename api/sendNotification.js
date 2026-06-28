@@ -35,6 +35,10 @@ function ensureVapid() {
 // scheduled-quiz timer trigger. Mutates and persists notificationSentAt on the quiz.
 // Returns { sent, total } on success, or throws/returns { error, status } on failure.
 async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount } = {}) {
+  if (quiz.status !== 'sent') {
+    return { error: 'Quiz is not in sent state', status: 409 };
+  }
+
   if (quiz.notificationSentAt) {
     return { error: 'Notifications already sent for this quiz', status: 409 };
   }

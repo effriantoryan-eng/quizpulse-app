@@ -25,6 +25,15 @@ function CreateQuestion() {
     setOptions(updated)
   }
 
+  function handleReset() {
+    setQuestion('')
+    setOptions(['', '', '', ''])
+    setCorrectIndex(null)
+    setTopic('')
+    setYearLevel(null)
+    setError(null)
+  }
+
   async function handleSave() {
     if (!question || options.some(o => !o) || correctIndex === null || !topic) {
       setError('Please fill in all fields, select a correct answer and a topic.')
@@ -179,6 +188,7 @@ function CreateQuestion() {
             </svg>
           )}
         </button>
+        <button className="bp-btn secondary" onClick={handleReset} disabled={saving}>Reset</button>
       </div>
     </div>
   )
