@@ -257,6 +257,27 @@ code {
   display: none;
 }
 
+/* Section labels grouping related nav items */
+.nav-group-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--navMuted);
+  padding: 14px 12px 4px;
+}
+
+/* Mobile topbar (sticky strip with logo + hamburger) — hidden on desktop */
+.mobile-topbar {
+  display: none;
+}
+
+/* Drawer backdrop — hidden on desktop */
+.drawer-backdrop {
+  display: none;
+}
+
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -332,29 +353,94 @@ code {
 }
 
 @media (max-width: 860px) {
+  /* Sticky topbar replaces the sidebar brand row on mobile */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    background: var(--navBg);
+    z-index: 100;
+    box-sizing: border-box;
+    flex: none;
+    align-self: stretch;
+  }
+
+  /* Show hamburger inside the topbar */
+  .mobile-topbar .sidebar-hamburger {
+    display: flex;
+    margin-left: auto;
+  }
+
+  /* Drawer: fixed overlay — never shifts page content */
+  .sidebar-drawer {
+    width: 280px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    min-height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+    overflow-y: auto;
+    padding: 22px 16px;
+  }
+
+  .sidebar-drawer.drawer-open {
+    transform: translateX(0);
+  }
+
+  /* Backdrop dims the page while drawer is open */
+  .drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 199;
+  }
+
+  /* Nav items always visible inside the drawer (visibility controlled by transform) */
+  .sidebar-drawer .sidebar-nav {
+    display: flex;
+    margin-top: 10px;
+  }
+
+  /* app-shell: column so the sticky topbar sits above app-content */
   .app-shell {
     flex-direction: column;
   }
-  .sidebar {
+
+  /* public sidebar (non-drawer) keeps old push-down behaviour */
+  .sidebar:not(.sidebar-drawer) {
     width: 100%;
     min-height: auto;
     position: sticky;
     top: 0;
     padding: 12px 16px;
   }
-  .sidebar-brand {
+
+  .sidebar:not(.sidebar-drawer) .sidebar-brand {
     padding: 4px 4px;
   }
-  .sidebar-hamburger {
+
+  .sidebar:not(.sidebar-drawer) .sidebar-hamburger {
     display: flex;
   }
-  .sidebar-nav {
+
+  .sidebar:not(.sidebar-drawer) .sidebar-nav {
     display: none;
     margin-top: 10px;
   }
-  .sidebar-nav.open {
+
+  .sidebar:not(.sidebar-drawer) .sidebar-nav.open {
     display: flex;
   }
+
   .app-content-inner {
     padding: 24px 18px 80px;
   }

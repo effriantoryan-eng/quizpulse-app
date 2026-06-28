@@ -27,8 +27,10 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm ci
+      - name: Install API dependencies
+        run: cd api && npm ci
       - name: Run unit tests
         run: npm run test:unit
       - name: Build And Deploy
