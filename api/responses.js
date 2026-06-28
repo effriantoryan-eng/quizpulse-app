@@ -1,6 +1,7 @@
 const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
+const crypto = require('crypto');
 const { logRequest } = require('./logger');
 
 const client = new CosmosClient({
@@ -38,6 +39,10 @@ app.http('responses', {
       if (!rateLimit(`responses:${ip}`, 5, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' })
       }
+      // Per-studentId rate limit — partial mitigation for caller-supplied studentId impersonation
+      const rawStudentId = (typeof (await request.clone().json().catch(() => ({})))?.studentId === 'string')
+        ? null // defer — read once below
+        : null;
 
       const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
       if (contentLength > MAX_RESPONSE_BODY) {
@@ -114,6 +119,10 @@ app.http('responses', {
       }
       const quiz = quizMatches[0];
 
+      if (quiz.status !== 'sent') {
+        return respond(404, { error: 'Quiz not found' })
+      }
+
       if (quiz.closedAt && new Date(quiz.closedAt).getTime() < Date.now()) {
         return respond(410, { error: 'This quiz has closed.' })
       }
@@ -132,24 +141,25 @@ app.http('responses', {
         hasApproval = approved.length > 0;
       }
       if (!hasApproval) {
-        return respond(403, { error: 'You do not have an approved join request for this quiz\'s class' })
+        return respond(404, { error: 'Quiz not found' })
       }
 
-      // Idempotency check — prevent duplicate submissions for the same student + quiz
-      const { resources: existing } = await container.items.query({
-        query: 'SELECT c.id FROM c WHERE c.quizId = @quizId AND c.studentId = @studentId',
-        parameters: [
-          { name: '@quizId', value: resolvedQuizId },
-          { name: '@studentId', value: resolvedStudentId }
-        ]
-      }).fetchAll();
-
-      if (existing.length > 0) {
-        return respond(409, { error: 'You have already submitted a response for this quiz' })
+      // Rate-limit by studentId to throttle impersonation of approved students.
+      if (!rateLimit(`responses:student:${resolvedStudentId}`, 5, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' })
       }
+
+      // Deterministic doc ID makes the duplicate check atomic — Cosmos rejects a second
+      // create with the same id (409) without needing a separate read round-trip.
+      // ponytail: replaces the prior SELECT+create pattern which had a race window
+      const responseId = require('crypto')
+        .createHash('sha256')
+        .update(`${resolvedQuizId}:${resolvedStudentId}`)
+        .digest('hex')
+        .slice(0, 32);
 
       const response = {
-        id: require('crypto').randomUUID(),
+        id: responseId,
         quizId: resolvedQuizId,
         studentId: resolvedStudentId,
         answers: answers.map(a => {
@@ -161,7 +171,15 @@ app.http('responses', {
         completedAt: new Date().toISOString()
       };
 
-      const { resource } = await container.items.create(response);
+      let resource;
+      try {
+        ({ resource } = await container.items.create(response));
+      } catch (err) {
+        if (err.code === 409) {
+          return respond(409, { error: 'You have already submitted a response for this quiz' });
+        }
+        throw err;
+      }
       return respond(201, resource)
 
     } catch (err) {

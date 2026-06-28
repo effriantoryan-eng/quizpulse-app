@@ -105,7 +105,7 @@ app.http('questions', {
 
         // Public community browse
         if (visibility === 'public') {
-          let query = "SELECT * FROM c WHERE c.visibility = 'public'";
+          let query = "SELECT c.id, c.text, c.options, c.topic, c.yearLevel, c.upvoteCount, c.authorId, c.teacherId, c.visibility, c.createdAt FROM c WHERE c.visibility = 'public'";
           const parameters = [];
 
           if (topicFilter && ALLOWED_TOPICS.includes(topicFilter)) {
@@ -148,7 +148,7 @@ app.http('questions', {
 
           const idParams = peerIds.map((tid, i) => ({ name: `@tid${i}`, value: tid }));
           const idList = idParams.map(p => p.name).join(', ');
-          let query = `SELECT * FROM c WHERE c.teacherId IN (${idList}) AND c.visibility IN ('school', 'public')`;
+          let query = `SELECT c.id, c.text, c.options, c.topic, c.yearLevel, c.upvoteCount, c.authorId, c.teacherId, c.visibility, c.createdAt FROM c WHERE c.teacherId IN (${idList}) AND c.visibility IN ('school', 'public')`;
           const parameters = [...idParams];
 
           if (topicFilter && ALLOWED_TOPICS.includes(topicFilter)) {

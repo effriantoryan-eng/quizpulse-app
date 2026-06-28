@@ -193,6 +193,7 @@ app.http('classesUpdate', {
       const auth = await authenticateTeacher(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
+      const caller = getCallerScope(auth.claims);
 
       if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
@@ -215,7 +216,7 @@ app.http('classesUpdate', {
         throw err;
       }
       try {
-        assertScope(existing, { teacherId });
+        assertScope(existing, caller, { mutate: true });
       } catch (err) {
         if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
@@ -260,6 +261,7 @@ app.http('classesRegenerateCode', {
       const auth = await authenticateTeacher(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
+      const caller = getCallerScope(auth.claims);
 
       if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
@@ -274,7 +276,7 @@ app.http('classesRegenerateCode', {
         throw err;
       }
       try {
-        assertScope(existing, { teacherId });
+        assertScope(existing, caller, { mutate: true });
       } catch (err) {
         if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
@@ -309,6 +311,7 @@ app.http('classesRemoveStudent', {
       const auth = await authenticateTeacher(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
+      const caller = getCallerScope(auth.claims);
 
       if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
@@ -323,7 +326,7 @@ app.http('classesRemoveStudent', {
         throw err;
       }
       try {
-        assertScope(existing, { teacherId });
+        assertScope(existing, caller, { mutate: true });
       } catch (err) {
         if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
@@ -386,6 +389,7 @@ app.http('classesDelete', {
       const auth = await authenticateTeacher(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
+      const caller = getCallerScope(auth.claims);
 
       if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
@@ -400,7 +404,7 @@ app.http('classesDelete', {
         throw err;
       }
       try {
-        assertScope(existing, { teacherId });
+        assertScope(existing, caller, { mutate: true });
       } catch (err) {
         if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
         throw err;
