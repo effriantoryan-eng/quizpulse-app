@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -23,16 +23,31 @@ function Icon({ d }) {
   )
 }
 
-const PAGES = [
+// Ordered to match teacher workflow: set up class → build content → run quizzes.
+// Group labels communicate purpose; items within each group are sequentially related.
+const NAV = [
   { label: 'Home', path: '/', icon: 'home' },
-  { label: 'Create Question', path: '/teacher/create', icon: 'create' },
+  { group: 'Classes' },
+  { label: 'My Classes', path: '/teacher/classes', icon: 'classes' },
+  { group: 'Questions' },
+  { label: 'New Question', path: '/teacher/create', icon: 'create' },
   { label: 'Question Bank', path: '/teacher/bank', icon: 'bank' },
-  { label: 'Classes', path: '/teacher/classes', icon: 'classes' },
+  { group: 'Quizzes' },
   { label: 'Build Quiz', path: '/teacher/build', icon: 'build' },
   { label: 'Send Quiz', path: '/teacher/send', icon: 'send' },
-  { label: 'My Quizzes', path: '/teacher/quizzes', icon: 'quizzes' },
+  { label: 'Quiz History', path: '/teacher/quizzes', icon: 'quizzes' },
   { label: 'Preview', path: '/demo', icon: 'preview' },
 ]
+
+function Logo({ onClick }) {
+  return (
+    <div className="sidebar-logo" onClick={onClick} aria-label="QuizPulse home">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+      </svg>
+    </div>
+  )
+}
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -40,75 +55,102 @@ export default function Sidebar() {
   const { isAuthenticated, user, login, logout } = useAuth()
   const [open, setOpen] = useState(false)
 
+  // Close drawer on route change
+  useEffect(() => { setOpen(false) }, [pathname])
+
+  // Close drawer on Escape
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [open])
+
   function go(path) {
-    setOpen(false)
     navigate(path)
   }
 
+  const HamburgerIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round">
+      {open
+        ? <><path d="M6 6l12 12" /><path d="M18 6 6 18" /></>
+        : <><path d="M3 6h18" /><path d="M3 12h18" /><path d="M3 18h18" /></>}
+    </svg>
+  )
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="sidebar-logo" onClick={() => go('/')} aria-label="QuizPulse home">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
-          </svg>
-        </div>
-        <span className="sidebar-wordmark">QuizPulse</span>
+    <>
+      {/* Mobile-only sticky topbar — never shifts content (sidebar is fixed overlay) */}
+      <div className="mobile-topbar">
+        <Logo onClick={() => go('/')} />
+        <span className="sidebar-wordmark" style={{ flex: 1 }}>QuizPulse</span>
         <span className="sidebar-badge">beta</span>
         <button
           className="sidebar-hamburger"
           onClick={() => setOpen(o => !o)}
           aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            strokeWidth="2" strokeLinecap="round">
-            {open
-              ? <><path d="M6 6l12 12" /><path d="M18 6 6 18" /></>
-              : <><path d="M3 6h18" /><path d="M3 12h18" /><path d="M3 18h18" /></>}
-          </svg>
+          <HamburgerIcon />
         </button>
       </div>
 
-      <nav className={`sidebar-nav ${open ? 'open' : ''}`}>
-        {PAGES.map(({ label, path, icon }) => {
-          const active = path === '/'
-            ? pathname === '/'
-            : pathname === path || pathname.startsWith(path + '/')
-          return (
-            <button
-              key={path}
-              className={`nav-item ${active ? 'active' : ''}`}
-              onClick={() => go(path)}
-            >
-              <Icon d={I[icon]} />
-              {label}
-            </button>
-          )
-        })}
+      {/* Backdrop — tapping it closes the drawer */}
+      {open && (
+        <div className="drawer-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
+      )}
 
-        <div className="sidebar-foot">
-          {isAuthenticated ? (
-            <>
-              {user?.email && <span className="sidebar-email">{user.email}</span>}
-              <button
-                data-testid="logout"
-                className="sidebar-auth-btn signout"
-                onClick={() => logout()}
-              >
-                Sign out
-              </button>
-            </>
-          ) : (
-            <button
-              data-testid="nav-signin"
-              className="sidebar-auth-btn signin"
-              onClick={() => login()}
-            >
-              Sign in
-            </button>
-          )}
+      {/* Sidebar: static column on desktop, fixed overlay drawer on mobile */}
+      <aside className={`sidebar sidebar-drawer ${open ? 'drawer-open' : ''}`}>
+        <div className="sidebar-brand">
+          <Logo onClick={() => go('/')} />
+          <span className="sidebar-wordmark">QuizPulse</span>
+          <span className="sidebar-badge">beta</span>
         </div>
-      </nav>
-    </aside>
+
+        <nav className="sidebar-nav">
+          {NAV.map((item, i) => {
+            if (item.group) return <span key={i} className="nav-group-label">{item.group}</span>
+            const active = item.path === '/'
+              ? pathname === '/'
+              : pathname === item.path || pathname.startsWith(item.path + '/')
+            return (
+              <button
+                key={item.path}
+                className={`nav-item ${active ? 'active' : ''}`}
+                onClick={() => go(item.path)}
+              >
+                <Icon d={I[item.icon]} />
+                {item.label}
+              </button>
+            )
+          })}
+
+          <div className="sidebar-foot">
+            {isAuthenticated ? (
+              <>
+                {user?.email && <span className="sidebar-email">{user.email}</span>}
+                <button
+                  data-testid="logout"
+                  className="sidebar-auth-btn signout"
+                  onClick={() => logout()}
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <button
+                data-testid="nav-signin"
+                className="sidebar-auth-btn signin"
+                onClick={() => login()}
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+        </nav>
+      </aside>
+    </>
   )
 }
