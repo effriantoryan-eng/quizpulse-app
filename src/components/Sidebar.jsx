@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { HUBS, activeHub } from '../teacherNav'
 
 // Inline stroke icons (Lucide-style), 17px, currentColor.
 const I = {
@@ -11,6 +12,7 @@ const I = {
   build: 'M4 6h11M4 12h7M4 18h13M18 4v6M21 7h-6M15 15v6M18 18h-6',
   send: 'M22 2 11 13M22 2l-7 20-4-9-9-4Z',
   quizzes: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  results: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
   preview: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
 }
 
@@ -23,19 +25,12 @@ function Icon({ d }) {
   )
 }
 
-// Ordered to match teacher workflow: set up class → build content → run quizzes.
-// Group labels communicate purpose; items within each group are sequentially related.
+// Top-level nav is one entry per workspace hub (Classes / Questions / Quizzes / Results);
+// each hub links to its default page and the SubNav strip handles the sub-pages within.
+// Hub definitions live in src/teacherNav.js so Sidebar and SubNav stay in sync.
 const NAV = [
-  { label: 'Home', path: '/', icon: 'home' },
-  { group: 'Classes' },
-  { label: 'My Classes', path: '/teacher/classes', icon: 'classes' },
-  { group: 'Questions' },
-  { label: 'New Question', path: '/teacher/create', icon: 'create' },
-  { label: 'Question Bank', path: '/teacher/bank', icon: 'bank' },
-  { group: 'Quizzes' },
-  { label: 'Build Quiz', path: '/teacher/build', icon: 'build' },
-  { label: 'Send Quiz', path: '/teacher/send', icon: 'send' },
-  { label: 'Quiz History', path: '/teacher/quizzes', icon: 'quizzes' },
+  { label: 'Home', path: '/teacher/home', icon: 'home' },
+  ...HUBS.map(h => ({ label: h.label, path: h.path, icon: h.icon, hubId: h.id })),
   { label: 'Preview', path: '/demo', icon: 'preview' },
 ]
 
@@ -112,9 +107,12 @@ export default function Sidebar() {
         <nav className="sidebar-nav">
           {NAV.map((item, i) => {
             if (item.group) return <span key={i} className="nav-group-label">{item.group}</span>
-            const active = item.path === '/'
-              ? pathname === '/'
-              : pathname === item.path || pathname.startsWith(item.path + '/')
+            const hub = activeHub(pathname)
+            const active = item.hubId
+              ? hub?.id === item.hubId
+              : item.path === '/'
+                ? pathname === '/'
+                : pathname === item.path || pathname.startsWith(item.path + '/')
             return (
               <button
                 key={item.path}

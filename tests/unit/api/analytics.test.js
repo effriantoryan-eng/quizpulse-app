@@ -97,3 +97,53 @@ describe('analytics — confidentButIncorrect signal', () => {
     expect(breakdown[0]).toHaveProperty('confidentButIncorrect', 0);
   });
 });
+
+// Mirrors applyClassFilter() in api/analytics.js — narrows responses to one target class
+// by device-id membership in that class's approved roster (per-class analytics, v3.3+).
+function applyClassFilter(loaded, classId) {
+  const { quiz, responses, classRosters } = loaded;
+  if (!classId || !(quiz.classIds || []).includes(classId)) return loaded;
+  const deviceSet = new Set((classRosters.get(classId) || []).map(s => s.deviceId));
+  return {
+    ...loaded,
+    approvedStudents: classRosters.get(classId) || [],
+    responses: responses.filter(r => deviceSet.has(r.studentId)),
+    activeClassId: classId,
+  };
+}
+
+describe('analytics — per-class filter', () => {
+  // Quiz targets two classes. d1/d2 belong to A, d3 to B. Responses come from all three.
+  const loaded = {
+    quiz: { classIds: ['A', 'B'] },
+    responses: [
+      { studentId: 'd1' }, { studentId: 'd2' }, { studentId: 'd3' },
+    ],
+    classRosters: new Map([
+      ['A', [{ deviceId: 'd1', studentName: 'Ann' }, { deviceId: 'd2', studentName: 'Bob' }]],
+      ['B', [{ deviceId: 'd3', studentName: 'Cara' }]],
+    ]),
+  };
+
+  test('filters responses to the selected class only', () => {
+    const a = applyClassFilter(loaded, 'A');
+    expect(a.responses.map(r => r.studentId)).toEqual(['d1', 'd2']);
+    expect(a.approvedStudents).toHaveLength(2);
+    expect(a.activeClassId).toBe('A');
+
+    const b = applyClassFilter(loaded, 'B');
+    expect(b.responses.map(r => r.studentId)).toEqual(['d3']);
+  });
+
+  test('no classId returns all responses unchanged', () => {
+    const all = applyClassFilter(loaded, null);
+    expect(all.responses).toHaveLength(3);
+    expect(all.activeClassId).toBeUndefined();
+  });
+
+  test('classId not among the quiz target classes is ignored (treated as all)', () => {
+    const all = applyClassFilter(loaded, 'NOT_A_TARGET');
+    expect(all.responses).toHaveLength(3);
+    expect(all.activeClassId).toBeUndefined();
+  });
+});
