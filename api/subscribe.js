@@ -46,6 +46,10 @@ app.http('subscribe', {
       ) {
         return respond(400, { error: 'classId, deviceId, and a valid subscription object are required' });
       }
+      // ponytail: SSRF guard — push send makes an outbound HTTP request to this URL
+      if (!subscription.endpoint.startsWith('https://')) {
+        return respond(400, { error: 'Subscription endpoint must use HTTPS' });
+      }
 
       // Rate limit by deviceId — 20 attempts per hour.
       if (!rateLimit(`subscribe:${deviceId}`, SUBSCRIBE_MAX, SUBSCRIBE_WINDOW_MS)) {
@@ -62,7 +66,7 @@ app.http('subscribe', {
       }).fetchAll();
 
       if (!approved.length) {
-        return respond(403, { error: 'No approved join request found for this device and class' });
+        return respond(404, { error: 'Not found' });
       }
 
       // Upsert: one subscription per device per class (endpoint may rotate).

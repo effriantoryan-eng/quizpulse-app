@@ -73,7 +73,7 @@ describe('sendNotificationForQuiz — demo class branch', () => {
     const demoStudents = Array.from({ length: 24 }, (_, i) => ({ studentId: `s${i}`, name: `Student ${i}` }));
     store.classes.push({ id: 'c-demo', teacherId: 't1', isDemo: true, demoStudents });
     store.questions.push({ id: 'qa', options: ['a', 'b', 'c', 'd'], correctIndex: 0 });
-    const quiz = { id: 'q-demo', teacherId: 't1', classIds: ['c-demo'], questionIds: ['qa'], sentAt: new Date().toISOString() };
+    const quiz = { id: 'q-demo', teacherId: 't1', classIds: ['c-demo'], questionIds: ['qa'], status: 'sent', sentAt: new Date().toISOString() };
     store.quizzes.push(quiz);
     // A subscription exists for the class — it must be ignored on the demo path.
     store.subscriptions.push({ id: 'sub1', classId: 'c-demo', endpoint: 'e', keys: {} });
@@ -90,7 +90,7 @@ describe('sendNotificationForQuiz — demo class branch', () => {
 
   test('non-demo quiz still pushes to subscribers (control)', async () => {
     store.classes.push({ id: 'c-real', teacherId: 't1', isDemo: false });
-    const quiz = { id: 'q-real', teacherId: 't1', classIds: ['c-real'], questionIds: ['qa'] };
+    const quiz = { id: 'q-real', teacherId: 't1', classIds: ['c-real'], questionIds: ['qa'], status: 'sent' };
     store.quizzes.push(quiz);
     store.subscriptions.push({ id: 'sub1', classId: 'c-real', endpoint: 'e', keys: { p256dh: 'x', auth: 'y' } });
 
