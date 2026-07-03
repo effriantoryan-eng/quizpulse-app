@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
@@ -74,11 +74,15 @@ function TimelineChart({ timeline, classSize }) {
 function Analytics() {
   const { quizId } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const classId = searchParams.get('classId') || ''
   const [hintVisible, dismissHint, showHint] = useHint('analytics')
   const [quizName, setQuizName] = useState('')
+  const [isDemo, setIsDemo] = useState(false)
   const [classSize, setClassSize] = useState(null)
   const [totalResponses, setTotalResponses] = useState(0)
   const [questions, setQuestions] = useState([])
+  const [classes, setClasses] = useState([])
   const [nonResponders, setNonResponders] = useState([])
   const [timeline, setTimeline] = useState([])
   const [loading, setLoading] = useState(true)
@@ -86,12 +90,14 @@ function Analytics() {
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState(null)
 
+  const classQuery = classId ? `&classId=${classId}` : ''
+
   useEffect(() => {
     let cancelled = false
 
     async function fetchAnalytics() {
       try {
-        const res = await fetch(`${API_BASE}/analytics?quizId=${quizId}`)
+        const res = await fetch(`${API_BASE}/analytics?quizId=${quizId}${classQuery}`)
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
           throw new Error(data.error || `Server error ${res.status}`)
@@ -100,9 +106,11 @@ function Analytics() {
         if (cancelled) return
 
         setQuizName(data.quizName)
+        setIsDemo(data.isDemo === true)
         setClassSize(data.classSize ?? null)
         setTotalResponses(data.totalResponses)
         setQuestions(data.questions)
+        setClasses(data.classes || [])
         setNonResponders(data.nonResponders || [])
         setTimeline(data.timeline || [])
         setError(null)
@@ -119,13 +127,20 @@ function Analytics() {
       cancelled = true
       clearInterval(intervalId)
     }
-  }, [quizId])
+  }, [quizId, classId])
+
+  function handleClassChange(e) {
+    const next = e.target.value
+    const params = {}
+    if (next) params.classId = next
+    setSearchParams(params, { replace: true })
+  }
 
   async function handleExportCsv() {
     setExporting(true)
     setExportError(null)
     try {
-      const res = await fetch(`${API_BASE}/analytics/export?quizId=${quizId}`)
+      const res = await fetch(`${API_BASE}/analytics/export?quizId=${quizId}${classQuery}`)
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data.error || `Export failed (${res.status})`)
@@ -155,13 +170,23 @@ function Analytics() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
         <button
-          onClick={() => navigate('/teacher/quizzes')}
+          onClick={() => navigate(classId ? '/teacher/results' : '/teacher/quizzes')}
           style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '13px', color: '#666' }}
         >
           ← Back
         </button>
         <div style={{ flex: 1 }}>
-          <h2 style={{ margin: 0, fontSize: '20px' }}>{quizName || 'Quiz Analytics'}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ margin: 0, fontSize: '20px' }}>{quizName || 'Quiz Analytics'}</h2>
+            {isDemo && (
+              <span
+                data-testid="analytics-demo-pill"
+                style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
+              >
+                Demo data
+              </span>
+            )}
+          </div>
           <div style={{ fontSize: '13px', color: '#888', marginTop: '2px' }}>Quiz ID: {quizId}</div>
         </div>
         <button
@@ -185,6 +210,25 @@ function Analytics() {
       {exportError && (
         <div style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
           {exportError}
+        </div>
+      )}
+
+      {/* Class filter — only when the quiz reached more than one class */}
+      {classes.length > 1 && (
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+            Showing
+          </label>
+          <select
+            value={classId}
+            onChange={handleClassChange}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', borderRadius: '8px', border: 'var(--bw) solid var(--border)', background: 'white' }}
+          >
+            <option value="">All classes</option>
+            {classes.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
         </div>
       )}
 

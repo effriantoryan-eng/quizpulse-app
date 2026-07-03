@@ -147,3 +147,51 @@ Report: `tests/reports/v3.2.2-report.html` · Full unit suite: **182/182 PASS**.
 | 5 | v322.spec.js | Add-to-phone hidden (desktop Firefox) | Not present | ⬜ |
 | 6 | v322.spec.js | iOS Safari UA | Add-to-home-screen guide shown | ⬜ |
 | 7 | joinApprove.spec.js | Roster approval happy path (teacher creates class → student joins → approve → roster) | Student appears in roster | ⬜ |
+
+---
+
+# v3.3.0 Test Checklist — Simulated demo class
+
+Reports:
+- Unit + integration HTML: `tests/reports/v3.3.0-report.html`
+- Playwright HTML: `tests/reports/playwright/index.html`
+
+## Unit tests — `npm run test:unit`
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | demoData.test.js | `selectDemoStudents()` returns 24 unique, non-empty names + unique ids | 24 distinct entries each call | ✅ PASS |
+| 2 | demoData.test.js | Name pool large enough, no duplicate entries | `DEMO_NAMES` ≥ 48, all unique | ✅ PASS |
+| 3 | demoData.test.js | Correctness sampler (`pickAnswer`) | 60–70% correct over samples | ✅ PASS |
+| 4 | demoData.test.js | Incorrect answers are valid wrong indices | always in `[0,optionCount)` | ✅ PASS |
+| 5 | demoData.test.js | Confidence sampler (`pickConfidence`) | each bucket within ±3% of 40/40/20 | ✅ PASS |
+| 6 | demoData.test.js | Response-time sampler bimodal | ≥25% <6000ms AND ≥65% 10000–35000ms | ✅ PASS |
+| 7 | demoData.test.js | `generateSimulatedResponses` shape | 24 docs, isDemo+simulated, summed duration, completedAt +20–40s | ✅ PASS |
+| 8 | demoData.test.js | `runSimulation` idempotency (injected fakes) | 1st writes 24; 2nd → 409, nothing written | ✅ PASS |
+| 9 | demoData.test.js | `excludeDemo` fragment + `andExcludeDemo` + `isDemoClass` | predicate keeps non-demo/legacy, drops isDemo=true | ✅ PASS |
+| 10 | demoSendNotification.test.js | Demo quiz → push skipped, 24 simulated responses written | `web-push.sendNotification` NOT called; 24 docs isDemo | ✅ PASS |
+| 11 | demoSendNotification.test.js | Non-demo quiz still pushes (control) | `sendNotification` called once; no simulation | ✅ PASS |
+
+## Integration tests — `RUN_INTEGRATION=true npm run test:integration`
+
+> Require `func start` + Cosmos/Azurite. Marked ⬜ (need external services).
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | v3-3.test.js | POST /api/classes { isDemo:true } | 201, 24 demoStudents, no joinCode | ⬜ Requires func |
+| 2 | v3-3.test.js | Second demo class for same teacher | 409 "Demo class limit reached" | ⬜ Requires func |
+| 3 | v3-3.test.js | 20 real + 1 demo succeed; 21st real | 429 (real cap still enforced) | ⬜ Requires func |
+| 4 | v3-3.test.js | POST /api/simulate-responses on real class | 400 "Not a demo class" | ⬜ Requires func |
+| 5 | v3-3.test.js | Cross-tenant: B simulates A's demo quiz | 404 (Sprint 5 convention) | ⬜ Requires func |
+| 6 | v3-3.test.js | send-notification on demo quiz | sent=0, simulated=24; analytics isDemo + 24 responses | ⬜ Requires func |
+| 7 | v3-3.test.js | GET /api/manage/metrics totals | exclude isDemo=true responses | ⬜ Requires func |
+| 8 | v3-3.test.js | GET /api/manage/logs/export?type=security | excludes audit entries targeting demo classes | ⬜ Requires func |
+
+## E2E tests — `npm run test:e2e`
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | v3-3-demo-class.spec.ts | No demo class → button visible → create → Demo pill, no join code | demo card with pill, "practice students", no Code: | ⬜ Requires creds |
+| 2 | v3-3-demo-class.spec.ts | Teacher with 1 demo class | "Try with a demo class" button hidden | ⬜ Requires creds |
+| 3 | v3-3-demo-class.spec.ts | Send quiz to demo class → analytics | Demo data pill + confident-but-incorrect callout | ⬜ Requires creds |
+| 4 | v3-3-demo-class.spec.ts | Demo class unreachable from /join | demo class carries no joinCode | ⬜ Requires creds |

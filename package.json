@@ -11,6 +11,8 @@
     "test:unit": "jest --config jest.config.cjs tests/unit",
     "test:integration": "cross-env RUN_INTEGRATION=true jest --config jest.config.cjs tests/integration",
     "test:e2e": "playwright test --config tests/e2e/playwright.config.js",
+    "pretest": "cd api && npm install",
+    "pretest:unit": "cd api && npm install",
     "test": "npm run test:unit"
   },
   "dependencies": {

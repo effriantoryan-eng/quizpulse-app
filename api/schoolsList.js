@@ -4,6 +4,7 @@ const { authenticateAdmin } = require('./auth');
 const { getCallerScope, requireRole, ScopeError, ROLES } = require('./shared/authz');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
+const { EXCLUDE_DEMO_FRAGMENT } = require('./shared/excludeDemo');
 
 const client = new CosmosClient({ endpoint: process.env.COSMOS_ENDPOINT, key: process.env.COSMOS_KEY });
 const database = client.database(process.env.COSMOS_DATABASE);
@@ -54,10 +55,12 @@ app.http('manageSchoolsList', {
         'SELECT * FROM c ORDER BY c.createdAt DESC'
       ).fetchAll();
 
-      // Build teacher and class count maps in a single pass
+      // Build teacher and class count maps in a single pass. The class query excludes demo
+      // classes (Demo class isolation, CLAUDE.md) so a teacher's demo class never inflates a
+      // school's class count in this cross-teacher aggregate.
       const [teachersResult, classesResult] = await Promise.all([
         teachersContainer.items.query('SELECT c.schoolId FROM c').fetchAll(),
-        classesContainer.items.query('SELECT c.schoolId FROM c').fetchAll(),
+        classesContainer.items.query(`SELECT c.schoolId FROM c WHERE ${EXCLUDE_DEMO_FRAGMENT}`).fetchAll(),
       ]);
 
       const teacherCounts = {};

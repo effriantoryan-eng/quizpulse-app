@@ -4,6 +4,7 @@ const webpush = require('web-push');
 const { rateLimit } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
+const { runSimulation } = require('./shared/runSimulation');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -12,6 +13,7 @@ const client = new CosmosClient({
 const database = client.database(process.env.COSMOS_DATABASE);
 const subscriptionsContainer = database.container(process.env.COSMOS_CONTAINER_SUBSCRIPTIONS || 'subscriptions');
 const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes');
+const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
 
 const MAX_BODY = 4 * 1024;
 const NOTIFICATION_PAYLOAD_MAX = 3 * 1024; // Security limits table — 3 KB max
@@ -33,8 +35,35 @@ function ensureVapid() {
 // scheduled-quiz timer trigger. Mutates and persists notificationSentAt on the quiz.
 // Returns { sent, total } on success, or throws/returns { error, status } on failure.
 async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount } = {}) {
+  if (quiz.status !== 'sent') {
+    return { error: 'Quiz is not in sent state', status: 409 };
+  }
+
   if (quiz.notificationSentAt) {
     return { error: 'Notifications already sent for this quiz', status: 409 };
+  }
+
+  const classIds = quiz.classIds || [];
+  if (!classIds.length) {
+    return { error: 'Quiz has no target classes', status: 400 };
+  }
+
+  // Demo class: skip push entirely and generate simulated responses instead. From the teacher's
+  // UI perspective the flow is unchanged (Send → Analytics); no real device is ever notified.
+  const classIdParams = classIds.map((id, i) => ({ name: `@cid${i}`, value: id }));
+  const classIdList = classIdParams.map(p => p.name).join(', ');
+  const { resources: targetClasses } = await classesContainer.items.query({
+    query: `SELECT * FROM c WHERE c.id IN (${classIdList})`,
+    parameters: classIdParams,
+  }).fetchAll();
+  const demoClass = targetClasses.find(c => c.isDemo === true);
+  if (demoClass) {
+    const simResult = await runSimulation(quiz, demoClass, context);
+    if (simResult.error) return simResult;
+    quiz.notificationSentAt = new Date().toISOString();
+    await quizzesContainer.items.upsert(quiz);
+    context.log(`Demo quiz ${quiz.id} simulated ${simResult.simulated}/${simResult.total} response(s) (push skipped)`);
+    return { sent: 0, total: simResult.total, simulated: simResult.simulated };
   }
 
   const title = quizTitle || quiz.name;
@@ -51,14 +80,6 @@ async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount
   }
 
   ensureVapid();
-
-  const classIds = quiz.classIds || [];
-  if (!classIds.length) {
-    return { error: 'Quiz has no target classes', status: 400 };
-  }
-
-  const classIdParams = classIds.map((id, i) => ({ name: `@cid${i}`, value: id }));
-  const classIdList = classIdParams.map(p => p.name).join(', ');
   const { resources: subs } = await subscriptionsContainer.items.query({
     query: `SELECT * FROM c WHERE c.classId IN (${classIdList})`,
     parameters: classIdParams,

@@ -65,6 +65,8 @@ function SendQuiz() {
     .filter(c => selectedClasses.includes(c.id))
     .reduce((sum, c) => sum + (c.studentCount || 0), 0)
 
+  const sendingToDemo = classes.some(c => selectedClasses.includes(c.id) && c.isDemo)
+
   async function handleSend() {
     setError(null)
 
@@ -135,7 +137,7 @@ function SendQuiz() {
         }
       }
 
-      setSentResult({ quizId: quiz.id, scheduled: mode === 'schedule' })
+      setSentResult({ quizId: quiz.id, scheduled: mode === 'schedule', demo: sendingToDemo })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -175,9 +177,13 @@ function SendQuiz() {
             {sentResult.scheduled ? 'Quiz scheduled!' : 'Quiz sent!'}
           </div>
           <div style={{ fontSize: '12px', color: '#3a7a65', marginBottom: '20px' }}>
-            {sentResult.scheduled
-              ? 'It will be sent automatically at the scheduled time.'
-              : 'Students will receive a notification and analytics will update as they respond.'}
+            {sentResult.demo
+              ? (sentResult.scheduled
+                  ? 'Responses will be generated automatically at the scheduled time — no one is notified.'
+                  : 'Responses are generated automatically — open analytics to see them come in.')
+              : (sentResult.scheduled
+                  ? 'It will be sent automatically at the scheduled time.'
+                  : 'Students will receive a notification and analytics will update as they respond.')}
           </div>
           <button
             onClick={() => navigate(`/teacher/analytics/${sentResult.quizId}`)}
@@ -249,6 +255,15 @@ function SendQuiz() {
               </div>
             )
           })}
+
+          {sendingToDemo && (
+            <div
+              data-testid="send-demo-note"
+              style={{ padding: '12px 14px', background: '#EEEDFE', border: '1px solid #d6d2f5', borderRadius: '8px', fontSize: '13px', color: '#3C3489', marginTop: '12px' }}
+            >
+              This is a demo class. Responses are generated automatically — no one is notified.
+            </div>
+          )}
 
           <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }}></div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>

@@ -49,18 +49,63 @@ async function loadQuizAnalytics(quizId, teacherId) {
   }).fetchAll();
 
   let approvedStudents = [];
+  let isDemo = false;
+  const classRosters = new Map();   // classId -> [{ deviceId, studentName }]
+  let classesMeta = [];             // [{ id, name }] for the quiz's target classes
   const classIds = quiz.classIds || [];
   if (classIds.length > 0) {
     const classIdParams = classIds.map((cid, i) => ({ name: `@cid${i}`, value: cid }));
     const classIdList = classIdParams.map(p => p.name).join(', ');
-    const { resources } = await joinRequestsContainer.items.query({
-      query: `SELECT c.deviceId, c.studentName FROM c WHERE c.status = "approved" AND c.classId IN (${classIdList})`,
+
+    // Demo class: there are no join_requests (a demo class is never joinable), so the "approved"
+    // roster is the class's generated demoStudents. Per-teacher demo analytics is exempt from the
+    // demo-isolation rule — the teacher is looking at their own demo data on purpose.
+    const { resources: cls } = await classesContainer.items.query({
+      query: `SELECT c.id, c.name, c.isDemo, c.demoStudents FROM c WHERE c.id IN (${classIdList})`,
       parameters: classIdParams,
     }).fetchAll();
-    approvedStudents = resources;
+    classesMeta = cls.map(c => ({ id: c.id, name: c.name }));
+    const demoClass = cls.find(c => c.isDemo === true && Array.isArray(c.demoStudents));
+    if (demoClass) {
+      isDemo = true;
+      const roster = demoClass.demoStudents.map(s => ({ deviceId: s.studentId, studentName: s.name }));
+      classRosters.set(demoClass.id, roster);
+    } else {
+      const { resources } = await joinRequestsContainer.items.query({
+        query: `SELECT c.deviceId, c.studentName, c.classId FROM c WHERE c.status = "approved" AND c.classId IN (${classIdList})`,
+        parameters: classIdParams,
+      }).fetchAll();
+      for (const r of resources) {
+        if (!classRosters.has(r.classId)) classRosters.set(r.classId, []);
+        classRosters.get(r.classId).push({ deviceId: r.deviceId, studentName: r.studentName });
+      }
+    }
+
+    // "All classes" roster = union of every class bucket, deduped by deviceId.
+    // ponytail: a device approved in two target classes appears in both buckets but counts once here.
+    const seen = new Map();
+    for (const roster of classRosters.values()) {
+      for (const s of roster) if (!seen.has(s.deviceId)) seen.set(s.deviceId, s);
+    }
+    approvedStudents = [...seen.values()];
   }
 
-  return { quiz, questions, responses, approvedStudents };
+  return { quiz, questions, responses, approvedStudents, isDemo, classRosters, classesMeta };
+}
+
+// Narrows a quiz's roster + responses to a single target class. classId must be one of the
+// quiz's target classes; an unknown classId is ignored (falls through to "all classes").
+function applyClassFilter(loaded, classId) {
+  const { quiz, responses, classRosters } = loaded;
+  if (!classId || !(quiz.classIds || []).includes(classId)) return loaded;
+  const roster = classRosters.get(classId) || [];
+  const deviceSet = new Set(roster.map(s => s.deviceId));
+  return {
+    ...loaded,
+    approvedStudents: roster,
+    responses: responses.filter(r => deviceSet.has(r.studentId)),
+    activeClassId: classId,
+  };
 }
 
 const CONFIDENT_VALUES = new Set(['sure', 'pretty_sure']);
@@ -132,10 +177,13 @@ app.http('analytics', {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
-      const quizId = new URL(request.url).searchParams.get('quizId');
+      const params = new URL(request.url).searchParams;
+      const quizId = params.get('quizId');
       if (!quizId) return respond(400, { error: 'quizId query parameter is required' }, teacherId);
 
-      const { quiz, questions, responses, approvedStudents } = await loadQuizAnalytics(quizId, teacherId);
+      const loaded = await loadQuizAnalytics(quizId, teacherId);
+      const { quiz, questions, responses, approvedStudents, isDemo, classesMeta, activeClassId } =
+        applyClassFilter(loaded, params.get('classId'));
 
       const respondedDeviceIds = new Set(responses.map(r => r.studentId));
       const nonResponders = approvedStudents.filter(s => !respondedDeviceIds.has(s.deviceId));
@@ -143,11 +191,18 @@ app.http('analytics', {
       // Response timeline: cumulative count in 5-minute buckets since sentAt
       const timeline = buildTimeline(responses, quiz.sentAt);
 
+      // When a class filter is active, classSize must reflect that class only — not the
+      // quiz-wide classSize snapshot taken at send time.
+      const classSize = activeClassId ? approvedStudents.length : (quiz.classSize || approvedStudents.length);
+
       return respond(200, {
         quizId: quiz.id,
         quizName: quiz.name,
-        classSize: quiz.classSize || approvedStudents.length,
+        classSize,
         totalResponses: responses.length,
+        isDemo,
+        classes: classesMeta,
+        selectedClassId: activeClassId || null,
         questions: buildQuestionBreakdown(questions, responses),
         nonResponders: nonResponders.map(s => ({ studentName: s.studentName })),
         timeline,
@@ -180,10 +235,12 @@ app.http('analyticsExport', {
         return respond(429, { error: 'CSV export limit reached. Try again later.' }, teacherId);
       }
 
-      const quizId = new URL(request.url).searchParams.get('quizId');
+      const params = new URL(request.url).searchParams;
+      const quizId = params.get('quizId');
       if (!quizId) return respond(400, { error: 'quizId query parameter is required' }, teacherId);
 
-      const { quiz, questions, responses, approvedStudents } = await loadQuizAnalytics(quizId, teacherId);
+      const { quiz, questions, responses, approvedStudents } =
+        applyClassFilter(await loadQuizAnalytics(quizId, teacherId), params.get('classId'));
 
       const nameByDevice = new Map(approvedStudents.map(s => [s.deviceId, s.studentName]));
       const questionById = new Map(questions.map(q => [q.id, q]));
@@ -317,3 +374,7 @@ app.http('classAnalytics', {
     }
   },
 });
+
+// Reused by the teacher dashboard (api/dashboard.js) for the misconception signal.
+// loadQuizAnalytics enforces quiz ownership (quiz.teacherId === teacherId), so it stays safe there.
+module.exports = { loadQuizAnalytics, buildQuestionBreakdown, applyClassFilter };
