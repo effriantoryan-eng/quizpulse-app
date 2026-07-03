@@ -19,7 +19,7 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — v3.2.0 (Confidence Layer), on top of Sprint 6 (v3.0.0 — MAJOR) / v3.0.1.**
+**[CURRENT] state of the app — v4.0.0 (Comprehensive Analytics), on top of v3.3.0 / Sprint 6 (v3.0.0 — MAJOR).**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -39,6 +39,21 @@ third CIAM provider (portal config + docs); analytics depth (class cross-quiz ag
 endpoint + response timeline chart in the analytics UI). New Cosmos containers: `question_upvotes`,
 `question_reports`. New env vars: `COSMOS_CONTAINER_QUESTION_UPVOTES`,
 `COSMOS_CONTAINER_QUESTION_REPORTS`.
+
+**v4.0.0 (Comprehensive Analytics) is [CURRENT] — code complete, deploy steps pending.** Class
+drill-down (reuses existing `GET /api/analytics?classId=`), a four-cell confidence+correctness
+chart with a promoted misconception hero card, an optional topic tag on send, and population
+benchmarking (`/teacher/population`, a Results sub-tab) against a pre-aggregated seeded dataset.
+Built per the amended plan — `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v400_v410.docx` as
+overridden by `C:\Users\Ryan\Doc\Quizpulse\DESIGN_REVIEW_v400_v410_addendum.md` — NOT the raw
+.docx (which had a duplicate endpoint, an IDOR, and a schema that didn't match the real data
+model; see the Architecture decisions entry below). **Deploy blocker:** the new
+`population_benchmark` Cosmos container must be manually provisioned and seeded before this
+feature works in a deployed environment — see `docs/azure/POPULATION_BENCHMARK_SETUP.md` and
+Known issues below.
+
+**[PLANNED] v4.1.0 (APST Evidence Export)** is reviewed and locked (design + eng review complete,
+2026-07-03) but not yet built — depends on v4.0.0's `topicTag` field, which now exists.
 
 ---
 
@@ -78,6 +93,8 @@ endpoint + response timeline chart in the analytics UI). New Cosmos containers: 
 - Sprint 5 security audit: `docs/security/SPRINT5_AUDIT.md`
 - Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
+- [PLANNED] v4.0.0/v4.1.0 sprint plan: `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v400_v410.docx`
+  — amended by `C:\Users\Ryan\Doc\Quizpulse\DESIGN_REVIEW_v400_v410_addendum.md` (addendum wins on conflict)
 - Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
   - `graphify-out/graph.json` — queryable JSON graph (697 nodes, 1091 edges)
   - `graphify-out/GRAPH_REPORT.md` — architecture report
@@ -139,8 +156,24 @@ main                          (production — tagged releases only)
     │   ├── feat/s1-azure-spending-controls (merged)
     │   └── feat/s1-tests                (merged)
     ├── release/v1.1-sprint2  ← next sprint
+    ├── release/v4.0-analytics  ← [PLANNED] cut after v3.3.0 on main; see feature branches below
+    ├── release/v4.1-evidence   ← [PLANNED] cut after v4.0.0 on main; depends on v4.0.0 schema
     └── hotfix/v1.0.1-description  ← from main when needed
 ```
+
+**v4.0.0 implementation note:** built directly on `release/v4.0-analytics` as a series of commits
+mirroring the `feat/v4.0-*` task boundaries below, rather than separate branches + PRs per task —
+a pragmatic deviation for a single agent-paired session; the release branch itself still follows
+the tag → merge develop → merge main flow. `feat/v4.0-response-schema` (topicTag + schoolId only,
+per the amended field list — no `correct`/`confidenceLevel`/`yearLevel`/`isPopulationSeed`),
+`feat/v4.0-topic-tag-ui`, `feat/v4.0-population-seed` (writes to `population_benchmark`, not
+`responses`), `feat/v4.0-analytics-ui` (extends existing `buildQuestionBreakdown`, no new
+class-analytics endpoint), `feat/v4.0-tests`.
+
+**[PLANNED] v4.1.0 feature branches** (`release/v4.1-evidence`, after v4.0.0 merges to main):
+`feat/v4.1-apst-content` (DO FIRST, review for AITSL/DET verbatim accuracy before rc1),
+`feat/v4.1-evidence-route`, `feat/v4.1-pdf-generation` (pdfkit), `feat/v4.1-tests`. Tag
+`v4.1.0-rc1` → tests pass → merge develop → merge main → tag `v4.1.0`.
 
 ### Version numbering
 
@@ -152,6 +185,8 @@ main                          (production — tagged releases only)
 | 4 | v2.0.0 | **MAJOR** — first real end-to-end loop; simulate endpoint retired (breaking) |
 | 5 | v2.1.0 | Institution layer, super admin, monitoring portal |
 | 6 | v3.0.0 | **MAJOR** — community bank + direct URL workaround removed (breaking) |
+| 7 | v4.0.0 | Comprehensive analytics — class drill-down, confidence+correctness four-cell chart, population benchmarking |
+| 8 | v4.1.0 | APST evidence export — per-quiz VIT artefact + annual MyPD aggregate log (PDF) |
 
 ### Rules
 
@@ -200,6 +235,12 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
    admin frontend (Sprint 7, separate site).
 6. **v3.0.0 — Community bank & hardening.** Cross-school question sharing, SWA Standard tier,
    API Management, Apple ID auth, analytics depth.
+7. **v4.0.0 — Comprehensive analytics.** [CURRENT — code complete, deploy steps pending] Class
+   drill-down, four-cell confidence+correctness chart, population benchmarking against a seeded
+   synthetic dataset. Reviewed 2026-07-03 (design + eng), implemented same day.
+8. **[PLANNED] v4.1.0 — APST evidence export.** Per-quiz VIT evidence PDF + annual MyPD aggregate
+   log, editable reflection prompts, pre-populated APST/VTLM 2.0 fields. Depends on v4.0.0 schema
+   (`topicTag`). Reviewed 2026-07-03 (design + eng).
 
 ---
 
@@ -208,8 +249,8 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 ### [CURRENT] containers
 
 - `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
-- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`.
-- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field.
+- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, from caller token at send time — never client-supplied) are **[PLANNED — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum).
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[PLANNED — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
 - `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload).
@@ -232,6 +273,14 @@ not — they're scoped by `teacherId`/`quizId`, never `schoolId`. School merge
 - **`subscriptions`** ~~[Sprint 3]~~ **[CURRENT — Sprint 3 complete]** (pk `/classId`) — { id, classId, deviceId, endpoint, keys: { p256dh, auth }, createdAt, updatedAt }
 - **`question_upvotes`** ~~[Sprint 6]~~ **[CURRENT — Sprint 6]** (pk `/questionId`) — { id, questionId, teacherId, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_UPVOTES`. Provisioning: `docs/azure/SPRINT6_CONTAINERS_SETUP.md`.
 - **`question_reports`** [CURRENT — Sprint 6] (pk `/questionId`) — { id, questionId, teacherId, reason, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_REPORTS`. Max 20 reports/teacher/day; visible to support/platform_admin via `GET /api/questions/reports`.
+- **`population_benchmark`** [PLANNED — v4.0.0] (pk `/topicTag`) — { id, topicTag, pctCorrect,
+  pctConfidentIncorrect, responseCount, ... } — **~12 pre-aggregated topic-rollup docs**, one per
+  preset topic tag, written once by `api/seed/populationSeed.js` (idempotent, run manually, never
+  via API). Env: `COSMOS_CONTAINER_POPULATION_BENCHMARK`. **This replaces the .docx's original
+  design of ~37,500 raw synthetic response docs seeded into `responses`** — that would have
+  cross-partition-scanned the transactional container on every Population page load. `GET
+  /api/analytics/population` does a point-read per topic against this container instead. See
+  `DESIGN_REVIEW_v400_v410_addendum.md` §E1.
 
 ### Field additions to existing documents
 
@@ -241,6 +290,9 @@ not — they're scoped by `teacherId`/`quizId`, never `schoolId`. School merge
   display-only DB field — authorization never reads it, see Authorization model below)
 - ~~[Sprint 4] `closedAt` on quizzes~~ — **DONE** (derived server-side from teacher-configured `durationMinutes` at send time; also `scheduledFor` for scheduled quizzes)
 - [Sprint 6] `upvotes`, `usageCount` on questions
+- [PLANNED — v4.0.0] `topicTag` + `schoolId` on quiz (teacher-selected optional dropdown +
+  caller-token-derived, at send time); `topicTag` + `schoolId` on response (copied from quiz at
+  submit time). See Data model above and Architecture decisions below.
 
 ---
 
@@ -424,6 +476,67 @@ looking at their own demo data on purpose.**
 - `analytics.js` (GET /api/analytics) is per-teacher and intentionally demo-aware, not demo-excluded:
   it resolves the demo class's `demoStudents` as the approved roster and returns `isDemo: true`.
 
+### Comprehensive analytics & population benchmarking [CURRENT — v4.0.0]
+
+Built 2026-07-03, same day as design + eng review. Source of truth is
+`DESIGN_REVIEW_v400_v410_addendum.md` (in the Doc/Quizpulse planning folder) layered over
+`QuizPulse_Sprint_Plan_v400_v410.docx` — **the addendum overrides the .docx wherever they
+conflict**, and what's actually built follows the addendum, not the raw .docx.
+
+- **No new class-analytics endpoint.** `GET /api/analytics?quizId=&classId=` already did class
+  filtering (`applyClassFilter`) and per-question correctness (`counts`) — `buildQuestionBreakdown`
+  in `api/analytics.js` was extended in place with a `fourCell` field
+  (`correctConfident`/`correctUnsure`/`incorrectConfident`/`incorrectUnsure`) rather than adding a
+  new module or route.
+- **"Confident" = `sure` + `pretty_sure`**, reusing the existing `CONFIDENT_VALUES` set in
+  `analytics.js` — `fourCell.incorrectConfident` is always exactly `confidentButIncorrect`, by
+  construction, so the four-cell chart and the misconception hero card never disagree.
+- **Population data is pre-aggregated, not raw.** `api/seed/populationSeed.js` (standalone script,
+  run manually, never an HTTP endpoint) writes ~12 topic-rollup docs to the new
+  `population_benchmark` container (pk `/topicTag`) — see Data model above and
+  `docs/azure/POPULATION_BENCHMARK_SETUP.md` for provisioning. `GET /api/analytics/population?topic=`
+  (`api/analyticsPopulation.js`) does a point-read against that container plus a live aggregate of
+  the caller's own topic-tagged quizzes (`aggregateSchoolTopic()`, answer-level, matching the
+  seed's units). `schoolId` is resolved server-side via a point-read on the caller's own
+  `teachers` doc — **never** a client-supplied query param and **never** from JWT claims (which
+  default to `null` until the Entra custom claim is configured — see Authorization model above).
+  The original .docx design accepted `schoolId` as an unchecked query param, which was an IDOR;
+  this endpoint has no `schoolId` input at all. Only `topic` is client-supplied, validated against
+  `api/shared/topicTags.js`'s preset enum.
+- **Topic tag is optional on Send** (`src/pages/teacher/SendQuiz.jsx` — a plain `<select>`,
+  default "No topic"), not a required field — the 12-preset taxonomy doesn't cover every Year
+  7–12 subject combination. `api/quizzes.js`'s POST handler validates it when present (400 on an
+  unrecognised value) and resolves `schoolId` from the teacher's own record only when a topic was
+  picked. `api/responses.js` copies both fields from the quiz doc onto each response at submit
+  time — students submit anonymously, so there's no claim to read them from.
+- **Nav placement:** Population (`src/pages/teacher/Population.jsx`) is a sub-tab under the
+  existing **Results** hub in `src/teacherNav.js` (route `/teacher/population`), not `DemoNav`
+  (that component only renders for signed-out visitors).
+- **Four-cell chart accessibility:** `Analytics.jsx` renders a persistent legend once above the
+  question list plus always-visible per-cell counts/percentages (never hover-only) for every
+  question — meaning never depends on hue or hover alone. The misconception accent is a dedicated
+  terracotta (`#B5482E` / `#FBEDE8`), applied consistently to both the per-question four-cell
+  "Misconception" segment and the promoted hero card above the question list — not purple
+  (`#534AB7` from the original .docx would have collided with the demo-pill purple already in use).
+- **Population page comparison:** `Population.jsx`'s `ComparisonBar` renders one responsive
+  "you vs norm" marker track per metric (correctness, confident-but-wrong) with a plain-language
+  directional verdict below it — the same layout at every viewport width, so there's no separate
+  mobile breakpoint to keep in sync and no risk of two side-by-side panels burying the comparison
+  on a phone.
+
+### APST evidence export [PLANNED — v4.1.0]
+
+Depends on v4.0.0's `topicTag` field. New top-level route `/teacher/evidence`, added as its own
+hub in `src/teacherNav.js` (not a Results sub-tab, and not `DemoNav`) — distinct job-to-be-done
+from Analytics ("prove you did it" vs "act on data now"). Two artefacts: a per-quiz VIT PDF
+(`POST /api/evidence/export`, pdfkit, 2 pages, `assertScope` on quizId) and an annual MyPD
+aggregate log (`GET /api/evidence/annual-log?from=&to=`). `src/data/apstContent.js` is a static,
+logic-free data module (AITSL/DET verbatim text) — reviewed for accuracy before `v4.1.0-rc1` is
+tagged, separately from code review. Reflection fields are pre-templated with `[PERSONALISE: ...]`
+placeholders; the API rejects export (400) if the literal placeholder text is still present — this
+is an enforcement mechanism against VIT auditors flagging non-personalised reflections, not a UX
+nicety. No individually identifiable student data in any export; no server-side PDF storage.
+
 ---
 
 ## Security limits (enforce server-side)
@@ -599,6 +712,10 @@ sprint's scope.
 | Simulated responses (api/shared/runSimulation.js, POST /api/simulate-responses, send-notification demo branch skips push) | [CURRENT] v3.3.0 complete |
 | Demo class UI (Classes "Try with a demo class" + Demo pill, SendQuiz demo note, Analytics "Demo data" pill, mockups) | [CURRENT] v3.3.0 complete |
 | Demo class isolation (api/shared/excludeDemo.js; metrics/schoolsList/logsExport exclude demo from cross-teacher reporting) | [CURRENT] v3.3.0 complete |
+| Comprehensive analytics — class drill-down, four-cell confidence+correctness chart, misconception hero card | [CURRENT] v4.0.0 code complete — reviewed + built 2026-07-03 |
+| Population benchmarking (/teacher/population, population_benchmark container, api/analyticsPopulation.js) | [CURRENT] v4.0.0 code complete — container provisioning + seed run still pending, see Known issues |
+| Topic tag on quiz (optional, 12 presets, api/shared/topicTags.js, feeds population benchmarking) | [CURRENT] v4.0.0 code complete |
+| APST evidence export (/teacher/evidence, per-quiz PDF + annual MyPD log, pdfkit) | [PLANNED — v4.1.0] Design + eng reviewed 2026-07-03; depends on v4.0.0 |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
@@ -646,7 +763,19 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
 9. **`question_upvotes` and `question_reports` env vars** must be set in the Function App:
    `COSMOS_CONTAINER_QUESTION_UPVOTES=question_upvotes`,
    `COSMOS_CONTAINER_QUESTION_REPORTS=question_reports`.
-10. **Admin portal is live** at `https://ambitious-sand-054490e00.7.azurestaticapps.net` (SWA
+10. **`population_benchmark` container not yet provisioned or seeded (v4.0.0).** The code is
+    complete and unit-tested, but Population benchmarking will show "No benchmark data" for every
+    topic in a deployed environment until the container is created and
+    `node api/seed/populationSeed.js` is run once — see `docs/azure/POPULATION_BENCHMARK_SETUP.md`.
+    Same class of deploy gap as the Sprint 6 `question_upvotes`/`question_reports` containers below.
+11. **v4.0.0 UI was verified by build + smoke-check only, not full E2E.** `npm run build` is clean
+    and `/teacher/build` + `/teacher/population` render without console errors in the preview
+    browser (nav wiring confirmed — SubNav shows both "By Class" and "Population" tabs). The
+    topic-dropdown-to-four-cell-chart-to-population-comparison flow with real data was NOT
+    exercised end-to-end — that needs `func start` + Azurite + a seeded Cosmos emulator + a dev
+    auth token, none of which were running in the session that built this. Run the E2E suite (or
+    manually walk Send → Analytics → Population) before treating this as pilot-ready.
+12. **Admin portal is live** at `https://ambitious-sand-054490e00.7.azurestaticapps.net` (SWA
     `quizpulse-admin-av5z18`, admin app reg `ADMIN_AUTH_CLIENT_ID=6fa86528-3a7b-4c03-bc55-c0e7073b8eb7`).
     Three production realities differ from the original Sprint 7 design — see
     `memory/reference_admin_portal_auth_gotchas.md` for the full debugging story:

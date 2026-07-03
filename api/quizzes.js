@@ -4,6 +4,7 @@ const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher, extractBearer } = require('./auth');
 const { assertScope, ScopeError } = require('./shared/authz');
+const { isValidTopicTag } = require('./shared/topicTags');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -14,6 +15,7 @@ const database = client.database(process.env.COSMOS_DATABASE);
 const container = database.container(process.env.COSMOS_CONTAINER_QUIZZES);
 const questionsContainer = database.container(process.env.COSMOS_CONTAINER_QUESTIONS);
 const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
+const teachersContainer = database.container(process.env.COSMOS_CONTAINER_TEACHERS || 'teachers');
 
 const MIN_QUIZ_DURATION_MS = 5 * 60 * 1000;     // Security limits table — Quiz min duration (closedAt), 5 min
 const MAX_PENDING_SCHEDULED = 50;                // Security limits table — Scheduled quizzes pending, 50 per teacher
@@ -162,8 +164,15 @@ app.http('quizzes', {
           return respond(400, { error: 'Request body must be a JSON object' })
         }
 
-        const { name, questionIds, classIds, classSize, status, sentAt, durationMinutes, scheduledFor } = body;
+        const { name, questionIds, classIds, classSize, status, sentAt, durationMinutes, scheduledFor, topicTag } = body;
         const ALLOWED_STATUSES = ['draft', 'sent', 'scheduled'];
+
+        // topicTag is OPTIONAL (design addendum D3 — the 12-preset taxonomy doesn't cover every
+        // Year 7-12 subject, so it must never block send). Omitted -> quiz just doesn't
+        // contribute to population benchmarking (see api/analyticsPopulation.js).
+        if (topicTag !== undefined && topicTag !== null && !isValidTopicTag(topicTag)) {
+          return respond(400, { error: 'topicTag is not a recognised topic' }, teacherId)
+        }
 
         if (typeof name !== 'string' || !name.trim()) {
           return respond(400, { error: 'name is required and must be a string' }, teacherId)
@@ -223,6 +232,18 @@ app.http('quizzes', {
 
         const resolvedClassIds = Array.isArray(classIds) ? classIds.map(id => String(id).trim().slice(0, 100)) : [];
 
+        // schoolId is resolved server-side from the teacher's own record — never trusted from the
+        // client, and never read from JWT claims (those default to null until the Entra custom
+        // claim described in docs/azure/ROLE_CLAIMS_SETUP.md is configured). Only looked up when a
+        // topic was actually selected, since it's only used for population benchmarking.
+        let resolvedSchoolId = null;
+        if (topicTag) {
+          try {
+            const { resource: teacherDoc } = await teachersContainer.item(teacherId, teacherId).read();
+            resolvedSchoolId = teacherDoc?.schoolId || null;
+          } catch (_) { /* teacher doc missing or point-read failed — leave schoolId null */ }
+        }
+
         // A quiz targeting a demo class is itself a demo quiz: send-notification simulates rather
         // than pushing, and analytics renders the "Demo data" pill. Resolved at create time so the
         // send path (manual + scheduled) and analytics never have to re-derive it.
@@ -250,6 +271,8 @@ app.http('quizzes', {
           scheduledFor: resolvedScheduledFor,
           durationMinutes: typeof durationMinutes === 'number' ? durationMinutes : null,
           isDemo: isDemoQuiz,
+          topicTag: topicTag || null,
+          schoolId: resolvedSchoolId,
           createdAt: new Date().toISOString()
         };
 
