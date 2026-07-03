@@ -1,39 +1,64 @@
 # Azure API Management — Setup & Rate-Limit Policies
 
-This document covers the one-time Azure Portal steps to create an API Management instance in
-Consumption tier, import the Function App, and configure the per-endpoint rate-limit policies
-that replace the in-memory `rateLimit.js` sliding window. The in-memory store was per-instance
-and not shared across replicas; APIM enforces limits globally.
+This document covers the one-time Azure Portal steps to create an API Management instance,
+import the Function App, and configure the per-endpoint rate-limit policies that replace the
+in-memory `rateLimit.js` sliding window. The in-memory store was per-instance and not shared
+across replicas; APIM enforces limits globally.
+
+> **Correction (2026-07-03):** this doc previously recommended Consumption tier for the
+> rate-limit policies below. **That's wrong — Consumption tier rejects `rate-limit-by-key`
+> outright** (`ValidationError: Policy is not allowed in 'Consumption' sku`), confirmed against
+> the live `quizpulse-apim-av5z18` instance. Consumption tier has no dedicated compute for the
+> counter state rate-limit policies need. If you want the policies in this doc to actually work,
+> provision **Developer tier** (~$50/mo, no SLA — fine for a pilot) or **Basic tier** (~$150/mo,
+> has SLA) instead. See CLAUDE.md Known issues for the current decision status — as of this
+> writing, the app has chosen to leave APIM as a monitoring-only sidecar rather than pay for a
+> tier upgrade, so rate limiting remains a no-op in production.
 
 ---
 
-## Why Consumption tier
+## Why Consumption tier was picked (and why it doesn't fully work)
 
 Consumption tier has:
 - No idle cost (billed per call, ~$3.50 per million calls — well within the $100 budget)
 - Shared gateway infrastructure (no VNet required)
-- Full policy engine (rate limiting, JWT validation, caching)
 - Scales automatically
 
-Limitations: no custom domains (not needed yet), no caching policies (not used yet).
+But it does **not** support `rate-limit` / `rate-limit-by-key` policies (see correction above),
+which is most of what this doc exists to configure. It's fine for API import + monitoring, not
+for the throttling this doc's Step 3 describes.
+
+Other limitations: no custom domains (not needed yet), no caching policies (not used yet).
 
 ---
 
 ## Step 1 — Create the APIM instance
 
+**Already done.** `quizpulse-apim-av5z18` exists — but note it landed in **`quizpulse-rg`**, not
+`quizpulse-app-rg` like every other app resource (verified 2026-07-03; harmless but inconsistent
+naming, don't "fix" it by recreating — APIM names are globally unique across all of Azure and
+recreating means picking a new name). If provisioning from scratch elsewhere:
+
 1. Azure Portal → **+ Create a resource** → search "API Management"
 2. Fill in:
-   - **Resource name**: `quizpulse-apim-av5z18`
-   - **Resource group**: `quizpulse-app-rg`
+   - **Resource name**: `quizpulse-apim-av5z18` (or a new globally-unique name if that one's taken)
+   - **Resource group**: `quizpulse-app-rg` (keep it consistent with everything else)
    - **Region**: Australia East (same as the Function App)
    - **Organization name**: QuizPulse
    - **Administrator email**: admin@quizpulse.app
-   - **Pricing tier**: Consumption
-3. Click **Review + Create** → **Create** (takes ~5 minutes)
+   - **Pricing tier**: **Developer** or **Basic**, not Consumption — see correction at the top of
+     this doc
+3. Click **Review + Create** → **Create** (Consumption takes ~5 min; Developer/Basic ~30-45 min)
 
 ---
 
 ## Step 2 — Import the Function App
+
+**Already done, kept in sync as of 2026-07-03** — the `quizpulse-app-api-av5z18` API in APIM has
+all 50 current operations (re-synced same day as the v4.0.0 deploy via direct ARM calls, since the
+Azure CLI's `az apim api import` doesn't support `--specification-format Function` for re-import —
+new operations were added individually with `az rest --method put .../operations/{id}`). Re-check
+this list after any sprint that adds/removes an endpoint; it does not auto-sync with deploys.
 
 1. In the new APIM resource → **APIs** → **+ Add API** → **Function App**
 2. Select `quizpulse-app-api-av5z18` and import all functions
