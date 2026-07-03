@@ -738,13 +738,23 @@ added for silent token iframe renewal. **Portal action still required:** confirm
 `https://nice-field-0127b5b00.7.azurestaticapps.net` is listed as a redirect URI in the Entra External
 ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
 
-1. **SWA Standard upgrade is a portal step — not yet applied to the live site.** Until the Azure
-   portal steps in `docs/azure/SWA_STANDARD_UPGRADE.md` are executed (upgrade to Standard tier,
-   link the Function App backend), the production site is still on the Free tier and `/api/*` will
-   break. **Do not deploy the v3.0.0 frontend before completing those portal steps.**
-2. **APIM is a portal step — not yet provisioned.** Rate limiting is a no-op at the application
-   layer (rateLimit() always returns true). APIM policies enforce limits once the instance is
-   created per `docs/azure/APIM_SETUP.md`. Until then, the app is unthrottled in production.
+~~1. **SWA Standard upgrade is a portal step — not yet applied to the live site.**~~ **Resolved.**
+   Verified live 2026-07-03: `quizpulse-app-swa` is on Standard tier with the Function App linked
+   as backend (`az staticwebapp backends show` confirms `backend1` → `quizpulse-app-api-av5z18`).
+2. **APIM exists but is not in the traffic path, and its Consumption tier can't run rate-limit
+   policies at all.** Verified 2026-07-03: an APIM instance (`quizpulse-apim-av5z18`) already
+   existed in **`quizpulse-rg`** — a different resource group than the rest of the app
+   (`quizpulse-app-rg`), which is why earlier checks against `quizpulse-app-rg` found nothing. The
+   Function App is imported as an API and its operation list is kept in sync with all current
+   routes (50 operations as of this deploy). But: (a) the SWA linked backend still points directly
+   at the Function App, bypassing APIM entirely, and (b) **`docs/azure/APIM_SETUP.md`'s own
+   recommendation is internally inconsistent** — it picks Consumption tier for the no-idle-cost
+   reason, but `rate-limit-by-key` (which the doc's Step 3 policies all use) is rejected outright
+   on Consumption tier (`ValidationError: Policy is not allowed in 'Consumption' sku`). Rate
+   limiting is still a no-op in production, and applying the documented policies requires
+   upgrading APIM to at least Developer tier (~$50/mo, no SLA) or Basic tier (~$150/mo, has SLA) —
+   an explicit cost decision, not yet made. APIM today is a monitoring-only sidecar with zero live
+   traffic and zero enforcement.
 3. **Apple ID not yet active** — Entra External ID still has Microsoft only until the steps in
    `docs/azure/APPLE_ID_SETUP.md` are completed in the Apple Developer portal and the CIAM tenant.
 4. **Cosmos DB IP restriction skipped** — Consumption plan lacks static outbound IPs. Deferred.
@@ -758,16 +768,16 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
    **PowerShell** wrapped as `'"NAME=@Microsoft.KeyVault(...)"'` (single-quoted outer, double-quoted
    inner) so `az.cmd` receives one literal token, or paste into the Azure Portal. The Function App
    managed identity holds **Key Vault Secrets User** on `quizpulse-app-kv-av5z18`.
-8. **New Cosmos containers must be provisioned before deploying the Sprint 6 API.** See
-   `docs/azure/SPRINT6_CONTAINERS_SETUP.md` for `question_upvotes` and `question_reports`.
-9. **`question_upvotes` and `question_reports` env vars** must be set in the Function App:
-   `COSMOS_CONTAINER_QUESTION_UPVOTES=question_upvotes`,
-   `COSMOS_CONTAINER_QUESTION_REPORTS=question_reports`.
-10. **`population_benchmark` container not yet provisioned or seeded (v4.0.0).** The code is
-    complete and unit-tested, but Population benchmarking will show "No benchmark data" for every
-    topic in a deployed environment until the container is created and
-    `node api/seed/populationSeed.js` is run once — see `docs/azure/POPULATION_BENCHMARK_SETUP.md`.
-    Same class of deploy gap as the Sprint 6 `question_upvotes`/`question_reports` containers below.
+~~8. **New Cosmos containers must be provisioned before deploying the Sprint 6 API.**~~ **Resolved.**
+~~9. **`question_upvotes` and `question_reports` env vars** must be set.~~ **Resolved.** Verified
+    2026-07-03: both containers exist in `quizpulse-app-db-av5z18` and both env vars are set on
+    the Function App.
+~~10. **`population_benchmark` container not yet provisioned or seeded (v4.0.0).**~~ **Resolved
+    2026-07-03.** Container created (partition key `/topicTag`), `COSMOS_CONTAINER_POPULATION_BENCHMARK`
+    set on the Function App, and `node api/seed/populationSeed.js` run once — 12 topic rollups
+    seeded. The v4.0.0 API (including `analyticsPopulation`) was also redeployed the same day via
+    `func azure functionapp publish` from Node 22; confirmed live (`GET /api/analytics/population`
+    returns 401 unauthenticated, not 404/503 — i.e. registered and running).
 11. **v4.0.0 UI was verified by build + smoke-check only, not full E2E.** `npm run build` is clean
     and `/teacher/build` + `/teacher/population` render without console errors in the preview
     browser (nav wiring confirmed — SubNav shows both "By Class" and "Population" tabs). The
