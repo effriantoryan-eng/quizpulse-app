@@ -110,24 +110,33 @@ function applyClassFilter(loaded, classId) {
 
 const CONFIDENT_VALUES = new Set(['sure', 'pretty_sure']);
 
+// Four-cell breakdown (v4.0.0 comprehensive analytics) — correctConfident / correctUnsure /
+// incorrectConfident / incorrectUnsure. "Confident" reuses CONFIDENT_VALUES so this always agrees
+// with confidentButIncorrect (incorrectConfident === confidentButIncorrect, by construction) —
+// see DESIGN_REVIEW_v400_v410_addendum.md §E4. An answer with no confidence field (legacy
+// response, pre-v3.2.0) is treated as not-confident, same as confidentButIncorrect already does.
 function buildQuestionBreakdown(questions, responses) {
   return questions.map(q => {
     const optionCount = (q.options || []).length;
     const counts = Array(optionCount).fill(0);
     let confidentButIncorrect = 0;
+    const fourCell = { correctConfident: 0, correctUnsure: 0, incorrectConfident: 0, incorrectUnsure: 0 };
     responses.forEach(r => {
       const answer = (r.answers || []).find(a => a.questionId === q.id);
       if (answer && answer.selectedIndex >= 0 && answer.selectedIndex < optionCount) {
         counts[answer.selectedIndex]++;
-        if (
-          CONFIDENT_VALUES.has(answer.confidence) &&
-          answer.selectedIndex !== q.correctIndex
-        ) {
+        const isCorrect = answer.selectedIndex === q.correctIndex;
+        const isConfident = CONFIDENT_VALUES.has(answer.confidence);
+        if (isCorrect && isConfident) fourCell.correctConfident++;
+        else if (isCorrect && !isConfident) fourCell.correctUnsure++;
+        else if (!isCorrect && isConfident) fourCell.incorrectConfident++;
+        else fourCell.incorrectUnsure++;
+        if (isConfident && !isCorrect) {
           confidentButIncorrect++;
         }
       }
     });
-    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect };
+    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect, fourCell };
   });
 }
 

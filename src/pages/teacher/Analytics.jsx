@@ -9,6 +9,22 @@ const OPTION_BORDER = ['#185FA5', 'var(--primary)', '#633806', '#4B1528']
 const CORRECT_BG = '#EAF3DE'
 const CORRECT_BORDER = '#3B6D11'
 
+// Misconception accent — one color for the signal everywhere it appears (per-question four-cell
+// "incorrect, confident" segment and the promoted hero card). Deliberately NOT purple (would
+// collide with the demo-pill purple below) and NOT the same amber used elsewhere — a dedicated,
+// distinct accent per DESIGN_REVIEW_v400_v410_addendum.md §D5.
+const MISCONCEPTION_BG = '#FBEDE8'
+const MISCONCEPTION_BORDER = '#B5482E'
+
+// Four-cell chart (v4.0.0) — correctness x confidence, always shown with visible counts/labels
+// (never color- or hover-only, per §D4). incorrectConfident reuses the misconception accent.
+const FOUR_CELL = [
+  { key: 'correctConfident', label: 'Correct, confident', bg: '#DCEFC8', border: '#3B6D11' },
+  { key: 'correctUnsure', label: 'Correct, unsure', bg: '#EEF6E4', border: '#6B9A44' },
+  { key: 'incorrectConfident', label: 'Misconception', bg: MISCONCEPTION_BG, border: MISCONCEPTION_BORDER },
+  { key: 'incorrectUnsure', label: 'Incorrect, unsure', bg: '#FDF3E3', border: '#B8860B' },
+]
+
 const POLL_INTERVAL_MS = 3000
 
 // SVG line chart showing cumulative responses over time since quiz was sent.
@@ -251,6 +267,45 @@ function Analytics() {
         <TimelineChart timeline={timeline} classSize={classSize} />
       )}
 
+      {/* Misconception hero card — promoted above the question list (v4.0.0), not buried below.
+          Cohort/question level only, never individual (see CLAUDE.md — Companion Layer non-negotiables). */}
+      {(() => {
+        const totalConfidentButIncorrect = questions.reduce((sum, q) => sum + (q.confidentButIncorrect || 0), 0)
+        if (totalConfidentButIncorrect === 0) return null
+        const worst = questions.reduce((a, b) => (b.confidentButIncorrect || 0) > (a.confidentButIncorrect || 0) ? b : a, questions[0])
+        const worstIndex = questions.indexOf(worst)
+        return (
+          <div
+            data-testid="misconception-hero"
+            style={{ background: MISCONCEPTION_BG, border: `2px solid ${MISCONCEPTION_BORDER}`, borderRadius: '12px', padding: '18px 20px', marginBottom: '20px' }}
+          >
+            <div style={{ fontSize: '12px', color: MISCONCEPTION_BORDER, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: '700' }}>
+              Misconception signal
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: '#5A2416', marginBottom: '4px' }}>
+              {totalConfidentButIncorrect === 1
+                ? '1 student answered confidently but got it wrong.'
+                : `${totalConfidentButIncorrect} students answered confidently but got it wrong.`}
+            </div>
+            <div style={{ fontSize: '13px', color: '#7A3B28' }}>
+              Worst question: <strong>Question {worstIndex + 1}</strong> ({worst.confidentButIncorrect} confident-but-wrong)
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Four-cell legend — shown once, above the first question card, not per-question or hover-only. */}
+      {questions.length > 0 && questions.some(q => q.fourCell) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '14px', padding: '10px 14px', background: '#fafafa', borderRadius: '8px', border: '1px solid #eee' }}>
+          {FOUR_CELL.map(cell => (
+            <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}>
+              <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: cell.bg, border: `1.5px solid ${cell.border}`, flexShrink: 0 }} />
+              {cell.label}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Per question breakdown */}
       {questions.length === 0 && (
         <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px' }}>
@@ -272,61 +327,66 @@ function Analytics() {
               {q.text}
             </div>
 
-            {q.options.map((opt, i) => {
-              const count = counts[i]
-              const percent = total > 0 ? Math.round((count / total) * 100) : 0
-              const isCorrect = i === q.correctIndex
-              const barWidth = percent
-
-              return (
-                <div key={i} style={{ marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                    <span style={{
-                      width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '11px', fontWeight: '600',
-                      background: isCorrect ? CORRECT_BG : OPTION_COLORS[i],
-                      border: `1.5px solid ${isCorrect ? CORRECT_BORDER : OPTION_BORDER[i]}`,
-                      color: isCorrect ? CORRECT_BORDER : OPTION_BORDER[i]
-                    }}>
-                      {String.fromCharCode(65 + i)}
-                    </span>
-                    <span style={{ flex: 1, fontSize: '13px', color: '#333' }}>{opt}</span>
-                    {isCorrect && (
-                      <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: CORRECT_BG, color: CORRECT_BORDER, flexShrink: 0 }}>
-                        Correct
+            {q.fourCell ? (
+              (() => {
+                const fcTotal = Object.values(q.fourCell).reduce((a, b) => a + b, 0)
+                return (
+                  <div>
+                    {/* Segmented bar — proportional widths, but meaning never depends on this alone. */}
+                    <div style={{ display: 'flex', height: '14px', borderRadius: '7px', overflow: 'hidden', border: '1px solid #eee', marginBottom: '10px' }}>
+                      {FOUR_CELL.map(cell => {
+                        const count = q.fourCell[cell.key] || 0
+                        const width = fcTotal > 0 ? (count / fcTotal) * 100 : 0
+                        return width > 0 ? (
+                          <div key={cell.key} style={{ width: `${width}%`, background: cell.border }} title={`${cell.label}: ${count}`} />
+                        ) : null
+                      })}
+                    </div>
+                    {/* Always-visible counts + percentages per cell — never hover-only (touch users get nothing on hover). */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {FOUR_CELL.map(cell => {
+                        const count = q.fourCell[cell.key] || 0
+                        const percent = fcTotal > 0 ? Math.round((count / fcTotal) * 100) : 0
+                        return (
+                          <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: cell.bg, border: `1px solid ${cell.border}`, borderRadius: '6px' }}>
+                            <span style={{ fontSize: '12px', color: cell.border, flex: 1 }}>{cell.label}</span>
+                            <span style={{ fontSize: '13px', fontWeight: '600', color: cell.border }}>{count} ({percent}%)</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()
+            ) : (
+              // Legacy fallback — pre-v4.0.0 payload without fourCell (shouldn't happen once the
+              // backend deploys, kept defensive since this is a polled endpoint).
+              q.options.map((opt, i) => {
+                const count = counts[i]
+                const percent = total > 0 ? Math.round((count / total) * 100) : 0
+                const isCorrect = i === q.correctIndex
+                return (
+                  <div key={i} style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                      <span style={{
+                        width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '11px', fontWeight: '600',
+                        background: isCorrect ? CORRECT_BG : OPTION_COLORS[i],
+                        border: `1.5px solid ${isCorrect ? CORRECT_BORDER : OPTION_BORDER[i]}`,
+                        color: isCorrect ? CORRECT_BORDER : OPTION_BORDER[i]
+                      }}>
+                        {String.fromCharCode(65 + i)}
                       </span>
-                    )}
-                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#333', minWidth: '40px', textAlign: 'right' }}>
-                      {percent}%
-                    </span>
+                      <span style={{ flex: 1, fontSize: '13px', color: '#333' }}>{opt}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#333', minWidth: '40px', textAlign: 'right' }}>{percent}%</span>
+                    </div>
+                    <div style={{ height: '8px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden', marginLeft: '34px' }}>
+                      <div style={{ height: '100%', borderRadius: '4px', width: `${percent}%`, background: isCorrect ? CORRECT_BORDER : OPTION_BORDER[i] }} />
+                    </div>
                   </div>
-                  <div style={{ height: '8px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden', marginLeft: '34px' }}>
-                    <div style={{
-                      height: '100%', borderRadius: '4px',
-                      width: `${barWidth}%`,
-                      background: isCorrect ? CORRECT_BORDER : OPTION_BORDER[i],
-                      transition: 'width 0.5s ease'
-                    }} />
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#aaa', marginLeft: '34px', marginTop: '2px' }}>
-                    {count} response{count !== 1 ? 's' : ''}
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* Misconception signal — cohort/question level only, never individual. */}
-            {q.confidentButIncorrect > 0 && (
-              <div style={{
-                marginTop: '14px', padding: '10px 14px',
-                background: '#FFF8E6', border: '1px solid #F5C842',
-                borderRadius: '8px', fontSize: '13px', color: '#7A5C00',
-              }}>
-                {q.confidentButIncorrect === 1
-                  ? '1 student was confident but got this wrong — worth revisiting.'
-                  : `${q.confidentButIncorrect} students were confident but got this wrong — worth revisiting.`}
-              </div>
+                )
+              })
             )}
           </div>
         )

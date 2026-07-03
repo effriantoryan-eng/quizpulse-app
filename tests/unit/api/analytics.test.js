@@ -1,5 +1,6 @@
 // Unit test for analytics accuracy — mirrors buildQuestionBreakdown() in api/analytics.js.
-// Verifies per-option counts and confidentButIncorrect aggregate (Confidence Layer v3.2).
+// Verifies per-option counts, confidentButIncorrect aggregate (Confidence Layer v3.2), and the
+// four-cell breakdown (v4.0.0 comprehensive analytics).
 
 const CONFIDENT_VALUES = new Set(['sure', 'pretty_sure']);
 
@@ -8,16 +9,23 @@ function buildQuestionBreakdown(questions, responses) {
     const optionCount = (q.options || []).length;
     const counts = Array(optionCount).fill(0);
     let confidentButIncorrect = 0;
+    const fourCell = { correctConfident: 0, correctUnsure: 0, incorrectConfident: 0, incorrectUnsure: 0 };
     responses.forEach(r => {
       const answer = (r.answers || []).find(a => a.questionId === q.id);
       if (answer && answer.selectedIndex >= 0 && answer.selectedIndex < optionCount) {
         counts[answer.selectedIndex]++;
-        if (CONFIDENT_VALUES.has(answer.confidence) && answer.selectedIndex !== q.correctIndex) {
+        const isCorrect = answer.selectedIndex === q.correctIndex;
+        const isConfident = CONFIDENT_VALUES.has(answer.confidence);
+        if (isCorrect && isConfident) fourCell.correctConfident++;
+        else if (isCorrect && !isConfident) fourCell.correctUnsure++;
+        else if (!isCorrect && isConfident) fourCell.incorrectConfident++;
+        else fourCell.incorrectUnsure++;
+        if (isConfident && !isCorrect) {
           confidentButIncorrect++;
         }
       }
     });
-    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect };
+    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect, fourCell };
   });
 }
 
@@ -95,6 +103,59 @@ describe('analytics — confidentButIncorrect signal', () => {
   test('confidentButIncorrect is always present in the output (0 when none)', () => {
     const breakdown = buildQuestionBreakdown(questions, []);
     expect(breakdown[0]).toHaveProperty('confidentButIncorrect', 0);
+  });
+});
+
+describe('analytics — four-cell breakdown (v4.0.0)', () => {
+  const questions = [
+    { id: 'q1', text: 'Capital of France?', options: ['Paris', 'Rome', 'Berlin', 'Madrid'], correctIndex: 0 },
+  ];
+
+  test('sorts each answer into exactly one of the four cells', () => {
+    const responses = [
+      { studentId: 's1', answers: [{ questionId: 'q1', selectedIndex: 0, confidence: 'sure' }] },        // correct, confident
+      { studentId: 's2', answers: [{ questionId: 'q1', selectedIndex: 0, confidence: 'guessing' }] },    // correct, unsure
+      { studentId: 's3', answers: [{ questionId: 'q1', selectedIndex: 1, confidence: 'pretty_sure' }] }, // incorrect, confident
+      { studentId: 's4', answers: [{ questionId: 'q1', selectedIndex: 2, confidence: 'guessing' }] },    // incorrect, unsure
+    ];
+    const [q1] = buildQuestionBreakdown(questions, responses);
+    expect(q1.fourCell).toEqual({
+      correctConfident: 1,
+      correctUnsure: 1,
+      incorrectConfident: 1,
+      incorrectUnsure: 1,
+    });
+  });
+
+  test('incorrectConfident always equals confidentButIncorrect (same definition, per §E4)', () => {
+    const responses = [
+      { studentId: 's1', answers: [{ questionId: 'q1', selectedIndex: 1, confidence: 'sure' }] },
+      { studentId: 's2', answers: [{ questionId: 'q1', selectedIndex: 2, confidence: 'pretty_sure' }] },
+      { studentId: 's3', answers: [{ questionId: 'q1', selectedIndex: 3, confidence: 'guessing' }] },
+    ];
+    const [q1] = buildQuestionBreakdown(questions, responses);
+    expect(q1.fourCell.incorrectConfident).toBe(q1.confidentButIncorrect);
+    expect(q1.fourCell.incorrectConfident).toBe(2);
+  });
+
+  test('an answer with no confidence field lands in the unsure cells (legacy responses)', () => {
+    const responses = [
+      { studentId: 's1', answers: [{ questionId: 'q1', selectedIndex: 0 }] }, // correct, no confidence
+      { studentId: 's2', answers: [{ questionId: 'q1', selectedIndex: 1 }] }, // incorrect, no confidence
+    ];
+    const [q1] = buildQuestionBreakdown(questions, responses);
+    expect(q1.fourCell).toEqual({ correctConfident: 0, correctUnsure: 1, incorrectConfident: 0, incorrectUnsure: 1 });
+  });
+
+  test('four-cell counts sum to total responses for the question', () => {
+    const responses = [
+      { studentId: 's1', answers: [{ questionId: 'q1', selectedIndex: 0, confidence: 'sure' }] },
+      { studentId: 's2', answers: [{ questionId: 'q1', selectedIndex: 1, confidence: 'guessing' }] },
+      { studentId: 's3', answers: [{ questionId: 'q1', selectedIndex: 2, confidence: 'sure' }] },
+    ];
+    const [q1] = buildQuestionBreakdown(questions, responses);
+    const sum = Object.values(q1.fourCell).reduce((a, b) => a + b, 0);
+    expect(sum).toBe(3);
   });
 });
 

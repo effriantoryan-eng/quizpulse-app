@@ -32,6 +32,7 @@ export const HUBS = [
     id: 'results', label: 'Results', icon: 'results', path: '/teacher/results',
     tabs: [
       { label: 'By Class', path: '/teacher/results', match: ['/teacher/analytics'] },
+      { label: 'Population', path: '/teacher/population' },
     ],
   },
 ]
