@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
+import TOPIC_TAGS from '../../data/topicTags'
 
 function SendQuiz() {
   const location = useLocation()
@@ -21,6 +22,7 @@ function SendQuiz() {
   const [mode, setMode] = useState('now') // 'now' | 'schedule'
   const [durationMinutes, setDurationMinutes] = useState(30)
   const [scheduledFor, setScheduledFor] = useState('')
+  const [topicTag, setTopicTag] = useState('')
 
   useEffect(() => {
     async function fetchClasses() {
@@ -101,6 +103,7 @@ function SendQuiz() {
                 status: 'sent',
                 sentAt: new Date().toISOString(),
                 durationMinutes,
+                ...(topicTag && { topicTag }),
               }
             : {
                 name: quizName,
@@ -110,6 +113,7 @@ function SendQuiz() {
                 status: 'scheduled',
                 scheduledFor: new Date(scheduledFor).toISOString(),
                 durationMinutes,
+                ...(topicTag && { topicTag }),
               }
         ),
       })
@@ -200,6 +204,24 @@ function SendQuiz() {
         </div>
       ) : (
         <>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
+            Topic <span style={{ fontWeight: '400', color: '#aaa' }}>(optional)</span>
+          </label>
+          <select
+            data-testid="send-topic-select"
+            value={topicTag}
+            onChange={e => setTopicTag(e.target.value)}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '8px', background: 'white' }}
+          >
+            <option value="">No topic</option>
+            {TOPIC_TAGS.map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '20px' }}>
+            Picking a topic lets this quiz count toward your school's benchmark on the Population page.
+          </p>
+
           <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>Send to class</div>
 
           {classesLoading && (

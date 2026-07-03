@@ -168,6 +168,10 @@ app.http('responses', {
           return stored;
         }),
         ...(quizDurationMs !== undefined && { quizDurationMs }),
+        // topicTag/schoolId are copied from the quiz doc, never trusted from the (anonymous)
+        // student caller — the student endpoint has no auth, so there's no claim to read these
+        // from. Only set when the quiz actually carries a topic (v4.0.0 population benchmarking).
+        ...(quiz.topicTag && { topicTag: quiz.topicTag, schoolId: quiz.schoolId || null }),
         completedAt: new Date().toISOString()
       };
 
