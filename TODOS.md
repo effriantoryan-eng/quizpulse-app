@@ -31,3 +31,35 @@ three came out of the same pass but were left as follow-ups:
 - [ ] Integration tests for `GET /api/analytics/class/{classId}` — the endpoint had zero coverage,
   which is how the cross-class rate inflation shipped in Sprint 6 and survived to v4.0.0. Cover:
   single-class quiz, multi-class quiz (rate must not exceed 100%), demo class, cross-tenant 404.
+
+## /qa findings — 2026-07-06 (release/v4.0-analytics)
+
+- [x] **CORS blocked every local API call from the Vite dev server** — `func start` ignores
+  `host.json`'s `cors` block (deploy-only); needed a `Host.CORS` entry in
+  `api/local.settings.json` (gitignored, so undocumented). Fixed: documented in CLAUDE.md's
+  "Running locally" section, applied locally. Verified: preflight now returns 204 with the right
+  `Access-Control-Allow-Origin` header, no more console CORS errors on any page load.
+- [x] **`npm run test:integration` was completely broken** — `cross-env` was used in the script
+  but never in `package.json`/`node_modules`, so the command failed immediately on Windows.
+  Fixed: `npm install --save-dev cross-env`. Verified the script now runs (see below for what it
+  revealed).
+- [ ] **CRITICAL — integration tests run against the real production Cosmos DB, not an
+  emulator.** `api/local.settings.json`'s `COSMOS_ENDPOINT` points at the live
+  `quizpulse-app-db-av5z18` instance (no local emulator configured — this matches the existing
+  "Cosmos DB IP restriction skipped" known issue). Running `npm run test:integration` for the
+  first time (after fixing cross-env) wrote real teacher/school/class/join-request/response test
+  documents into production, and 24/118 tests failed against that live, non-fixture state. **Do
+  not run `npm run test:integration` again until a local Cosmos emulator is wired up** — Docker
+  Desktop isn't installed in this environment, so that setup is blocked pending manual Docker
+  install. Someone should also manually check the production Cosmos containers
+  (`teachers`/`schools`/`classes`/`join_requests`/`responses`) for stray test documents from this
+  run and clean them up.
+- [ ] **HIGH — "Sign in with Google" button doesn't authenticate via Google at all.**
+  `src/pages/Login.jsx` sends `domain_hint: 'google.com'` to CIAM, but the Google identity
+  provider was never actually configured in the `quizpulseid` CIAM tenant (contradicts
+  `docs/azure/B2C_SETUP.md`'s claim that "sign-in works end to end (Microsoft + Google)" — verified
+  live in this session: clicking it lands on the generic unbranded CIAM email-entry form, not a
+  Google consent screen, with zero error/indication anything went wrong). This is a portal/tenant
+  config gap, not fixable from source — needs the Google Cloud OAuth client + CIAM IdP setup in
+  `docs/azure/B2C_SETUP.md`'s "Google" section actually completed. Until then, consider hiding the
+  button (same treatment as Apple ID, which is correctly not shown pending its own portal setup).
