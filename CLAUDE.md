@@ -136,6 +136,15 @@ azurite --silent
 decode-only mode (no signature verification). Real tenant values (`AUTH_TENANT_SUBDOMAIN`,
 `AUTH_TENANT_ID`, `AUTH_CLIENT_ID`) are already set in `local.settings.json`. See `docs/azure/B2C_SETUP.md`.
 
+**CORS local dev:** `host.json`'s `cors` block only applies to the *deployed* Function App —
+`func start` ignores it entirely, so every fetch from `localhost:5173` to `localhost:7071` fails
+preflight with a CORS error unless `api/local.settings.json` also has a top-level `Host` section:
+```json
+"Host": { "CORS": "http://localhost:5173,http://localhost:5174", "CORSCredentials": false }
+```
+`local.settings.json` is gitignored (per-dev secrets), so this has to be added manually on each
+machine — it's not something a repo checkout gives you for free.
+
 **Important:** Do not use `&&` in PowerShell — run commands on separate lines.
 
 ---
