@@ -619,8 +619,31 @@ HTML report is generated.
 
 - **Unit** (jest BE / vitest FE) — pure logic: validation, rate limiting, fuzzy match, join codes.
   Runs every push.
-- **Integration** (jest + supertest) — API endpoints vs local Cosmos emulator + Azurite; status
+- **Integration** (jest + supertest) — API endpoints vs a real HTTP `func start` instance; status
   codes, DB writes, limit enforcement. Runs after unit pass.
+  **⚠️ Never run `npm run test:integration` against the func host you use for normal local dev —
+  `api/local.settings.json`'s `COSMOS_ENDPOINT`/`COSMOS_KEY` point at the real production Cosmos
+  DB (no local emulator is configured; despite what this doc used to claim, there never was one).
+  A `/qa` session on 2026-07-06 ran the suite before this was documented and wrote real test
+  documents into production.** A dedicated free-tier Cosmos DB account exists for this
+  (`quizpulse-int-test-db` in resource group `quizpulse-test-rg`, database `quizpulse`, same 11
+  containers/partition keys as production — see `docs/azure/INFRASTRUCTURE.md`), with its
+  endpoint/key already in `local.settings.json` as `TEST_COSMOS_ENDPOINT`/`TEST_COSMOS_KEY`.
+  Before running integration tests, start `func start` with those values overriding the real
+  ones via the shell environment (env vars beat `local.settings.json` `Values` at Functions host
+  startup) — e.g. in PowerShell:
+  ```powershell
+  cd api
+  $env:COSMOS_ENDPOINT = (Get-Content local.settings.json | ConvertFrom-Json).Values.TEST_COSMOS_ENDPOINT
+  $env:COSMOS_KEY = (Get-Content local.settings.json | ConvertFrom-Json).Values.TEST_COSMOS_KEY
+  func start
+  ```
+  Then in another terminal, `npm run test:integration` as normal. Stop that func host and start a
+  plain `func start` (no overrides) afterward to go back to normal dev against production. A
+  known flake exists independent of which DB is used: rapid sequential test requests from one IP
+  can trip the 30 req/min rate limit on endpoints like `/api/classes`, surfacing as `classes.find
+  is not a function` (a 429 error body where an array was expected) rather than a DB bug — see
+  `TODOS.md`.
 - **Cross-tenant access denial** [introduced Sprint 5] — for every resource type a teacher can
   act on, Teacher A authenticates and attempts to access Teacher B's resource by ID; expected
   result is always 404 (never the resource). A test that gets the resource back is a FAILED test.

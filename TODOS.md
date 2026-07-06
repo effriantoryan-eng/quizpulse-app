@@ -43,17 +43,35 @@ three came out of the same pass but were left as follow-ups:
   but never in `package.json`/`node_modules`, so the command failed immediately on Windows.
   Fixed: `npm install --save-dev cross-env`. Verified the script now runs (see below for what it
   revealed).
-- [ ] **CRITICAL — integration tests run against the real production Cosmos DB, not an
+- [x] **CRITICAL — integration tests ran against the real production Cosmos DB, not an
   emulator.** `api/local.settings.json`'s `COSMOS_ENDPOINT` points at the live
-  `quizpulse-app-db-av5z18` instance (no local emulator configured — this matches the existing
-  "Cosmos DB IP restriction skipped" known issue). Running `npm run test:integration` for the
-  first time (after fixing cross-env) wrote real teacher/school/class/join-request/response test
-  documents into production, and 24/118 tests failed against that live, non-fixture state. **Do
-  not run `npm run test:integration` again until a local Cosmos emulator is wired up** — Docker
-  Desktop isn't installed in this environment, so that setup is blocked pending manual Docker
-  install. Someone should also manually check the production Cosmos containers
-  (`teachers`/`schools`/`classes`/`join_requests`/`responses`) for stray test documents from this
-  run and clean them up.
+  `quizpulse-app-db-av5z18` instance (no local emulator was configured — this matches the existing
+  "Cosmos DB IP restriction skipped" known issue, and contradicted CLAUDE.md's own Testing section,
+  which claimed integration tests ran "vs local Cosmos emulator" — that emulator never existed).
+  The first `npm run test:integration` run (right after fixing cross-env) wrote real
+  teacher/school/class/join-request/response test documents into production. **Fixed:** since
+  Docker wasn't available for a local emulator, provisioned a dedicated free-tier Cosmos DB
+  account (`quizpulse-int-test-db` in `quizpulse-test-rg`, same containers/partition keys as prod,
+  $0/mo under the free allowance) — see `docs/azure/INFRASTRUCTURE.md`. Verified isolation: ran
+  the full 118-test suite against it with `COSMOS_ENDPOINT`/`COSMOS_KEY` overridden to
+  `TEST_COSMOS_ENDPOINT`/`TEST_COSMOS_KEY` (see CLAUDE.md's Testing section for the exact steps),
+  confirmed via direct query that writes landed in the test DB (`classes` container had 20 new
+  docs matching the run). Same 24/118 failures reproduced against this clean, empty DB — proving
+  they're a pre-existing test/rate-limiter issue, not caused by dirty prod data (see next item).
+- [ ] **Someone still needs to manually check production Cosmos for stray test documents** from
+  the one run that happened before this was caught — `teachers`/`schools`/`classes`/
+  `join_requests`/`responses` in `quizpulse-app-db-av5z18`, likely identifiable by `oid`/`teacherId`
+  values matching test patterns like `integ-*`. Not done in this session (required explicit
+  read-access approval for production that wasn't given).
+- [ ] **MEDIUM — 24/118 integration tests fail due to the 30 req/min rate limit, not real bugs.**
+  Confirmed root cause: `api/classes.js` (and others) call `rateLimit(`classes:${ip}`, 30, 60000)`
+  keyed only by client IP, and Jest fires all integration tests from one process/IP with no
+  throttling or delay — reproduces identically on a totally clean, empty test DB. Symptom:
+  `TypeError: classes.find is not a function` (a `429` error body returned where an array was
+  expected) and similar. Needs either a test-mode rate-limit bypass (e.g. skip when
+  `NODE_ENV=test` or a dedicated header) or spacing out requests in the slower test files
+  (`joinRequests.test.js`, `v3-3.test.js`, `sprint5.test.js`). Not fixed in this session — touching
+  the shared rate limiter needs its own careful pass, not a QA-session drive-by.
 - [ ] **HIGH — "Sign in with Google" button doesn't authenticate via Google at all.**
   `src/pages/Login.jsx` sends `domain_hint: 'google.com'` to CIAM, but the Google identity
   provider was never actually configured in the `quizpulseid` CIAM tenant (contradicts
