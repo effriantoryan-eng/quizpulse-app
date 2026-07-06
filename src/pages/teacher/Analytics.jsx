@@ -218,7 +218,7 @@ function Analytics() {
       </div>
       {hintVisible && (
         <HintBanner
-          text="Each question shows how the class responded. The green bar is the correct answer. Use the question cards below to see the full breakdown. This page updates automatically every few seconds."
+          text="Each question shows how the class responded, split by correct/incorrect and how confident students felt. The terracotta segment marks confident-but-wrong answers — the strongest reteach signal. This page updates automatically every few seconds."
           onDismiss={dismissHint}
         />
       )}
@@ -327,11 +327,11 @@ function Analytics() {
               {q.text}
             </div>
 
-            {q.fourCell ? (
+            {q.fourCell && (
               (() => {
                 const fcTotal = Object.values(q.fourCell).reduce((a, b) => a + b, 0)
                 return (
-                  <div>
+                  <div style={{ marginBottom: '18px' }}>
                     {/* Segmented bar — proportional widths, but meaning never depends on this alone. */}
                     <div style={{ display: 'flex', height: '14px', borderRadius: '7px', overflow: 'hidden', border: '1px solid #eee', marginBottom: '10px' }}>
                       {FOUR_CELL.map(cell => {
@@ -358,10 +358,11 @@ function Analytics() {
                   </div>
                 )
               })()
-            ) : (
-              // Legacy fallback — pre-v4.0.0 payload without fourCell (shouldn't happen once the
-              // backend deploys, kept defensive since this is a polled endpoint).
-              q.options.map((opt, i) => {
+            )}
+
+            {/* Per-option distribution — always shown alongside the four-cell chart: "confidently
+                wrong" only becomes teachable once you can see WHICH option they picked. */}
+            {q.options.map((opt, i) => {
                 const count = counts[i]
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0
                 const isCorrect = i === q.correctIndex
@@ -386,8 +387,7 @@ function Analytics() {
                     </div>
                   </div>
                 )
-              })
-            )}
+              })}
           </div>
         )
       })}

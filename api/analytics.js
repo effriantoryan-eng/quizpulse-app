@@ -267,8 +267,14 @@ app.http('analyticsExport', {
         }
       }
 
+      // Neutralise spreadsheet formula injection: studentName is student-supplied, and Excel
+      // executes cells starting with = + - @ when the teacher opens the export (CWE-1236).
       const csv = rows
-        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .map(row => row.map(cell => {
+          let s = String(cell).replace(/"/g, '""');
+          if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+          return `"${s}"`;
+        }).join(','))
         .join('\r\n');
 
       logRequest(context, { endpoint: 'analytics/export', method: 'GET', status: 200, durationMs: Date.now() - start, teacherId });
@@ -347,21 +353,35 @@ app.http('classAnalytics', {
         }
       }
 
-      // For each quiz, load response count and approved student count
-      const results = await Promise.all(filteredQuizzes.map(async (quiz) => {
-        const [responsesResult, approvedResult] = await Promise.all([
-          responsesContainer.items.query({
-            query: 'SELECT VALUE COUNT(1) FROM c WHERE c.quizId = @qid',
-            parameters: [{ name: '@qid', value: quiz.id }]
-          }).fetchAll(),
-          joinRequestsContainer.items.query({
-            query: "SELECT VALUE COUNT(1) FROM c WHERE c.status = 'approved' AND c.classId = @cid",
-            parameters: [{ name: '@cid', value: classId }]
-          }).fetchAll(),
-        ]);
+      // Class roster, fetched once (not per quiz). Responses must be narrowed to THIS class's
+      // students — a quiz can target several classes, and counting all its responses against one
+      // class's approved count inflated rates past 100%. Demo classes have no join_requests;
+      // their roster is the generated demoStudents (same rule as loadQuizAnalytics above).
+      const classDoc = classMatches[0];
+      let rosterDeviceIds;
+      if (classDoc.isDemo === true && Array.isArray(classDoc.demoStudents)) {
+        rosterDeviceIds = classDoc.demoStudents.map(s => s.studentId);
+      } else {
+        const { resources: approvedRows } = await joinRequestsContainer.items.query({
+          query: "SELECT c.deviceId FROM c WHERE c.status = 'approved' AND c.classId = @cid",
+          parameters: [{ name: '@cid', value: classId }]
+        }).fetchAll();
+        rosterDeviceIds = approvedRows.map(r => r.deviceId);
+      }
+      const approvedCount = rosterDeviceIds.length;
+      const deviceParams = rosterDeviceIds.map((d, i) => ({ name: `@d${i}`, value: d }));
+      const deviceList = deviceParams.map(p => p.name).join(', ');
 
-        const responseCount = responsesResult.resources[0] || 0;
-        const approvedCount = approvedResult.resources[0] || 0;
+      // For each quiz, count responses from this class's students only
+      const results = await Promise.all(filteredQuizzes.map(async (quiz) => {
+        let responseCount = 0;
+        if (rosterDeviceIds.length > 0) {
+          const { resources } = await responsesContainer.items.query({
+            query: `SELECT VALUE COUNT(1) FROM c WHERE c.quizId = @qid AND c.studentId IN (${deviceList})`,
+            parameters: [{ name: '@qid', value: quiz.id }, ...deviceParams]
+          }).fetchAll();
+          responseCount = resources[0] || 0;
+        }
         const responseRate = approvedCount > 0 ? Math.round((responseCount / approvedCount) * 100) : null;
 
         return {

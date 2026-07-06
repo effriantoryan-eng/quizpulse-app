@@ -33,8 +33,12 @@ function ComparisonBar({ label, yourValue, normValue, higherIsConcern }) {
         {gap === 0
           ? 'Right at the norm for this topic.'
           : concern
-            ? `Your cohort ${label === 'Confident-but-wrong' ? 'has more confident wrong answers' : 'is below the norm'} than most schools — worth a closer look.`
-            : `Your cohort is ${label === 'Confident-but-wrong' ? 'lower on confident-but-wrong answers' : 'above the norm'} than most schools on this topic.`}
+            ? label === 'Confident-but-wrong'
+              ? 'Your cohort has more confident wrong answers than most schools — worth a closer look.'
+              : 'Your cohort scores below most schools on this topic — worth a closer look.'
+            : label === 'Confident-but-wrong'
+              ? 'Your cohort has fewer confident wrong answers than most schools on this topic.'
+              : 'Your cohort scores above most schools on this topic.'}
       </div>
     </div>
   )
