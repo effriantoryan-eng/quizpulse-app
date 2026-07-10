@@ -5,12 +5,6 @@ import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
 
-const CLASS_NAMES = {
-  'yr9-sci':  'Year 9 Science',
-  'yr10-mth': 'Year 10 Maths',
-  'yr7-eng':  'Year 7 English',
-}
-
 function formatDate(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -21,6 +15,7 @@ export default function QuizHistory() {
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('history')
   const [quizzes, setQuizzes] = useState([])
+  const [classNames, setClassNames] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -32,6 +27,11 @@ export default function QuizHistory() {
         if (!res.ok) throw new Error(`Server error ${res.status}`)
         const data = await res.json()
         setQuizzes(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+        const clsRes = await fetch(`${API_BASE}/classes`)
+        if (clsRes.ok) {
+          const classes = await clsRes.json()
+          setClassNames(Object.fromEntries(classes.map(c => [c.id, c.name])))
+        }
       } catch (err) {
         setError(err.message)
       } finally {
@@ -81,7 +81,7 @@ export default function QuizHistory() {
         <div>
           {quizzes.map(quiz => {
             const classLabels = (quiz.classIds || [])
-              .map(id => CLASS_NAMES[id] || id)
+              .map(id => classNames[id] || 'Class no longer exists')
               .join(', ')
 
             return (
