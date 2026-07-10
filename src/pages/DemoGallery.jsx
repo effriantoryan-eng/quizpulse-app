@@ -336,6 +336,88 @@ function Card2() {
   )
 }
 
+// ─── Card 2b: Confidence × correctness (v4.0.0) ───────────────────
+const FOURCELL_COLORS = {
+  correctConfident:   { bg: '#DCEFC8', border: '#3B6D11', text: '#3B6D11', label: 'Correct, confident' },
+  correctUnsure:       { bg: '#EEF6E4', border: '#6B9A44', text: '#6B9A44', label: 'Correct, unsure' },
+  incorrectConfident:  { bg: '#FBEDE8', border: '#B5482E', text: '#B5482E', label: 'Misconception' },
+  incorrectUnsure:      { bg: '#FDF3E3', border: '#B8860B', text: '#B8860B', label: 'Incorrect, unsure' },
+}
+const FOURCELL_DATA = [
+  { q: 'Which organelle does photosynthesis?', cells: { correctConfident: 11, correctUnsure: 3, incorrectConfident: 1, incorrectUnsure: 3 } },
+  { q: 'What do plants need alongside light?', cells: { correctConfident: 6, correctUnsure: 2, incorrectConfident: 6, incorrectUnsure: 4 } },
+]
+
+function Card2b() {
+  const [qIdx, setQIdx] = useState(0)
+  const q = FOURCELL_DATA[qIdx]
+  const total = Object.values(q.cells).reduce((a, b) => a + b, 0)
+  const misconceptionQ = FOURCELL_DATA.reduce((best, cur, i) => cur.cells.incorrectConfident > FOURCELL_DATA[best].cells.incorrectConfident ? i : best, 0)
+
+  return (
+    <CardShell title="Confidence × correctness" subtitle="Not just right/wrong — how sure students were" badge="Live" hint="Click Q1 / Q2 to switch questions. The misconception cell (confident but wrong) is the strongest signal a teacher can act on.">
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+        {FOURCELL_DATA.map((_, i) => (
+          <button key={i} onClick={() => setQIdx(i)}
+            style={{ padding: '4px 12px', borderRadius: '20px', border: `1px solid ${qIdx===i ? C.purple : C.border}`, background: qIdx===i ? C.purple : 'white', color: qIdx===i ? 'white' : C.sub, fontSize: '11px', fontWeight: '500', cursor: 'pointer' }}>
+            Q{i+1}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: '10px 12px', background: FOURCELL_COLORS.incorrectConfident.bg, border: `1px solid ${FOURCELL_COLORS.incorrectConfident.border}`, borderRadius: '10px', marginBottom: '14px' }}>
+        <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: FOURCELL_COLORS.incorrectConfident.text, marginBottom: '3px' }}>Misconception signal</div>
+        <div style={{ fontSize: '12px', color: FOURCELL_COLORS.incorrectConfident.text, lineHeight: '1.4' }}>
+          {FOURCELL_DATA[misconceptionQ].cells.incorrectConfident} students confident but wrong — Q{misconceptionQ+1} has the strongest signal.
+        </div>
+      </div>
+
+      <div style={{ fontSize: '12px', fontWeight: '600', color: C.text, marginBottom: '10px', lineHeight: '1.4' }}>{q.q}</div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        {Object.entries(q.cells).map(([key, count]) => {
+          const cfg = FOURCELL_COLORS[key]
+          const pct = Math.round((count / total) * 100)
+          return (
+            <div key={key} style={{ background: cfg.bg, borderRadius: '6px', padding: '8px 10px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: cfg.text }}>{count} <span style={{ fontSize: '11px', fontWeight: '500' }}>({pct}%)</span></div>
+              <div style={{ fontSize: '11px', color: cfg.text }}>{cfg.label}</div>
+            </div>
+          )
+        })}
+      </div>
+    </CardShell>
+  )
+}
+
+// ─── Card 2c: Population benchmarking (v4.0.0) ────────────────────
+const POPULATION_DATA = { you: 18, norm: 11 }
+
+function Card2c() {
+  const gap = POPULATION_DATA.you - POPULATION_DATA.norm
+  return (
+    <CardShell title="Population benchmarking" subtitle="See how your class compares to other schools" badge="Live" hint="Real classes are compared against a seeded benchmark for the same topic — this card uses sample numbers.">
+      <div style={{ textAlign: 'center', padding: '14px', background: '#FBEDE8', border: '1px solid #B5482E', borderRadius: '10px', marginBottom: '16px' }}>
+        <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#5A2416', marginBottom: '6px' }}>Confident but wrong</div>
+        <div style={{ fontSize: '32px', fontWeight: '800', color: '#5A2416', lineHeight: 1 }}>{POPULATION_DATA.you}%</div>
+        <div style={{ fontSize: '11px', color: '#7A3B28', marginTop: '6px' }}>vs {POPULATION_DATA.norm}% norm — {gap} points above</div>
+      </div>
+      {[
+        { label: 'You', value: POPULATION_DATA.you, color: '#B5482E' },
+        { label: 'Norm', value: POPULATION_DATA.norm, color: '#B5482E', faded: true },
+      ].map(({ label, value, color, faded }) => (
+        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <span style={{ width: '36px', fontSize: '10px', color: C.sub }}>{label}</span>
+          <div style={{ flex: 1, height: '10px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${value}%`, background: color, opacity: faded ? 0.35 : 1, borderRadius: '4px' }} />
+          </div>
+          <span style={{ width: '30px', fontSize: '11px', textAlign: 'right', fontWeight: faded ? '400' : '600', color: faded ? C.sub : C.text }}>{value}%</span>
+        </div>
+      ))}
+    </CardShell>
+  )
+}
+
 // ─── Card 3: Scheduling ───────────────────────────────────────────
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
@@ -500,6 +582,8 @@ export default function DemoGallery() {
         <SectionLabel role="teacher" />
         <div style={{ display: 'grid', gridTemplateColumns: cols, gap: '20px' }}>
           <Card2 />
+          <Card2b />
+          <Card2c />
           <Card3 />
         </div>
       </div>
