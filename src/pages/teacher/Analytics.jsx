@@ -284,8 +284,8 @@ function Analytics() {
             </div>
             <div style={{ fontSize: '15px', fontWeight: '600', color: '#5A2416', marginBottom: '4px' }}>
               {totalConfidentButIncorrect === 1
-                ? '1 student answered confidently but got it wrong.'
-                : `${totalConfidentButIncorrect} students answered confidently but got it wrong.`}
+                ? '1 answer was confident but wrong.'
+                : `${totalConfidentButIncorrect} answers were confident but wrong.`}
             </div>
             <div style={{ fontSize: '13px', color: '#7A3B28' }}>
               Worst question: <strong>Question {worstIndex + 1}</strong> ({worst.confidentButIncorrect} confident-but-wrong)
