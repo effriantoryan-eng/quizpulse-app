@@ -88,21 +88,23 @@ Fixed this session (branch `feat/v4.0-demo-gallery-cards-v2`): analytics rate-li
 (ISSUE-002, high — live analytics died with 429 after ~3 min of polling), "No classId provided."
 dead-ends on Roster/Requests/Settings (ISSUE-001), raw class UUIDs in quiz history (ISSUE-003,
 stale Sprint-0 CLASS_NAMES map), backwards analytics copy + "1 students" pluralization
-(ISSUE-004/005). Deferred:
+(ISSUE-004/005).
 
-- [ ] **LOW — Misconception hero card says "N students answered confidently but got it wrong"
-  but N sums per-question confident-wrong ANSWERS** (`src/pages/teacher/Analytics.jsx`) — one
-  student confidently wrong on 3 questions counts 3. Say "answers" or dedupe by student.
-- [ ] **LOW — Send page shows "Picking a topic lets this quiz count toward your school's
+All four deferred items below were fixed in a follow-up pass the same day (commits `ce6841f`,
+`e9fa1c8`, `4005336`, `b2e6664` — each verified live in the browser; 215/215 unit tests pass):
+
+- [x] **LOW — Misconception hero card says "N students answered confidently but got it wrong"
+  but N sums per-question confident-wrong ANSWERS** (`src/pages/teacher/Analytics.jsx`) —
+  fixed: copy now says "N answers were confident but wrong" (per-question counts in the Home
+  feed are genuinely per-student and were left as-is).
+- [x] **LOW — Send page shows "Picking a topic lets this quiz count toward your school's
   benchmark" even when only a demo class is selected** (`src/pages/teacher/SendQuiz.jsx`) —
-  demo quizzes are excluded from population aggregation by design (`analyticsPopulation.js`
-  EXCLUDE_DEMO), so the promise is false for demo sends. Hide/adjust the note when all selected
-  classes are demo.
-- [ ] **LOW — Student who revisits an already-submitted quiz gets the full quiz form again**
-  (`src/pages/TakeQuiz.jsx`) — they re-answer everything and only learn at submit ("You have
-  already submitted this quiz", server 409 → friendly copy works). Pre-check on load using the
-  local device id and short-circuit to the done screen.
-- [ ] **LOW — Population "You haven't sent a quiz tagged X yet" message shows even when a demo
-  quiz with that tag exists** (`src/pages/teacher/Population.jsx`) — technically true-by-design
-  (demo excluded) but confusing right after a demo send; consider "Demo quizzes don't count
-  toward benchmarks" hint in that state.
+  fixed: when every selected class is a demo class the note now reads "Practice quizzes sent
+  to a demo class don't count toward your school's benchmark".
+- [x] **LOW — Student who revisits an already-submitted quiz gets the full quiz form again**
+  (`src/pages/student/TakeQuiz.jsx`) — fixed: per-quiz localStorage flag (set on 201 and 409)
+  short-circuits straight to the done screen on revisit; server 409 remains the backstop if
+  storage is cleared.
+- [x] **LOW — Population "You haven't sent a quiz tagged X yet" message shows even when a demo
+  quiz with that tag exists** (`src/pages/teacher/Population.jsx`) — fixed: empty state now
+  appends "(Practice quizzes sent to a demo class don't count.)".
