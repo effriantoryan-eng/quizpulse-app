@@ -68,6 +68,10 @@ function SendQuiz() {
     .reduce((sum, c) => sum + (c.studentCount || 0), 0)
 
   const sendingToDemo = classes.some(c => selectedClasses.includes(c.id) && c.isDemo)
+  // Demo responses never feed population benchmarking (see api/analyticsPopulation.js),
+  // so don't promise a benchmark contribution when only a demo class is selected.
+  const onlyDemoSelected = selectedClasses.length > 0 &&
+    selectedClasses.every(id => classes.find(c => c.id === id)?.isDemo)
 
   async function handleSend() {
     setError(null)
@@ -219,7 +223,9 @@ function SendQuiz() {
             ))}
           </select>
           <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '20px' }}>
-            Picking a topic lets this quiz count toward your school's benchmark on the Population page.
+            {onlyDemoSelected
+              ? 'Practice quizzes sent to a demo class don’t count toward your school’s benchmark on the Population page.'
+              : 'Picking a topic lets this quiz count toward your school’s benchmark on the Population page.'}
           </p>
 
           <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>Send to class</div>
