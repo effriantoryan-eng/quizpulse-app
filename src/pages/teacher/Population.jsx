@@ -119,6 +119,33 @@ function Population() {
         </div>
       )}
 
+      {/* Headline stat — the single number the page exists to surface (mockup 5b). Shown big
+          and first: the bars below explain the detail, this card states the "what". Only
+          rendered when the teacher has their own data to compare. */}
+      {!loading && !error && data && hasPopulationData && hasSchoolData && (
+        <div
+          data-testid="population-headline"
+          style={{ background: '#FBEDE8', border: '1px solid #B5482E', borderRadius: '12px', padding: '20px', textAlign: 'center', marginBottom: '16px' }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#5A2416', marginBottom: '8px' }}>
+            Confident but wrong
+          </div>
+          <div style={{ fontSize: '42px', fontWeight: '800', color: '#5A2416', lineHeight: 1 }}>
+            {data.school.pctConfidentIncorrect}%
+          </div>
+          <div style={{ fontSize: '13px', color: '#7A3B28', marginTop: '8px', lineHeight: 1.5 }}>
+            vs {data.population.pctConfidentIncorrect}% for other schools on this topic —{' '}
+            <strong>
+              {(() => {
+                const gap = Math.round((data.school.pctConfidentIncorrect - data.population.pctConfidentIncorrect) * 10) / 10
+                if (gap === 0) return 'right at the norm'
+                return `${Math.abs(gap)} point${Math.abs(gap) === 1 ? '' : 's'} ${gap > 0 ? 'above' : 'below'} the norm`
+              })()}
+            </strong>
+          </div>
+        </div>
+      )}
+
       {!loading && !error && data && hasPopulationData && (
         <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px' }}>
           <div
