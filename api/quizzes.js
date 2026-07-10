@@ -164,7 +164,7 @@ app.http('quizzes', {
           return respond(400, { error: 'Request body must be a JSON object' })
         }
 
-        const { name, questionIds, classIds, classSize, status, sentAt, durationMinutes, scheduledFor, topicTag } = body;
+        const { name, questionIds, classIds, classSize, status, durationMinutes, scheduledFor, topicTag } = body;
         const ALLOWED_STATUSES = ['draft', 'sent', 'scheduled'];
 
         // topicTag is OPTIONAL (design addendum D3 — the 12-preset taxonomy doesn't cover every
@@ -199,14 +199,18 @@ app.http('quizzes', {
         const resolvedStatus = status || 'draft';
 
         // closedAt — derived from a teacher-configured duration, enforced server-side at >= 5 minutes.
+        // sentAt is server-set, never taken from the body: deriving closedAt from a client-supplied
+        // timestamp would let a crafted sentAt hold the quiz open past its duration (and a malformed
+        // one made toISOString() throw a 500).
         let closedAt = null;
+        let resolvedSentAt = null;
         if (resolvedStatus === 'sent') {
           const minutes = typeof durationMinutes === 'number' && Number.isFinite(durationMinutes) ? durationMinutes : null;
           if (minutes === null || minutes * 60000 < MIN_QUIZ_DURATION_MS) {
             return respond(400, { error: 'durationMinutes is required and must be at least 5 minutes' }, teacherId)
           }
-          const base = sentAt ? new Date(sentAt) : new Date();
-          closedAt = new Date(base.getTime() + minutes * 60000).toISOString();
+          resolvedSentAt = new Date().toISOString();
+          closedAt = new Date(Date.now() + minutes * 60000).toISOString();
         }
 
         // scheduledFor — validated and capped at 50 pending scheduled quizzes per teacher.
@@ -266,7 +270,7 @@ app.http('quizzes', {
           classIds: resolvedClassIds,
           classSize: typeof classSize === 'number' && Number.isInteger(classSize) && classSize >= 0 ? classSize : 0,
           status: resolvedStatus,
-          sentAt: sentAt || null,
+          sentAt: resolvedSentAt,
           closedAt,
           scheduledFor: resolvedScheduledFor,
           durationMinutes: typeof durationMinutes === 'number' ? durationMinutes : null,

@@ -23,6 +23,14 @@
     --sub:         #666;
     --muted:       #aaa;
     --bg:          #f7f7fb;
+
+    /* Four-cell confidence×correctness swatches (v4.0.0 analytics) */
+    --fc-cc-bg: #DCEFC8; --fc-cc-bd: #3B6D11;   /* correct, confident */
+    --fc-cu-bg: #EEF6E4; --fc-cu-bd: #6B9A44;   /* correct, unsure */
+    --fc-ic-bg: #FBEDE8; --fc-ic-bd: #B5482E;   /* misconception — incorrect, confident */
+    --fc-iu-bg: #FDF3E3; --fc-iu-bd: #B8860B;   /* incorrect, unsure */
+    --misc-text:   #5A2416;
+    --misc-detail: #7A3B28;
   }
 
   body {
@@ -285,8 +293,14 @@
     <a href="#" class="screen-card" onclick="show('t-analytics'); return false">
       <div class="thumb">📊</div>
       <span class="who who-teacher">Teacher</span>
-      <div class="title">Analytics</div>
-      <div class="desc">Live response counter, per-question breakdown, topics to revisit, non-responders.</div>
+      <div class="title">Analytics — v4.0.0</div>
+      <div class="desc">Class drill-down, four-cell confidence×correctness chart, promoted misconception card.</div>
+    </a>
+    <a href="#" class="screen-card" onclick="show('t-population'); return false">
+      <div class="thumb">📈</div>
+      <span class="who who-teacher">Teacher</span>
+      <div class="title">Population benchmarking — v4.0.0</div>
+      <div class="desc">Results sub-tab: you-vs-norm paired bars across all four confidence×correctness cells.</div>
     </a>
   </div>
 
@@ -300,25 +314,14 @@
     </a>
   </div>
 
-  <p class="section-label">Demo class — v3.3.0</p>
+  <p class="section-label">Planned — v4.1.0 (not built)</p>
   <div class="screen-grid">
-    <a href="#" class="screen-card" onclick="show('t-classes-demo'); return false">
-      <div class="thumb">🧪</div>
+    <a href="#" class="screen-card" onclick="show('t-evidence'); return false">
+      <div class="thumb">📄</div>
       <span class="who who-teacher">Teacher</span>
-      <div class="title">Classes — with demo class</div>
-      <div class="desc">"Try with a demo class" button + a class card carrying the purple Demo pill.</div>
-    </a>
-    <a href="#" class="screen-card" onclick="show('t-send-demo'); return false">
-      <div class="thumb">📤</div>
-      <span class="who who-teacher">Teacher</span>
-      <div class="title">Send quiz — demo note</div>
-      <div class="desc">Inline note: responses generated automatically, no one is notified.</div>
-    </a>
-    <a href="#" class="screen-card" onclick="show('t-analytics-demo'); return false">
-      <div class="thumb">📊</div>
-      <span class="who who-teacher">Teacher</span>
-      <div class="title">Analytics — Demo data pill</div>
-      <div class="desc">All analytics unchanged, with a "Demo data" pill beside the quiz title.</div>
+      <span class="who" style="background:#eee;color:#666;">Planned</span>
+      <div class="title">APST evidence export</div>
+      <div class="desc">Per-quiz VIT evidence PDF + annual MyPD log. Design-stage mockup — nothing here is live.</div>
     </a>
   </div>
 </div>
@@ -664,116 +667,410 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     SCREEN 5 — Teacher: Analytics
+     SCREEN 5 — Teacher: Analytics (v4.0.0 — Comprehensive Analytics)
      ═══════════════════════════════════════════════════════════ -->
 <div id="t-analytics" class="screen">
   <nav class="topnav">
     <button class="back" onclick="show('index')">← Back</button>
-    <span class="screen-title">Analytics (teacher)</span>
+    <span class="screen-title">Analytics — v4.0.0 (teacher)</span>
   </nav>
 
   <div class="teacher-wrap">
     <!-- Quiz header -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <div>
         <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">Week 9 — Photosynthesis check-in</h2>
-        <div style="font-size:13px;color:var(--sub);">Sent · Year 9 Science · 3 questions</div>
+        <div style="font-size:13px;color:var(--sub);">Sent · 5 questions</div>
       </div>
       <button class="btn btn-outline btn-sm">Export CSV</button>
     </div>
 
-    <!-- Live counter -->
-    <div class="card" style="background:var(--green-l);border-color:var(--green);">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <div style="text-align:center;">
-          <div style="font-size:36px;font-weight:700;color:var(--green);line-height:1;" id="resp-count">18</div>
-          <div style="font-size:11px;color:var(--green);margin-top:2px;">of 24 responded</div>
-        </div>
-        <div style="flex:1;">
-          <div style="height:10px;background:rgba(0,0,0,0.1);border-radius:5px;overflow:hidden;">
-            <div id="resp-bar" style="height:100%;background:var(--green);border-radius:5px;width:75%;transition:width 0.6s;"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--green);">
-            <span>75% participation</span>
-            <button onclick="simulateLive()" style="background:none;border:none;color:var(--green);font-size:11px;cursor:pointer;text-decoration:underline;">Simulate new response</button>
-          </div>
-        </div>
+    <!-- Class filter — drill-down when a quiz went to more than one class -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;">Showing</div>
+      <select style="max-width:260px;">
+        <option>All classes (48 students)</option>
+        <option>Year 9 Science</option>
+        <option>Year 9B Science</option>
+      </select>
+    </div>
+
+    <!-- Two-cell summary -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="card" style="margin-bottom:0;background:var(--purple-l);text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--purple);line-height:1;">18 / 24</div>
+        <div style="font-size:11px;color:var(--purple);margin-top:4px;">Students responded</div>
+      </div>
+      <div class="card" style="margin-bottom:0;background:var(--green-l);text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--green);line-height:1;">5</div>
+        <div style="font-size:11px;color:var(--green);margin-top:4px;">Questions in quiz</div>
       </div>
     </div>
 
-    <!-- Per-question breakdown -->
+    <!-- Response timeline -->
+    <div class="card">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px;">Responses over time</div>
+      <svg viewBox="0 0 300 60" style="width:100%;height:60px;display:block;">
+        <polyline points="0,55 30,50 60,40 90,38 120,25 150,22 180,15 210,13 240,8 270,6 300,4"
+          fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- Misconception hero card — promoted above the question list -->
+    <div class="card" style="background:var(--fc-ic-bg);border-color:var(--fc-ic-bd);">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--misc-text);margin-bottom:6px;">Misconception signal</div>
+      <div style="font-size:15px;font-weight:700;color:var(--misc-text);margin-bottom:4px;">6 students were confident but got it wrong</div>
+      <div style="font-size:13px;color:var(--misc-detail);line-height:1.5;">Question 2 has the strongest signal — worth revisiting with the class.</div>
+    </div>
+
+    <!-- Four-cell legend — shown once, above the question list -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px 16px;background:#f9f9f9;border-radius:10px;padding:10px 14px;margin-bottom:16px;">
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);"><span style="width:12px;height:12px;border-radius:3px;background:var(--fc-cc-bg);border:1px solid var(--fc-cc-bd);display:inline-block;"></span> Correct, confident</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);"><span style="width:12px;height:12px;border-radius:3px;background:var(--fc-cu-bg);border:1px solid var(--fc-cu-bd);display:inline-block;"></span> Correct, unsure</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);"><span style="width:12px;height:12px;border-radius:3px;background:var(--fc-ic-bg);border:1px solid var(--fc-ic-bd);display:inline-block;"></span> Misconception</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);"><span style="width:12px;height:12px;border-radius:3px;background:var(--fc-iu-bg);border:1px solid var(--fc-iu-bd);display:inline-block;"></span> Incorrect, unsure</span>
+    </div>
+
     <div style="font-size:14px;font-weight:600;margin:20px 0 12px;">Question breakdown</div>
 
     <!-- Q1 -->
     <div class="card">
-      <div style="font-size:13px;font-weight:500;margin-bottom:12px;line-height:1.4;">Q1 — Which organelle is responsible for photosynthesis?</div>
-      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
-        <span class="tag tag-green">✓ Most students got this right</span>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:4px;">Question 1</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.5;">Which organelle is responsible for photosynthesis?</div>
+      <div style="display:flex;height:14px;border-radius:4px;overflow:hidden;margin-bottom:10px;">
+        <div style="width:62%;background:var(--fc-cc-bg);"></div>
+        <div style="width:16%;background:var(--fc-cu-bg);"></div>
+        <div style="width:6%;background:var(--fc-ic-bg);"></div>
+        <div style="width:16%;background:var(--fc-iu-bg);"></div>
       </div>
-      <div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>A — Mitochondria</span><span style="color:var(--sub);">4 students</span></div>
-        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:22%;"></div></div>
-      </div>
-      <div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span><strong>B — Chloroplast ✓</strong></span><span style="color:var(--green);font-weight:600;">14 students</span></div>
-        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:var(--green);border-radius:4px;width:78%;"></div></div>
-      </div>
-      <div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>C — Nucleus</span><span style="color:var(--sub);">0 students</span></div>
-        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:0%;"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="background:var(--fc-cc-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-cc-bd);">11 <span style="font-size:11px;font-weight:500;">(62%)</span></div>
+          <div style="font-size:11px;color:var(--fc-cc-bd);">Correct, confident</div>
+        </div>
+        <div style="background:var(--fc-cu-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-cu-bd);">3 <span style="font-size:11px;font-weight:500;">(16%)</span></div>
+          <div style="font-size:11px;color:var(--fc-cu-bd);">Correct, unsure</div>
+        </div>
+        <div style="background:var(--fc-ic-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-ic-bd);">1 <span style="font-size:11px;font-weight:500;">(6%)</span></div>
+          <div style="font-size:11px;color:var(--fc-ic-bd);">Misconception</div>
+        </div>
+        <div style="background:var(--fc-iu-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-iu-bd);">3 <span style="font-size:11px;font-weight:500;">(16%)</span></div>
+          <div style="font-size:11px;color:var(--fc-iu-bd);">Incorrect, unsure</div>
+        </div>
       </div>
     </div>
 
-    <!-- Q2 — worth revisiting -->
-    <div class="card" style="border-color:#e8a000;">
-      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">
-        <div>
-          <div style="font-size:13px;font-weight:500;margin-bottom:6px;line-height:1.4;">Q2 — What do plants need alongside light for photosynthesis?</div>
-          <span class="tag tag-orange">Worth revisiting with the class</span>
+    <!-- Q2 — the misconception hero card refers to this one -->
+    <div class="card">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:4px;">Question 2</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:12px;line-height:1.5;">What do plants need alongside light for photosynthesis?</div>
+      <div style="display:flex;height:14px;border-radius:4px;overflow:hidden;margin-bottom:10px;">
+        <div style="width:33%;background:var(--fc-cc-bg);"></div>
+        <div style="width:11%;background:var(--fc-cu-bg);"></div>
+        <div style="width:33%;background:var(--fc-ic-bg);"></div>
+        <div style="width:23%;background:var(--fc-iu-bg);"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="background:var(--fc-cc-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-cc-bd);">6 <span style="font-size:11px;font-weight:500;">(33%)</span></div>
+          <div style="font-size:11px;color:var(--fc-cc-bd);">Correct, confident</div>
         </div>
-      </div>
-      <div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span><strong>A — Carbon dioxide + water ✓</strong></span><span style="color:var(--green);font-weight:600;">8 students</span></div>
-        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:var(--green);border-radius:4px;width:44%;"></div></div>
-      </div>
-      <div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>B — Oxygen + sugar</span><span style="color:var(--sub);">6 students</span></div>
-        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:33%;"></div></div>
-      </div>
-      <div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>C — Nitrogen + minerals</span><span style="color:var(--sub);">4 students</span></div>
-        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:#c5c0f0;border-radius:4px;width:22%;"></div></div>
-      </div>
-      <div style="margin-top:10px;padding:8px 12px;background:var(--orange-l);border-radius:8px;font-size:12px;color:var(--orange);line-height:1.5;">
-        Fewer than half of students chose the correct answer. This is a topic worth revisiting — not a reflection of how hard students tried.
+        <div style="background:var(--fc-cu-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-cu-bd);">2 <span style="font-size:11px;font-weight:500;">(11%)</span></div>
+          <div style="font-size:11px;color:var(--fc-cu-bd);">Correct, unsure</div>
+        </div>
+        <div style="background:var(--fc-ic-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-ic-bd);">6 <span style="font-size:11px;font-weight:500;">(33%)</span></div>
+          <div style="font-size:11px;color:var(--fc-ic-bd);">Misconception</div>
+        </div>
+        <div style="background:var(--fc-iu-bg);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:15px;font-weight:700;color:var(--fc-iu-bd);">4 <span style="font-size:11px;font-weight:500;">(23%)</span></div>
+          <div style="font-size:11px;color:var(--fc-iu-bd);">Incorrect, unsure</div>
+        </div>
       </div>
     </div>
 
     <!-- Non-responders -->
     <div class="card">
-      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Students yet to respond <span style="font-size:12px;font-weight:400;color:var(--sub);">(6 of 24)</span></div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Haven't responded yet <span style="font-size:12px;font-weight:400;color:var(--sub);">(6)</span></div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9f9f9;border-radius:8px;">
           <span style="font-size:13px;">Alex M.</span>
-          <span style="font-size:11px;color:var(--sub);">No response yet</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9f9f9;border-radius:8px;">
           <span style="font-size:13px;">Jordan T.</span>
-          <span style="font-size:11px;color:var(--sub);">No response yet</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9f9f9;border-radius:8px;">
           <span style="font-size:13px;">Sam K.</span>
-          <span style="font-size:11px;color:var(--sub);">No response yet</span>
         </div>
         <div style="padding:6px 12px;font-size:12px;color:var(--sub);">+ 3 more</div>
-      </div>
-      <div style="margin-top:10px;font-size:12px;color:var(--sub);line-height:1.5;">
-        Students are listed here to help you follow up — not as a judgement on participation.
-        Some may not have received the notification if they're not yet subscribed.
       </div>
     </div>
   </div>
 </div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 5b — Teacher: Population benchmarking (v4.0.0, Results sub-tab)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="t-population" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">Population benchmarking — v4.0.0 (teacher)</span>
+  </nav>
+
+  <div class="teacher-wrap" style="max-width:560px;">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">Population</h2>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:20px;">See how your class compares to a broader benchmark for this topic.</p>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;">Topic</div>
+      <select>
+        <option>Photosynthesis</option>
+        <option>Fractions</option>
+        <option>World War II</option>
+      </select>
+    </div>
+
+    <!-- Headline stat — the single number the page exists to surface.
+         Shown big and first, before the chart, so it can't be mistaken for
+         a chart-reading exercise: the scatter below explains *why*, this
+         card states *what*. -->
+    <div class="card" style="background:var(--fc-ic-bg);border-color:var(--fc-ic-bd);text-align:center;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--misc-text);margin-bottom:8px;">Confident but wrong</div>
+      <div style="font-size:42px;font-weight:800;color:var(--misc-text);line-height:1;">18%</div>
+      <div style="font-size:13px;color:var(--misc-detail);margin-top:8px;line-height:1.5;">vs 11% for other classes on this topic — <strong>7 points above the norm</strong></div>
+    </div>
+
+    <!-- Quadrant scatter: correctness (x) vs confident-but-wrong rate (y) —
+         plots the population as a cloud of reference classes and highlights
+         this class, so the headline number above can be read in context
+         (is a high class average enough on its own, or does this class have
+         more misconceptions than other classes with the same average?).
+         Reference points are illustrative, not drawn from real seeded data. -->
+    <div class="card">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:4px;">Where this sits, compared to other classes</div>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:12px;line-height:1.5;">Each dot is a class that's taught this topic. Classes toward the bottom-right are doing best — good scores with few confident-but-wrong answers.</div>
+
+      <svg viewBox="0 0 340 250" style="width:100%;height:auto;display:block;">
+        <!-- quadrant tints, split at the population average on each axis —
+             only the two "pure" corners are tinted (good: high correct + low
+             misconception; concern: low correct + high misconception); the
+             other two corners are deliberately left neutral, since a class can
+             score fine and still carry a misconception problem. -->
+        <rect x="222" y="143.5" width="98" height="66.5" fill="var(--green-l)" opacity="0.7"/>
+        <rect x="40" y="14" width="182" height="129.5" fill="var(--fc-ic-bg)" opacity="0.7"/>
+
+        <!-- population-average crosshair -->
+        <line x1="222" y1="14" x2="222" y2="210" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="40" y1="143.5" x2="320" y2="143.5" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="226" y="24" font-size="9" fill="#888">population avg</text>
+
+        <!-- axes -->
+        <line x1="40" y1="14" x2="40" y2="210" stroke="var(--border)" stroke-width="1.5"/>
+        <line x1="40" y1="210" x2="320" y2="210" stroke="var(--border)" stroke-width="1.5"/>
+
+        <!-- reference classes (illustrative population) -->
+        <g fill="#b3b3b3" opacity="0.75">
+          <circle cx="194" cy="115" r="4"/><circle cx="208" cy="129" r="4"/><circle cx="214" cy="139" r="4"/>
+          <circle cx="202" cy="120" r="4"/><circle cx="222" cy="144" r="4"/><circle cx="230" cy="148" r="4"/>
+          <circle cx="236" cy="158" r="4"/><circle cx="250" cy="167" r="4"/><circle cx="258" cy="172" r="4"/>
+          <circle cx="264" cy="177" r="4"/><circle cx="180" cy="106" r="4"/><circle cx="174" cy="91" r="4"/>
+          <circle cx="166" cy="82" r="4"/><circle cx="278" cy="182" r="4"/><circle cx="292" cy="186" r="4"/>
+          <circle cx="216" cy="134" r="4"/><circle cx="233" cy="153" r="4"/><circle cx="200" cy="125" r="4"/>
+          <circle cx="225" cy="148" r="4"/><circle cx="186" cy="110" r="4"/><circle cx="256" cy="172" r="4"/>
+          <circle cx="272" cy="182" r="4"/>
+        </g>
+
+        <!-- this class — an outlier above the trend: fine on correctness, high on confident-wrong -->
+        <line x1="242" y1="125" x2="242" y2="163" stroke="var(--fc-ic-bd)" stroke-width="1" stroke-dasharray="2,2"/>
+        <circle cx="242" cy="125" r="7" fill="var(--fc-ic-bd)" stroke="white" stroke-width="2"/>
+        <text x="252" y="122" font-size="12" font-weight="700" fill="var(--misc-text)">Your class</text>
+
+        <!-- axis labels -->
+        <text x="180" y="235" font-size="11" fill="var(--sub)" text-anchor="middle">Correct answers →</text>
+        <text x="0" y="0" font-size="11" fill="var(--sub)" text-anchor="middle" transform="translate(14,150) rotate(-90)">Confident-but-wrong →</text>
+
+        <!-- axis ticks -->
+        <text x="40" y="222" font-size="9" fill="var(--muted)">0%</text>
+        <text x="308" y="222" font-size="9" fill="var(--muted)">100%</text>
+        <text x="24" y="213" font-size="9" fill="var(--muted)">0%</text>
+        <text x="18" y="20" font-size="9" fill="var(--muted)">40%</text>
+      </svg>
+
+      <div style="display:flex;gap:16px;font-size:11px;color:var(--sub);">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:50%;background:#b3b3b3;display:inline-block;"></span> Other classes, same topic</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--fc-ic-bd);display:inline-block;"></span> Your class</span>
+      </div>
+    </div>
+
+    <!-- Full breakdown — all four cells, you vs norm. The scatter above only
+         plots 2 of these 4 numbers (correct = correct-confident +
+         correct-unsure combined, and confident-but-wrong on its own); this
+         card is where the other two show up, for anyone who wants the full
+         picture rather than just the headline. -->
+    <div class="card">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:14px;">Full breakdown — you vs norm</div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Correct, confident</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">You</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:46%;background:var(--fc-cc-bd);border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;font-weight:600;">46%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">Norm</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:52%;background:var(--fc-cc-bd);opacity:0.35;border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;color:var(--sub);">52%</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Correct, unsure</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">You</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:20%;background:var(--fc-cu-bd);border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;font-weight:600;">20%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">Norm</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:22%;background:var(--fc-cu-bd);opacity:0.35;border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;color:var(--sub);">22%</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--misc-text);">Misconception (incorrect, confident)</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">You</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:18%;background:var(--fc-ic-bd);border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;font-weight:700;color:var(--fc-ic-bd);">18%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">Norm</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:11%;background:var(--fc-ic-bd);opacity:0.35;border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;color:var(--sub);">11%</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Incorrect, unsure</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">You</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:16%;background:var(--fc-iu-bd);border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;font-weight:600;">16%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:36px;font-size:10px;color:var(--sub);">Norm</span>
+          <div style="flex:1;height:10px;background:#eee;border-radius:4px;overflow:hidden;"><div style="height:100%;width:15%;background:var(--fc-iu-bd);opacity:0.35;border-radius:4px;"></div></div>
+          <span style="width:30px;font-size:11px;text-align:right;color:var(--sub);">15%</span>
+        </div>
+      </div>
+    </div>
+
+    <span class="tag tag-purple">ℹ Illustrative reference classes — not drawn from live student data</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN 5c — Teacher: APST evidence export (v4.1.0 — PLANNED, not built)
+     ═══════════════════════════════════════════════════════════ -->
+<div id="t-evidence" class="screen">
+  <nav class="topnav">
+    <button class="back" onclick="show('index')">← Back</button>
+    <span class="screen-title">APST evidence export — v4.1.0 (planned)</span>
+  </nav>
+
+  <div class="teacher-wrap" style="max-width:640px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      <h2 style="font-size:20px;font-weight:700;margin:0;">Evidence</h2>
+      <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#eee;color:#666;">Planned — not built</span>
+    </div>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:24px;line-height:1.6;">Turns a quiz you've already sent into VIT-ready evidence for your registration renewal — no separate paperwork, no re-typing what already happened in class.</p>
+
+    <!-- Quiz picker -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px;">Quiz</div>
+      <select>
+        <option>Week 9 — Photosynthesis check-in (18 June)</option>
+        <option>Week 7 — Cell structures quiz (4 June)</option>
+      </select>
+    </div>
+
+    <!-- APST standard mapping — pulled from topicTag, static reference text -->
+    <div class="card">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;">Matched APST standards</div>
+      <div style="font-size:13px;line-height:1.7;">
+        <strong>2.1</strong> — Content and teaching strategies of the teaching area<br>
+        <strong>5.1</strong> — Assess student learning
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:8px;">Based on this quiz's topic tag. Verbatim AITSL/DET standard text — reviewed for accuracy before this ships.</div>
+    </div>
+
+    <!-- Reflection — pre-templated, placeholder text must be replaced before export -->
+    <div class="card">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;">Your reflection</div>
+      <div style="border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;line-height:1.8;background:#fdfdfd;">
+        This check-in showed <span style="background:#FFF3CD;padding:1px 5px;border-radius:3px;">[PERSONALISE: describe what stood out about student responses]</span>, and I plan to <span style="background:#FFF3CD;padding:1px 5px;border-radius:3px;">[PERSONALISE: note a follow-up action for next lesson]</span>.
+      </div>
+      <div style="margin-top:10px;padding:10px 14px;background:var(--orange-l);border-radius:8px;font-size:12px;color:var(--orange);line-height:1.5;">
+        Highlighted text is a placeholder, not a default answer. Export stays disabled until every placeholder is replaced with your own words — this is what keeps the evidence genuinely yours instead of boilerplate a VIT auditor would flag.
+      </div>
+    </div>
+
+    <!-- Export action -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;">
+      <button class="btn" style="background:#ddd;color:#888;cursor:not-allowed;">Export PDF</button>
+      <span style="font-size:12px;color:var(--sub);">Disabled — 2 placeholders remaining</span>
+    </div>
+
+    <!-- What the exported PDF looks like -->
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px;">Preview — page 1 of 2</div>
+    <div style="background:white;border:1px solid #ccc;border-radius:4px;padding:30px 28px;margin-bottom:32px;box-shadow:0 3px 14px rgba(0,0,0,0.1);font-family:Georgia,'Times New Roman',serif;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#888;">Professional Practice Evidence</div>
+        <div style="font-size:17px;font-weight:700;margin-top:5px;">Week 9 — Photosynthesis check-in</div>
+        <div style="font-size:11px;color:#888;margin-top:3px;">Ms A. Lee · Northside High · 18 June 2026</div>
+      </div>
+      <div style="border-top:1px solid #ddd;border-bottom:1px solid #ddd;padding:12px 0;margin-bottom:16px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:5px;">APST standard</div>
+        <div style="font-size:12px;line-height:1.7;"><strong>2.1</strong> — Content and teaching strategies of the teaching area<br><strong>5.1</strong> — Assess student learning</div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:5px;">Quiz summary</div>
+        <div style="font-size:12px;line-height:1.8;">Year 9 Science · 24 students · 18 responses (75%)<br>3 questions · 1 misconception flagged (Question 2)</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:5px;">Reflection</div>
+        <div style="font-size:12px;line-height:1.8;font-style:italic;color:#333;">"This check-in showed most students grasped the core process, but a recurring misconception about reactant sources suggests I'll revisit this with a hands-on demonstration next lesson."</div>
+      </div>
+      <div style="margin-top:20px;font-size:9px;color:#aaa;text-align:center;">Page 1 of 2 · No individually identifiable student data included</div>
+    </div>
+
+    <!-- Second artefact: annual aggregate log -->
+    <div class="card" style="background:#f9f9f9;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;">Annual MyPD log</div>
+      <p style="font-size:12px;color:var(--sub);margin-bottom:12px;line-height:1.6;">One row per evidence export in a date range — for attaching to your annual MyPD portfolio alongside the individual quiz PDFs.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:1;min-width:120px;">
+          <div style="font-size:10px;color:var(--sub);margin-bottom:4px;">From</div>
+          <input type="text" value="1 Jan 2026" readonly>
+        </div>
+        <div style="flex:1;min-width:120px;">
+          <div style="font-size:10px;color:var(--sub);margin-bottom:4px;">To</div>
+          <input type="text" value="18 Jun 2026" readonly>
+        </div>
+        <button class="btn btn-outline btn-sm">Export log</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- ═══════════════════════════════════════════════════════════
      SCREEN 6 — Public: Two-path landing (v3.2.2)
@@ -823,153 +1120,6 @@
     <!-- Install button (secondary weight, centered) -->
     <div style="text-align:center;">
       <button style="padding:10px 18px;background:#fff;color:#534AB7;border:1px solid #534AB7;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">📲 Add to your phone</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════════
-     SCREEN 7 — Teacher: Classes with a demo class (v3.3.0)
-     ═══════════════════════════════════════════════════════════ -->
-<div id="t-classes-demo" class="screen">
-  <nav class="topnav">
-    <button class="back" onclick="show('index')">← Back</button>
-    <span class="screen-title">Classes — with demo class (teacher)</span>
-  </nav>
-
-  <div class="teacher-wrap">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
-      <h2 style="font-size:20px;font-weight:700;margin:0;">Classes</h2>
-      <div style="display:flex;gap:8px;">
-        <!-- Demo button only shows when the teacher has no demo class yet -->
-        <button style="padding:8px 16px;background:#EEEDFE;color:#3C3489;border:1px solid #d6d2f5;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">Try with a demo class</button>
-        <button style="padding:8px 16px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">+ New class</button>
-      </div>
-    </div>
-
-    <!-- Demo class card with purple pill, no join code, no Roster -->
-    <div class="card" style="display:flex;align-items:center;gap:12px;">
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;">
-          Demo class
-          <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489;">Demo</span>
-        </div>
-        <div style="font-size:12px;color:var(--sub);margin-top:2px;">24 students · practice students — no one is notified</div>
-      </div>
-      <button class="btn btn-outline btn-sm">Edit</button>
-      <button class="btn btn-outline btn-sm" style="color:#c0392b;border-color:#e8b4b0;">Delete</button>
-    </div>
-
-    <!-- A real class for contrast: shows join code + Roster -->
-    <div class="card" style="display:flex;align-items:center;gap:12px;">
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:500;">Year 9 Science</div>
-        <div style="font-size:12px;color:var(--sub);margin-top:2px;">28 students · Code: <span style="font-family:monospace;letter-spacing:0.5px;color:#555;">K7M4QPZ3</span></div>
-      </div>
-      <button class="btn btn-outline btn-sm">Roster</button>
-      <button class="btn btn-outline btn-sm">Edit</button>
-      <button class="btn btn-outline btn-sm" style="color:#c0392b;border-color:#e8b4b0;">Delete</button>
-    </div>
-
-    <p style="font-size:12px;color:var(--sub);text-align:right;margin-top:8px;">1 / 20 classes</p>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════════
-     SCREEN 8 — Teacher: Send quiz to a demo class (v3.3.0)
-     ═══════════════════════════════════════════════════════════ -->
-<div id="t-send-demo" class="screen">
-  <nav class="topnav">
-    <button class="back" onclick="show('index')">← Back</button>
-    <span class="screen-title">Send quiz — demo class (teacher)</span>
-  </nav>
-
-  <div class="teacher-wrap" style="max-width:480px;">
-    <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">Send quiz</h2>
-
-    <div class="card" style="display:flex;align-items:center;gap:14px;background:#f8f8f8;">
-      <div style="width:36px;height:36px;border-radius:8px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:18px;">📋</div>
-      <div>
-        <div style="font-size:14px;font-weight:500;">Week 9 — Photosynthesis check-in</div>
-        <div style="font-size:12px;color:var(--sub);">3 questions</div>
-      </div>
-    </div>
-
-    <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin:16px 0 10px;">Send to class</div>
-
-    <!-- Selected demo class -->
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border:2px solid #534AB7;border-radius:8px;background:#EEEDFE;">
-      <div style="width:20px;height:20px;border-radius:50%;background:#534AB7;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;">✓</div>
-      <div style="flex:1;">
-        <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;">Demo class <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#fff;color:#3C3489;">Demo</span></div>
-        <div style="font-size:12px;color:var(--sub);">24 students</div>
-      </div>
-    </div>
-
-    <!-- Inline demo note -->
-    <div style="padding:12px 14px;background:#EEEDFE;border:1px solid #d6d2f5;border-radius:8px;font-size:13px;color:#3C3489;margin-top:12px;">
-      This is a demo class. Responses are generated automatically — no one is notified.
-    </div>
-
-    <div style="border-top:1px solid #eee;margin:20px 0;"></div>
-    <label style="display:block;font-size:12px;font-weight:500;color:#555;margin-bottom:6px;">Quiz stays open for (minutes)</label>
-    <input type="number" value="30" style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;margin-bottom:16px;">
-
-    <button style="width:100%;padding:12px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;">Send to 24 students →</button>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════════════════════════
-     SCREEN 9 — Teacher: Analytics for a demo quiz (v3.3.0)
-     ═══════════════════════════════════════════════════════════ -->
-<div id="t-analytics-demo" class="screen">
-  <nav class="topnav">
-    <button class="back" onclick="show('index')">← Back</button>
-    <span class="screen-title">Analytics — demo data (teacher)</span>
-  </nav>
-
-  <div class="teacher-wrap">
-    <!-- Quiz header with Demo data pill beside the title -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
-      <div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <h2 style="font-size:20px;font-weight:700;margin:0;">Week 9 — Photosynthesis check-in</h2>
-          <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#EEEDFE;color:#3C3489;">Demo data</span>
-        </div>
-        <div style="font-size:13px;color:var(--sub);margin-top:4px;">Sent · Demo class · 3 questions</div>
-      </div>
-      <button class="btn btn-outline btn-sm">Export CSV</button>
-    </div>
-
-    <!-- Live counter (identical treatment to the real analytics screen) -->
-    <div class="card" style="background:var(--green-l);border-color:var(--green);">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <div style="text-align:center;">
-          <div style="font-size:36px;font-weight:700;color:var(--green);line-height:1;">24</div>
-          <div style="font-size:11px;color:var(--green);margin-top:2px;">of 24 responded</div>
-        </div>
-        <div style="flex:1;">
-          <div style="height:10px;background:rgba(0,0,0,0.1);border-radius:5px;overflow:hidden;">
-            <div style="height:100%;background:var(--green);border-radius:5px;width:100%;"></div>
-          </div>
-          <div style="margin-top:5px;font-size:11px;color:var(--green);">100% participation</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Confident-but-incorrect callout — unchanged from the real screen -->
-    <div style="font-size:14px;font-weight:600;margin:20px 0 12px;">Question breakdown</div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:500;margin-bottom:12px;line-height:1.4;">Q2 — Where does the light-dependent reaction occur?</div>
-      <div style="margin-bottom:6px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span><strong>B — Thylakoid membrane ✓</strong></span><span style="color:var(--green);font-weight:600;">15 students</span></div>
-        <div style="height:8px;background:#f0f0f0;border-radius:4px;"><div style="height:100%;background:var(--green);border-radius:4px;width:63%;"></div></div>
-      </div>
-      <div style="margin-top:14px;padding:10px 14px;background:#FFF8E6;border:1px solid #F5C842;border-radius:8px;font-size:13px;color:#7A5C00;">
-        6 students were confident but got this wrong — worth revisiting.
-      </div>
     </div>
   </div>
 </div>
@@ -1032,29 +1182,6 @@
     const t = document.getElementById('copy-toast')
     t.style.display = 'block'
     setTimeout(() => { t.style.display = 'none' }, 2200)
-  }
-
-  // ── Analytics: simulate live response ────────────────────
-  let respCount = 18
-  const totalStudents = 24
-
-  function simulateLive() {
-    if (respCount >= totalStudents) return
-    respCount++
-    const pct = Math.round((respCount / totalStudents) * 100)
-    document.getElementById('resp-count').textContent = respCount
-    document.getElementById('resp-bar').style.width   = pct + '%'
-    document.querySelector('[id="resp-bar"] ~ div span:first-child') // update label
-    document.querySelectorAll('.card')[0].querySelector('.green-sub') // skip
-    // update the "of X responded" label
-    const sub = document.querySelectorAll('#t-analytics .card')[0]
-    if (sub) {
-      const info = sub.querySelector('div:first-child div:last-child')
-      if (info) info.textContent = 'of ' + totalStudents + ' responded'
-    }
-    // Simple label update
-    document.querySelectorAll('#t-analytics div[style*="11px"][style*="green"]')[0]
-      .textContent = pct + '% participation'
   }
 </script>
 </body>

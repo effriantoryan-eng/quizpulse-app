@@ -7,6 +7,21 @@
       "runtimeArgs": ["run", "dev"],
       "port": 5173,
       "autoPort": false
+    },
+    {
+      "name": "quizpulse-api",
+      "runtimeExecutable": "func",
+      "runtimeArgs": ["start"],
+      "cwd": "api",
+      "port": 7071,
+      "autoPort": false
+    },
+    {
+      "name": "quizpulse-azurite",
+      "runtimeExecutable": "azurite",
+      "runtimeArgs": ["--silent"],
+      "port": 10000,
+      "autoPort": false
     }
   ]
 }
