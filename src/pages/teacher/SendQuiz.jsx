@@ -365,12 +365,12 @@ function SendQuiz() {
             {sending
               ? 'Working…'
               : mode === 'schedule'
-                ? `Schedule for ${totalStudents} students →`
-                : `Send to ${totalStudents} students →`}
+                ? `Schedule for ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`
+                : `Send to ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`}
           </button>
 
           <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', marginTop: '10px' }}>
-            Students will see live analytics update as they respond on the quiz.
+            You'll see live analytics update as students respond to the quiz.
           </p>
         </>
       )}

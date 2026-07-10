@@ -119,7 +119,7 @@ export default function QuizHistory() {
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   {quiz.classSize > 0 && (
                     <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--primary)' }}>
-                      {quiz.classSize} students
+                      {quiz.classSize} student{quiz.classSize === 1 ? '' : 's'}
                     </div>
                   )}
                   <div style={{ fontSize: '11px', color: quiz.status === 'sent' ? '#085041' : '#aaa', marginTop: '2px' }}>
