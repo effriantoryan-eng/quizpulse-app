@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import API_BASE from '../../api'
 
 function matchBadge(req) {
@@ -147,7 +147,7 @@ function PendingRequests() {
   }
 
   if (!classId) {
-    return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#c0392b', fontSize: '14px' }}>No classId provided.</div>
+    return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#555', fontSize: '14px' }}>Pick a class first — open <Link to="/teacher/classes">Classes</Link> and choose Requests on the class you want.</div>
   }
   if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading requests…</div>
   if (error) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#c0392b', fontSize: '14px' }}>Failed to load requests: {error}</div>
