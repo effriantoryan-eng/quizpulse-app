@@ -136,6 +136,15 @@ azurite --silent
 decode-only mode (no signature verification). Real tenant values (`AUTH_TENANT_SUBDOMAIN`,
 `AUTH_TENANT_ID`, `AUTH_CLIENT_ID`) are already set in `local.settings.json`. See `docs/azure/B2C_SETUP.md`.
 
+**CORS local dev:** `host.json`'s `cors` block only applies to the *deployed* Function App —
+`func start` ignores it entirely, so every fetch from `localhost:5173` to `localhost:7071` fails
+preflight with a CORS error unless `api/local.settings.json` also has a top-level `Host` section:
+```json
+"Host": { "CORS": "http://localhost:5173,http://localhost:5174", "CORSCredentials": false }
+```
+`local.settings.json` is gitignored (per-dev secrets), so this has to be added manually on each
+machine — it's not something a repo checkout gives you for free.
+
 **Important:** Do not use `&&` in PowerShell — run commands on separate lines.
 
 ---
@@ -249,8 +258,8 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 ### [CURRENT] containers
 
 - `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
-- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, from caller token at send time — never client-supplied) are **[PLANNED — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum).
-- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[PLANNED — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
+- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, resolved server-side from the teacher's own record at send time — never client-supplied) are **[CURRENT — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum).
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
 - `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload).
@@ -262,9 +271,12 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
   One-time teacher-invite links, 7-day expiry, max 50 pending per school. Manual provisioning:
   `docs/azure/SPRINT5_CONTAINERS_SETUP.md`.
 
-Note: only `teachers` and `classes` carry a `schoolId` field. `questions`/`quizzes`/`responses` do
-not — they're scoped by `teacherId`/`quizId`, never `schoolId`. School merge
-(`POST /api/manage/schools/merge`) only re-points `teachers` and `classes` for this reason.
+Note: only `teachers` and `classes` carry an **authorization-relevant** `schoolId`.
+`questions`/`quizzes`/`responses` are scoped by `teacherId`/`quizId`, never `schoolId` — the
+optional `schoolId` added to quizzes/responses in v4.0.0 is a denormalised benchmark tag only,
+never read by any ownership check, and deliberately NOT re-pointed by school merge
+(`POST /api/manage/schools/merge` still only re-points `teachers` and `classes`; stale benchmark
+attribution on old responses is accepted).
 
 ### [PLANNED] new/changed containers
 
@@ -273,7 +285,7 @@ not — they're scoped by `teacherId`/`quizId`, never `schoolId`. School merge
 - **`subscriptions`** ~~[Sprint 3]~~ **[CURRENT — Sprint 3 complete]** (pk `/classId`) — { id, classId, deviceId, endpoint, keys: { p256dh, auth }, createdAt, updatedAt }
 - **`question_upvotes`** ~~[Sprint 6]~~ **[CURRENT — Sprint 6]** (pk `/questionId`) — { id, questionId, teacherId, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_UPVOTES`. Provisioning: `docs/azure/SPRINT6_CONTAINERS_SETUP.md`.
 - **`question_reports`** [CURRENT — Sprint 6] (pk `/questionId`) — { id, questionId, teacherId, reason, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_REPORTS`. Max 20 reports/teacher/day; visible to support/platform_admin via `GET /api/questions/reports`.
-- **`population_benchmark`** [PLANNED — v4.0.0] (pk `/topicTag`) — { id, topicTag, pctCorrect,
+- **`population_benchmark`** ~~[PLANNED — v4.0.0]~~ **[CURRENT — v4.0.0]** (provisioned + seeded 2026-07-03) (pk `/topicTag`) — { id, topicTag, pctCorrect,
   pctConfidentIncorrect, responseCount, ... } — **~12 pre-aggregated topic-rollup docs**, one per
   preset topic tag, written once by `api/seed/populationSeed.js` (idempotent, run manually, never
   via API). Env: `COSMOS_CONTAINER_POPULATION_BENCHMARK`. **This replaces the .docx's original
@@ -290,9 +302,9 @@ not — they're scoped by `teacherId`/`quizId`, never `schoolId`. School merge
   display-only DB field — authorization never reads it, see Authorization model below)
 - ~~[Sprint 4] `closedAt` on quizzes~~ — **DONE** (derived server-side from teacher-configured `durationMinutes` at send time; also `scheduledFor` for scheduled quizzes)
 - [Sprint 6] `upvotes`, `usageCount` on questions
-- [PLANNED — v4.0.0] `topicTag` + `schoolId` on quiz (teacher-selected optional dropdown +
-  caller-token-derived, at send time); `topicTag` + `schoolId` on response (copied from quiz at
-  submit time). See Data model above and Architecture decisions below.
+- ~~[v4.0.0] `topicTag` + `schoolId` on quiz and response~~ — **DONE** (optional teacher dropdown +
+  server-resolved schoolId at send time; both copied from quiz onto each response at submit time).
+  See Data model above and Architecture decisions below.
 
 ---
 
@@ -360,7 +372,10 @@ queueing) — keep the store name/shape in sync if either changes.
 ### Quiz lifecycle & student quiz-taking [CURRENT — Sprint 4]
 
 `closedAt` is computed server-side from a teacher-entered `durationMinutes` (min 5) at send
-time — never trust a client-supplied `closedAt`. `POST /api/responses` re-checks `closedAt`,
+time — never trust a client-supplied `closedAt`. Since the 2026-07-06 pre-release review,
+**`sentAt` is also server-set** on send: `POST /api/quizzes` ignores any body-supplied `sentAt`
+(deriving `closedAt` from a client timestamp let a crafted `sentAt` hold a quiz open past its
+duration, and a malformed one threw a 500). `POST /api/responses` re-checks `closedAt`,
 duplicate submission (same `studentId` + `quizId`), and approved-join-request ownership on every
 call, since the student-facing `/quiz` route has no auth. `studentId` is the same device UUID
 (`quizpulse_device_id`) used for join requests and push subscriptions — there is no separate
@@ -523,6 +538,16 @@ conflict**, and what's actually built follows the addendum, not the raw .docx.
   directional verdict below it — the same layout at every viewport width, so there's no separate
   mobile breakpoint to keep in sync and no risk of two side-by-side panels burying the comparison
   on a phone.
+- **Pre-release review fixes (2026-07-06, `/review` on `release/v4.0-analytics`):**
+  (1) CSV export (`api/analytics.js`) neutralises spreadsheet formula injection — student-supplied
+  names starting with `= + - @` get a `'` prefix (CWE-1236); any future CSV export needs the same
+  guard. (2) `GET /api/analytics/class/{classId}` now counts only responses from that class's own
+  roster (join-request deviceIds, or `demoStudents` for a demo class) — it previously counted ALL
+  responses to a quiz against one class's approved count, inflating rates past 100% for
+  multi-class quizzes. (3) `sentAt` is server-set on send (see Quiz lifecycle above). (4) The
+  four-cell chart does NOT replace the per-option answer bars — `Analytics.jsx` renders both
+  (four-cell grid, then option distribution), because "confidently wrong" is only teachable once
+  you see WHICH option was picked. Keep both when touching that card.
 
 ### APST evidence export [PLANNED — v4.1.0]
 
@@ -594,8 +619,31 @@ HTML report is generated.
 
 - **Unit** (jest BE / vitest FE) — pure logic: validation, rate limiting, fuzzy match, join codes.
   Runs every push.
-- **Integration** (jest + supertest) — API endpoints vs local Cosmos emulator + Azurite; status
+- **Integration** (jest + supertest) — API endpoints vs a real HTTP `func start` instance; status
   codes, DB writes, limit enforcement. Runs after unit pass.
+  **⚠️ Never run `npm run test:integration` against the func host you use for normal local dev —
+  `api/local.settings.json`'s `COSMOS_ENDPOINT`/`COSMOS_KEY` point at the real production Cosmos
+  DB (no local emulator is configured; despite what this doc used to claim, there never was one).
+  A `/qa` session on 2026-07-06 ran the suite before this was documented and wrote real test
+  documents into production.** A dedicated free-tier Cosmos DB account exists for this
+  (`quizpulse-int-test-db` in resource group `quizpulse-test-rg`, database `quizpulse`, same 11
+  containers/partition keys as production — see `docs/azure/INFRASTRUCTURE.md`), with its
+  endpoint/key already in `local.settings.json` as `TEST_COSMOS_ENDPOINT`/`TEST_COSMOS_KEY`.
+  Before running integration tests, start `func start` with those values overriding the real
+  ones via the shell environment (env vars beat `local.settings.json` `Values` at Functions host
+  startup) — e.g. in PowerShell:
+  ```powershell
+  cd api
+  $env:COSMOS_ENDPOINT = (Get-Content local.settings.json | ConvertFrom-Json).Values.TEST_COSMOS_ENDPOINT
+  $env:COSMOS_KEY = (Get-Content local.settings.json | ConvertFrom-Json).Values.TEST_COSMOS_KEY
+  func start
+  ```
+  Then in another terminal, `npm run test:integration` as normal. Stop that func host and start a
+  plain `func start` (no overrides) afterward to go back to normal dev against production. A
+  known flake exists independent of which DB is used: rapid sequential test requests from one IP
+  can trip the 30 req/min rate limit on endpoints like `/api/classes`, surfacing as `classes.find
+  is not a function` (a 429 error body where an array was expected) rather than a DB bug — see
+  `TODOS.md`.
 - **Cross-tenant access denial** [introduced Sprint 5] — for every resource type a teacher can
   act on, Teacher A authenticates and attempts to access Teacher B's resource by ID; expected
   result is always 404 (never the resource). A test that gets the resource back is a FAILED test.
@@ -715,6 +763,7 @@ sprint's scope.
 | Comprehensive analytics — class drill-down, four-cell confidence+correctness chart, misconception hero card | [CURRENT] v4.0.0 code complete — reviewed + built 2026-07-03 |
 | Population benchmarking (/teacher/population, population_benchmark container, api/analyticsPopulation.js) | [CURRENT] v4.0.0 code complete — container provisioning + seed run still pending, see Known issues |
 | Topic tag on quiz (optional, 12 presets, api/shared/topicTags.js, feeds population benchmarking) | [CURRENT] v4.0.0 code complete |
+| Pre-release review fixes (CSV formula-injection guard, per-class response rates, server-set sentAt, option bars kept beside four-cell) | [CURRENT] v4.0.0 — /review 2026-07-06, 215/215 tests pass |
 | APST evidence export (/teacher/evidence, per-quiz PDF + annual MyPD log, pdfkit) | [PLANNED — v4.1.0] Design + eng reviewed 2026-07-03; depends on v4.0.0 |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 

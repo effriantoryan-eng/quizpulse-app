@@ -67,3 +67,33 @@ see CLAUDE.md). Function App platform CORS allows:
 
 All commands used to create this infrastructure are scripted in
 `scripts/azure/provision.ps1` (idempotent where possible). Secrets are never stored in the repo.
+
+## Integration test Cosmos DB (added 2026-07-06, /qa)
+
+A **separate, dedicated free-tier Cosmos account** exists purely for `npm run test:integration` —
+never used by the deployed app or by normal local dev.
+
+| Item | Value |
+|---|---|
+| Resource group | `quizpulse-test-rg` (australiaeast) |
+| Cosmos account | `quizpulse-int-test-db` (free tier — first 1000 RU/s + 25GB, $0/mo as long as usage stays under that) |
+| Throughput | Shared at the database level, 1000 RU/s (all containers draw from the same pool) |
+| Database | `quizpulse` |
+| Containers | Same 11 as production, same partition keys: `questions` (`/teacherId`), `quizzes` (`/teacherId`), `responses` (`/quizId`), `schools` (`/id`), `classes` (`/teacherId`), `teachers` (`/id`), `join_requests` (`/classId`), `audit_log` (`/actorId`), `invites` (`/schoolId`), `question_upvotes` (`/questionId`), `question_reports` (`/questionId`) |
+| Credentials | `TEST_COSMOS_ENDPOINT` / `TEST_COSMOS_KEY` in `api/local.settings.json` (gitignored) |
+
+**Why this exists:** production's `COSMOS_ENDPOINT`/`COSMOS_KEY` are the only Cosmos credentials
+in `local.settings.json`, and there was never a local emulator configured — so every
+`npm run test:integration` run before 2026-07-06 was silently writing test data into production.
+See `CLAUDE.md`'s Testing section for the required env-var-override steps before running
+integration tests, and `TODOS.md` for the incident and what still needs manual cleanup in
+production.
+
+Reprovision (not yet added to `scripts/azure/provision.ps1` — one-off `az` commands used):
+```
+az group create -n quizpulse-test-rg -l australiaeast
+az cosmosdb create -n quizpulse-int-test-db -g quizpulse-test-rg --enable-free-tier true \
+  --locations regionName=australiaeast --default-consistency-level Session --kind GlobalDocumentDB
+az cosmosdb sql database create -a quizpulse-int-test-db -g quizpulse-test-rg -n quizpulse --throughput 1000
+# then one `az cosmosdb sql container create ... --partition-key-path <pk>` per container above
+```

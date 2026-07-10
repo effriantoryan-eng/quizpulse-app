@@ -2,6 +2,73 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.0.0] — Comprehensive analytics (unreleased — on `release/v4.0-analytics`)
+
+Class drill-down, a four-cell confidence+correctness chart with a promoted misconception hero
+card, an optional topic tag on send, and population benchmarking against a pre-aggregated seeded
+dataset. Built 2026-07-03 per the amended sprint plan — `DESIGN_REVIEW_v400_v410_addendum.md`
+overrides the raw `.docx` wherever they conflict (see CLAUDE.md, Architecture decisions).
+No breaking changes; deploy requires the `population_benchmark` container +
+`COSMOS_CONTAINER_POPULATION_BENCHMARK` env var (provisioned + seeded 2026-07-03).
+
+### New features
+
+#### Four-cell confidence+correctness chart (`feat/v4.0-analytics-ui`)
+- `buildQuestionBreakdown` (`api/analytics.js`) extended in place with `fourCell`
+  (`correctConfident`/`correctUnsure`/`incorrectConfident`/`incorrectUnsure`). "Confident" =
+  `sure` + `pretty_sure` (reuses `CONFIDENT_VALUES`), so `fourCell.incorrectConfident` always
+  equals `confidentButIncorrect` by construction. No new endpoint — class drill-down reuses
+  `GET /api/analytics?quizId=&classId=` (`applyClassFilter`).
+- `Analytics.jsx`: persistent four-cell legend above the question list, always-visible per-cell
+  counts + percentages (never hover-only), misconception hero card promoted above the question
+  list. Misconception accent is a dedicated terracotta (`#B5482E`/`#FBEDE8`) on both the segment
+  and the hero card.
+
+#### Topic tag on send (`feat/v4.0-topic-tag-ui`, `feat/v4.0-response-schema`)
+- Optional 12-preset `topicTag` on quiz send (`api/shared/topicTags.js`, mirrored in
+  `src/data/topicTags.js` — keep in sync). Validated server-side (400 on unrecognised value);
+  never blocks send. `schoolId` resolved server-side from the caller's own teacher doc — never
+  client-supplied.
+- `api/responses.js` copies `topicTag`/`schoolId` from the quiz doc onto each response at submit
+  time (students submit anonymously — there is no claim to read them from). No `correct`/
+  `confidenceLevel`/`yearLevel`/`isPopulationSeed` fields (addendum §E0 dropped them from the
+  .docx spec).
+
+#### Population benchmarking (`feat/v4.0-population-seed`)
+- New `population_benchmark` container (pk `/topicTag`): ~12 pre-aggregated topic rollups written
+  once by `api/seed/populationSeed.js` (standalone, idempotent, manual — never an HTTP endpoint).
+  Replaces the .docx design of ~37,500 raw synthetic response docs in `responses` (addendum §E1).
+- `GET /api/analytics/population?topic=` (`api/analyticsPopulation.js`): point-read of the topic
+  rollup + live aggregate of the caller's own topic-tagged quizzes. **No `schoolId` input at
+  all** — the .docx's unchecked query param was an IDOR (addendum §E2). Demo data excluded from
+  the live aggregate.
+- `Population.jsx` — Results sub-tab (`/teacher/population`): one responsive "you vs norm" marker
+  track per metric with a plain-language verdict.
+
+### Security / bug fixes (pre-release review, /review 2026-07-06)
+
+- **CSV formula injection (`api/analytics.js` export):** student-supplied names reaching the
+  teacher's CSV are now neutralised — cells starting with `= + - @` (or tab/CR) get a `'` prefix
+  so Excel doesn't execute them (CWE-1236).
+- **Per-class response rates fixed (`GET /api/analytics/class/{classId}`):** the endpoint counted
+  ALL responses to a quiz against ONE class's approved count, so multi-class quizzes showed rates
+  past 100% in the Results "By Class" view. Responses are now counted against the class's own
+  roster (join-request deviceIds; `demoStudents` for a demo class). Roster query also moved out
+  of the per-quiz loop.
+- **`sentAt` server-set (`POST /api/quizzes`):** `closedAt` was derived from a client-supplied
+  `sentAt` — a crafted timestamp could hold a quiz open past its duration, and a malformed one
+  threw a 500 (`toISOString` RangeError). Both `sentAt` and `closedAt` are now server-derived;
+  any body-supplied `sentAt` is ignored.
+- **Per-option answer bars restored (`Analytics.jsx`):** the four-cell chart had silently replaced
+  the option-level distribution, hiding WHICH wrong option students picked. Both now render.
+- Stale analytics hint copy rewritten for the four-cell layout; `Population.jsx` verdict grammar
+  fixed; dead code removed from `api/responses.js`.
+
+### Tests
+- `feat/v4.0-tests` — unit suite green (215 passing), including `populationSeed.test.js` and
+  four-cell breakdown tests (sum-to-total, legacy no-confidence answers, hero-card agreement).
+  Known gap: `GET /api/analytics/class/{classId}` still has no integration coverage (see TODOS.md).
+
 ## [v3.3.0] — Simulated demo class (MINOR)
 
 Lets a teacher explore the full Send → Analytics loop with simulated students, without recruiting

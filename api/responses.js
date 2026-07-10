@@ -39,11 +39,6 @@ app.http('responses', {
       if (!rateLimit(`responses:${ip}`, 5, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' })
       }
-      // Per-studentId rate limit — partial mitigation for caller-supplied studentId impersonation
-      const rawStudentId = (typeof (await request.clone().json().catch(() => ({})))?.studentId === 'string')
-        ? null // defer — read once below
-        : null;
-
       const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
       if (contentLength > MAX_RESPONSE_BODY) {
         return respond(413, { error: 'Request body too large. Maximum size is 4KB' })
