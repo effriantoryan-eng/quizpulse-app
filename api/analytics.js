@@ -182,7 +182,9 @@ app.http('analytics', {
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
 
-      if (!rateLimit(`analytics:${getClientIp(request)}`, 60, 3600000)) {
+      // 60/min, not 60/hr: the analytics page polls every 3s (20 req/min) by design,
+      // so an hourly bucket dies after ~3 minutes of live viewing.
+      if (!rateLimit(`analytics:${getClientIp(request)}`, 60, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
