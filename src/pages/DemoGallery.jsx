@@ -393,6 +393,56 @@ function Card2b() {
 // ─── Card 2c: Population benchmarking (v4.0.0) ────────────────────
 const POPULATION_DATA = { you: 18, norm: 11 }
 
+// Illustrative reference cloud + "your class" marker — demo-only static data, matches the
+// diagonal trend shape from the design mockup (quizpulse_mockups_v301.html, t-population screen).
+const DEMO_REFERENCE_DOTS = [
+  [50, 33], [53, 30], [55, 27], [57, 25], [59, 23], [61, 21], [63, 20], [64, 18],
+  [66, 17], [67, 16], [68, 15], [70, 14], [72, 13], [74, 12], [76, 11], [78, 10],
+  [80, 9], [83, 7], [86, 6], [89, 5],
+]
+
+function DemoScatter() {
+  const X0 = 44, X1 = 300, Y0 = 200, Y1 = 20
+  const tx = pct => X0 + (Math.min(Math.max(pct, 0), 100) / 100) * (X1 - X0)
+  const ty = pct => Y0 - (Math.min(Math.max(pct, 0), 40) / 40) * (Y0 - Y1)
+  const avgX = tx(68)
+  const avgY = ty(15)
+  const youX = tx(75)
+  const youY = ty(24)
+
+  return (
+    <div style={{ marginTop: '16px' }}>
+      <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.6px', color: C.muted, marginBottom: '4px' }}>Where this sits, compared to other classes</div>
+      <div style={{ fontSize: '11px', color: C.sub, marginBottom: '10px', lineHeight: '1.4' }}>Each grey dot is a sample class. Classes toward the bottom-right are doing best.</div>
+      <svg viewBox="0 0 320 220" style={{ width: '100%', height: 'auto', display: 'block' }}>
+        <rect x={avgX} y={avgY} width={X1 - avgX} height={Y0 - avgY} fill="#EAF3DE" opacity="0.7" />
+        <rect x={X0} y={Y1} width={avgX - X0} height={avgY - Y1} fill="#FBEDE8" opacity="0.7" />
+        <line x1={avgX} y1={Y1} x2={avgX} y2={Y0} stroke="#999" strokeWidth="1" strokeDasharray="3,3" />
+        <line x1={X0} y1={avgY} x2={X1} y2={avgY} stroke="#999" strokeWidth="1" strokeDasharray="3,3" />
+        <text x={avgX + 4} y={Y1 + 10} fontSize="8" fill="#888">population avg</text>
+        <line x1={X0} y1={Y1} x2={X0} y2={Y0} stroke="#e0e0e0" strokeWidth="1.5" />
+        <line x1={X0} y1={Y0} x2={X1} y2={Y0} stroke="#e0e0e0" strokeWidth="1.5" />
+        <g fill="#b3b3b3" opacity="0.75">
+          {DEMO_REFERENCE_DOTS.map(([x, y], i) => <circle key={i} cx={tx(x)} cy={ty(y)} r="4" />)}
+        </g>
+        <line x1={youX} y1={youY} x2={youX} y2={avgY} stroke="#B5482E" strokeWidth="1" strokeDasharray="2,2" />
+        <circle cx={youX} cy={youY} r="7" fill="#B5482E" stroke="white" strokeWidth="2" />
+        <text x={youX + 10} y={youY - 3} fontSize="11" fontWeight="700" fill="#5A2416">Your class</text>
+        <text x="172" y="215" fontSize="10" fill="#888" textAnchor="middle">Correct answers →</text>
+        <text fontSize="10" fill="#888" textAnchor="middle" transform="translate(12,130) rotate(-90)">Confident-but-wrong →</text>
+        <text x={X0} y="212" fontSize="8" fill="#aaa">0%</text>
+        <text x="288" y="212" fontSize="8" fill="#aaa">100%</text>
+        <text x="26" y="203" fontSize="8" fill="#aaa">0%</text>
+        <text x="20" y="28" fontSize="8" fill="#aaa">40%</text>
+      </svg>
+      <div style={{ display: 'flex', gap: '14px', fontSize: '10px', color: C.sub, marginTop: '6px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#b3b3b3', display: 'inline-block' }} /> Other classes, same topic</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#B5482E', display: 'inline-block' }} /> Your class</span>
+      </div>
+    </div>
+  )
+}
+
 function Card2c() {
   const gap = POPULATION_DATA.you - POPULATION_DATA.norm
   return (
@@ -402,6 +452,8 @@ function Card2c() {
         <div style={{ fontSize: '32px', fontWeight: '800', color: '#5A2416', lineHeight: 1 }}>{POPULATION_DATA.you}%</div>
         <div style={{ fontSize: '11px', color: '#7A3B28', marginTop: '6px' }}>vs {POPULATION_DATA.norm}% norm — {gap} points above</div>
       </div>
+      <DemoScatter />
+      <div style={{ marginTop: '16px' }}>
       {[
         { label: 'You', value: POPULATION_DATA.you, color: '#B5482E' },
         { label: 'Norm', value: POPULATION_DATA.norm, color: '#B5482E', faded: true },
@@ -414,6 +466,7 @@ function Card2c() {
           <span style={{ width: '30px', fontSize: '11px', textAlign: 'right', fontWeight: faded ? '400' : '600', color: faded ? C.sub : C.text }}>{value}%</span>
         </div>
       ))}
+      </div>
     </CardShell>
   )
 }
