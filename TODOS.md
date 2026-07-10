@@ -81,3 +81,28 @@ three came out of the same pass but were left as follow-ups:
   config gap, not fixable from source — needs the Google Cloud OAuth client + CIAM IdP setup in
   `docs/azure/B2C_SETUP.md`'s "Google" section actually completed. Until then, consider hiding the
   button (same treatment as Apple ID, which is correctly not shown pending its own portal setup).
+
+## /qa session 2026-07-11 (local, dev-auth bypass, test Cosmos DB)
+
+Fixed this session (branch `feat/v4.0-demo-gallery-cards-v2`): analytics rate-limit window 1hr→1min
+(ISSUE-002, high — live analytics died with 429 after ~3 min of polling), "No classId provided."
+dead-ends on Roster/Requests/Settings (ISSUE-001), raw class UUIDs in quiz history (ISSUE-003,
+stale Sprint-0 CLASS_NAMES map), backwards analytics copy + "1 students" pluralization
+(ISSUE-004/005). Deferred:
+
+- [ ] **LOW — Misconception hero card says "N students answered confidently but got it wrong"
+  but N sums per-question confident-wrong ANSWERS** (`src/pages/teacher/Analytics.jsx`) — one
+  student confidently wrong on 3 questions counts 3. Say "answers" or dedupe by student.
+- [ ] **LOW — Send page shows "Picking a topic lets this quiz count toward your school's
+  benchmark" even when only a demo class is selected** (`src/pages/teacher/SendQuiz.jsx`) —
+  demo quizzes are excluded from population aggregation by design (`analyticsPopulation.js`
+  EXCLUDE_DEMO), so the promise is false for demo sends. Hide/adjust the note when all selected
+  classes are demo.
+- [ ] **LOW — Student who revisits an already-submitted quiz gets the full quiz form again**
+  (`src/pages/TakeQuiz.jsx`) — they re-answer everything and only learn at submit ("You have
+  already submitted this quiz", server 409 → friendly copy works). Pre-check on load using the
+  local device id and short-circuit to the done screen.
+- [ ] **LOW — Population "You haven't sent a quiz tagged X yet" message shows even when a demo
+  quiz with that tag exists** (`src/pages/teacher/Population.jsx`) — technically true-by-design
+  (demo excluded) but confusing right after a demo send; consider "Demo quizzes don't count
+  toward benchmarks" hint in that state.
