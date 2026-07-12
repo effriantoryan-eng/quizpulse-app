@@ -88,6 +88,7 @@ function getContainers() {
     _containers = {
       responsesContainer: database.container(process.env.COSMOS_CONTAINER_RESPONSES || 'responses'),
       questionsContainer: database.container(process.env.COSMOS_CONTAINER_QUESTIONS || 'questions'),
+      quizzesContainer: database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes'),
     };
   }
   return _containers;
@@ -101,7 +102,7 @@ function getContainers() {
 async function runSimulation(quiz, cls, context, deps) {
   // `deps` lets unit tests inject fake containers; production call sites pass 3 args and use the
   // lazily-created Cosmos containers.
-  const { responsesContainer, questionsContainer } = deps || getContainers();
+  const { responsesContainer, questionsContainer, quizzesContainer } = deps || getContainers();
 
   // Idempotency — never simulate the same quiz twice.
   const { resources: existing } = await responsesContainer.items.query({
@@ -130,6 +131,18 @@ async function runSimulation(quiz, cls, context, deps) {
 
   const docs = generateSimulatedResponses({ quiz, demoStudents, questions });
   await Promise.all(docs.map((d) => responsesContainer.items.create(d)));
+
+  // Mirrors api/responses.js's counter increment — this path writes responses directly and
+  // bypasses that handler entirely, so misconception_intro's milestone would never fire from a
+  // demo quiz otherwise (its one deliberate exception to demo exclusion — the demo class is this
+  // intro's designed first touch). Advisory only, never fails the simulation.
+  if (docs.length > 0 && quizzesContainer) {
+    try {
+      await quizzesContainer.item(quiz.id, quiz.teacherId).patch([{ op: 'incr', path: '/confidenceResponseCount', value: docs.length }]);
+    } catch (err) {
+      context?.error?.('confidenceResponseCount patch failed (non-fatal):', err.message);
+    }
+  }
 
   context?.log?.(`Simulated ${docs.length} response(s) for demo quiz ${quiz.id}`);
   return { simulated: docs.length, total: demoStudents.length };

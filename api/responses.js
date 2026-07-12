@@ -179,6 +179,16 @@ app.http('responses', {
         }
         throw err;
       }
+      // Denormalised counter on the parent quiz doc, read by introEligibility's misconception_intro
+      // milestone (responses aren't teacher-partitioned, so that check can't query this container
+      // directly). Advisory only — a patch failure must NEVER fail the student's submission, which
+      // already succeeded above.
+      try {
+        await quizzesContainer.item(quiz.id, quiz.teacherId).patch([{ op: 'incr', path: '/confidenceResponseCount', value: 1 }]);
+      } catch (err) {
+        context.error('confidenceResponseCount patch failed (non-fatal):', err.message);
+      }
+
       return respond(201, resource)
 
     } catch (err) {

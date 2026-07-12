@@ -3,6 +3,9 @@ const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
+const { validateProfile, isProfileComplete } = require('./shared/profileSchema');
+const { isValidIntroKey } = require('./shared/featureIntros');
+const { computeEligibleIntros } = require('./shared/introEligibility');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -13,6 +16,8 @@ const client = new CosmosClient({
 const database = client.database(process.env.COSMOS_DATABASE);
 const teachers = database.container(process.env.COSMOS_CONTAINER_TEACHERS || 'teachers');
 const schools = database.container(process.env.COSMOS_CONTAINER_SCHOOLS || 'schools');
+const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
+const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes');
 
 const SCHOOL_NAME_MAX = 120; // Security limits table — School name length
 
@@ -59,10 +64,77 @@ app.http('teacherMe', {
         }
       }
 
-      return respond(200, { onboarded: true, teacher, school }, teacherId);
+      const profile = teacher.profile || {};
+      const featureIntros = teacher.featureIntros || {};
+      const eligibleIntros = await computeEligibleIntros({ teacherId, teacher, classesContainer, quizzesContainer });
+      return respond(
+        200,
+        {
+          onboarded: true,
+          teacher,
+          school,
+          profile,
+          profileComplete: isProfileComplete(profile),
+          featureIntros,
+          eligibleIntros,
+        },
+        teacherId
+      );
     } catch (err) {
       context.error('teacherMe error:', err.message);
       logRequest(context, { endpoint: 'me', method: 'GET', status: 500, durationMs: Date.now() - start });
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
+// PUT /api/me/profile — accumulates the optional onboarding-wizard profile fields (subjects,
+// yearLevels, classCount, registrationStatus). Additive/partial: only keys present in the body
+// are validated and merged onto any existing profile — quitting the wizard mid-way and coming
+// back later (ProfileNudge) must never lose already-answered steps. Never re-gates onboarding —
+// POST /api/onboarding already fired at step 1.
+app.http('updateProfile', {
+  methods: ['PUT'],
+  authLevel: 'anonymous',
+  route: 'me/profile',
+  handler: async (request, context) => {
+    const start = Date.now();
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: 'me/profile', method: 'PUT', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const teacherId = auth.teacherId;
+
+      const ip = getClientIp(request);
+      if (!rateLimit(`me-profile:${ip}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+      if (contentLength > 4096) {
+        return respond(413, { error: 'Request body too large.' }, teacherId);
+      }
+
+      const body = await request.json();
+      const { error, profile: incoming } = validateProfile(body);
+      if (error) return respond(400, { error }, teacherId);
+
+      const teacher = await getTeacher(teacherId);
+      if (!teacher) {
+        return respond(404, { error: 'Not found' }, teacherId);
+      }
+
+      const mergedProfile = { ...(teacher.profile || {}), ...incoming };
+      await teachers.item(teacherId, teacherId).patch([{ op: 'set', path: '/profile', value: mergedProfile }]);
+
+      return respond(200, { profile: mergedProfile, profileComplete: isProfileComplete(mergedProfile) }, teacherId);
+    } catch (err) {
+      context.error('updateProfile error:', err.message);
+      logRequest(context, { endpoint: 'me/profile', method: 'PUT', status: 500, durationMs: Date.now() - start });
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
   },
@@ -161,6 +233,84 @@ app.http('onboarding', {
     } catch (err) {
       context.error('onboarding error:', err.message);
       logRequest(context, { endpoint: 'onboarding', method: 'POST', status: 500, durationMs: Date.now() - start });
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
+// PUT /api/me/feature-intros — records that an intro card was shown or dismissed. One key per
+// call, written via an atomic Cosmos PATCH `set` on a single nested field — never a
+// read-modify-write of the whole featureIntros object, so two tabs dismissing different cards
+// at once can't clobber each other.
+app.http('updateFeatureIntros', {
+  methods: ['PUT'],
+  authLevel: 'anonymous',
+  route: 'me/feature-intros',
+  handler: async (request, context) => {
+    const start = Date.now();
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: 'me/feature-intros', method: 'PUT', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const teacherId = auth.teacherId;
+
+      const ip = getClientIp(request);
+      if (!rateLimit(`me-feature-intros:${ip}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+      if (contentLength > 1024) {
+        return respond(413, { error: 'Request body too large.' }, teacherId);
+      }
+
+      const body = await request.json();
+      if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        return respond(400, { error: 'Request body must be a JSON object' }, teacherId);
+      }
+      const { key, event } = body;
+      if (!isValidIntroKey(key)) {
+        return respond(400, { error: 'Unknown feature-intro key' }, teacherId);
+      }
+      if (event !== 'shown' && event !== 'dismissed') {
+        return respond(400, { error: "event must be 'shown' or 'dismissed'" }, teacherId);
+      }
+
+      const field = event === 'shown' ? 'shownAt' : 'dismissedAt';
+      const now = new Date().toISOString();
+
+      // A nested-path Cosmos patch (`/featureIntros/{key}/{field}`) requires every ancestor to
+      // already exist, which a teacher's first-ever intro interaction won't have. Instead, only
+      // the target key's own sub-object is touched via an ETag-conditioned replace (retried on a
+      // concurrent write) — that keeps two tabs dismissing DIFFERENT keys from clobbering each
+      // other, the actual race this endpoint has to survive.
+      let updated;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { resource: current, etag } = await teachers.item(teacherId, teacherId).read();
+        if (!current) return respond(404, { error: 'Not found' }, teacherId);
+        const featureIntros = { ...(current.featureIntros || {}) };
+        featureIntros[key] = { ...(featureIntros[key] || {}), [field]: now };
+        try {
+          const { resource } = await teachers
+            .item(teacherId, teacherId)
+            .replace({ ...current, featureIntros }, { accessCondition: { type: 'IfMatch', condition: etag } });
+          updated = resource;
+          break;
+        } catch (err) {
+          if (err.code === 412 && attempt < 2) continue; // etag mismatch — another write raced us, retry
+          throw err;
+        }
+      }
+      if (!updated) return respond(409, { error: 'Could not save — please try again.' }, teacherId);
+
+      return respond(200, { key, [field]: now }, teacherId);
+    } catch (err) {
+      context.error('updateFeatureIntros error:', err.message);
+      logRequest(context, { endpoint: 'me/feature-intros', method: 'PUT', status: 500, durationMs: Date.now() - start });
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
   },

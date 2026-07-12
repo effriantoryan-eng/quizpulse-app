@@ -194,4 +194,54 @@ Reports:
 | 1 | v3-3-demo-class.spec.ts | No demo class → button visible → create → Demo pill, no join code | demo card with pill, "practice students", no Code: | ⬜ Requires creds |
 | 2 | v3-3-demo-class.spec.ts | Teacher with 1 demo class | "Try with a demo class" button hidden | ⬜ Requires creds |
 | 3 | v3-3-demo-class.spec.ts | Send quiz to demo class → analytics | Demo data pill + confident-but-incorrect callout | ⬜ Requires creds |
+
+## v4.2.0 — Guided Onboarding & Progressive Disclosure
+
+Full report: `tests/reports/v4.2.0-report.html`. Unit suite run: `npm run test:unit`.
+
+### Unit tests
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | profileSchema.test.js | `validateProfile` accepts/rejects each field (subjects enum+cap, yearLevels 7-12+cap, classCount 1-20, registrationStatus enum) | 400-worthy inputs rejected, valid partials pass through | ✅ PASS |
+| 2 | profileSchema.test.js | `isProfileComplete` — a skipped step (field absent) never counts as answered | false until all 4 fields present | ✅ PASS |
+| 3 | createClass.test.js | `generateJoinCode` shape | 8 chars, unambiguous alphanumeric | ✅ PASS |
+| 4 | createClass.test.js | `createRealClass` creates a doc with joinCode + schoolId; throws `ClassLimitError` at the 20-class cap; rejects an empty name without writing | 201-shape doc / 429-typed error / no write on invalid name | ✅ PASS |
+| 5 | introEligibility.test.js | `demo_intro` eligible for a brand-new teacher; NOT suppressed by empty class shells; suppressed once a class has an approved student | matches CEO review addendum §2/§5.7 | ✅ PASS |
+| 6 | introEligibility.test.js | Every key dismissed short-circuits to `[]` without any milestone query | 0 Cosmos queries issued | ✅ PASS |
+| 7 | introEligibility.test.js | `apst_intro`/`mypd_intro`/`ai_generation_intro` never eligible while their feature flags are off | absent from result while dark | ✅ PASS |
+| 8 | introEligibility.test.js | `analytics_intro`/`population_intro`/`community_intro` queries exclude demo data; `misconception_intro`'s query does NOT (the one deliberate exception) | query string inspected for the `isDemo` fragment | ✅ PASS |
+| 9 | introEligibility.test.js | Result order matches `CANDIDATE_KEYS` priority regardless of check order | sorted indices | ✅ PASS |
+| 10 | responses.test.js | **CRITICAL regression:** `confidenceResponseCount` patch mocked to throw → submission still 201 | non-fatal counter | ✅ PASS |
+| 11 | responses.test.js | Successful submission increments the counter by exactly 1 | `patch` called once with `incr`/`value:1` | ✅ PASS |
+| 12 | topicPrefilter.test.js | `matchTopics` — matches subject×yearLevel combinations; zero-match fallback (e.g. Year 8 Maths) returns `[]`, not an empty "matched" render | exact tag list / empty array | ✅ PASS |
+
+### Integration tests — `RUN_INTEGRATION=true npm run test:integration`
+
+Added to `tests/integration/api/teacher.test.js` (⬜ requires `func start` + the isolated
+`quizpulse-int-test-db` — see the Testing section of CLAUDE.md, never the production Cosmos DB).
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | `PUT /api/me/profile` accumulates partial answers across multiple calls without losing earlier ones; `profileComplete` flips true only once all 4 fields are answered | merged profile, correct `profileComplete` | ⬜ Requires func |
+| 2 | `PUT /api/me/profile` for a not-yet-onboarded teacher | 404 | ⬜ Requires func |
+| 3 | `PUT /api/me/profile` rejects an invalid subject | 400 | ⬜ Requires func |
+| 4 | Quitting the wizard after step 1 (no `PUT /me/profile` call) never re-gates onboarding | `GET /api/me` still `onboarded:true`, `profileComplete:false` | ⬜ Requires func |
+| 5 | `GET /api/me` is safe for a legacy-shaped teacher doc (no profile/featureIntros) | `profile:{}`, `featureIntros:{}`, `eligibleIntros` includes `demo_intro` | ⬜ Requires func |
+| 6 | `PUT /api/me/feature-intros` rejects an unknown key | 400 | ⬜ Requires func |
+| 7 | Dismissing `demo_intro` removes it from `eligibleIntros` and records `dismissedAt` | | ⬜ Requires func |
+| 8 | Dismissing two different keys back-to-back doesn't clobber either (two-tab race) | both `dismissedAt` present | ⬜ Requires func |
+| 9 | `POST /api/classes/shells` creates N "My Class" shells when the teacher has zero real classes | `{ created: N }` | ⬜ Requires func |
+| 10 | `POST /api/classes/shells` returns 409 once the teacher has any real class | 409 | ⬜ Requires func |
+| 11 | `demo_intro` still eligible immediately after creating shells | present in `eligibleIntros` | ⬜ Requires func |
+| 12 | `POST /api/classes/shells` rejects `count` outside 1-20 | 400 | ⬜ Requires func |
+| 13 | `POST /api/onboarding` still rejects a `role` key in the body (regression) | 400 | ⬜ Requires func |
+
+### Deferred to a live-Cosmos session (not exercised in this build)
+
+- Counter concurrency under real parallel writes (`confidenceResponseCount` exact-N under N
+  simultaneous submissions) — the atomic `incr` patch operation is Cosmos-server-guaranteed
+  race-free by construction; unit tests confirm the call shape and the non-fatal-on-failure
+  contract, but a true concurrent-load assertion needs a live Cosmos instance.
+- E2E walk of the onboarding wizard + ProfileNudge + intro-card flow (Playwright, real auth).
 | 4 | v3-3-demo-class.spec.ts | Demo class unreachable from /join | demo class carries no joinCode | ⬜ Requires creds |

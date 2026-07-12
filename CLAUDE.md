@@ -55,6 +55,22 @@ Known issues below.
 **[PLANNED] v4.1.0 (APST Evidence Export)** is reviewed and locked (design + eng review complete,
 2026-07-03) but not yet built — depends on v4.0.0's `topicTag` field, which now exists.
 
+**v4.2.0 (Guided Onboarding & Progressive Disclosure) is [CURRENT] — code complete on
+`release/v4.2-onboarding`, not yet merged to main/deployed.** An optional teacher profile
+(subjects, year levels, class count, registration status) collected via a 5-step onboarding
+wizard, a nine-key server-eligibility "progressive disclosure" engine that surfaces one
+feature-intro card at a time as a teacher hits real milestones (never more than one promotional
+element per page render), and a topic-dropdown prefilter on Send. Built per
+`C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v420_v430.md` as overridden by
+`C:\Users\Ryan\Doc\Quizpulse\CEO_REVIEW_v420_v430_addendum.md` (addendum wins on conflict — same
+convention as v4.0.0's design-review addendum). No breaking changes, no deploy blockers — every
+new field is additive and legacy teacher docs are treated as empty.
+
+**[PLANNED] v4.3.0 (AI Quiz Generation, provider placeholder)** is reviewed and locked (design +
+eng review complete, 2026-07-11) but not yet built — depends on v4.1.0 (APST) shipping first per
+the release-branch order in the sprint plan; both v4.1.0 and v4.3.0's Claude Code prompts live in
+`CC_PROMPTS_v420_v430.md`.
+
 ---
 
 ## Tech stack
@@ -167,6 +183,8 @@ main                          (production — tagged releases only)
     ├── release/v1.1-sprint2  ← next sprint
     ├── release/v4.0-analytics  ← [PLANNED] cut after v3.3.0 on main; see feature branches below
     ├── release/v4.1-evidence   ← [PLANNED] cut after v4.0.0 on main; depends on v4.0.0 schema
+    ├── release/v4.2-onboarding ← [CURRENT] cut from develop after v4.0.x; see feature branches below
+    ├── release/v4.3-generation ← [PLANNED] cut after v4.1.0 on main; depends on v4.1.0
     └── hotfix/v1.0.1-description  ← from main when needed
 ```
 
@@ -182,7 +200,23 @@ class-analytics endpoint), `feat/v4.0-tests`.
 **[PLANNED] v4.1.0 feature branches** (`release/v4.1-evidence`, after v4.0.0 merges to main):
 `feat/v4.1-apst-content` (DO FIRST, review for AITSL/DET verbatim accuracy before rc1),
 `feat/v4.1-evidence-route`, `feat/v4.1-pdf-generation` (pdfkit), `feat/v4.1-tests`. Tag
-`v4.1.0-rc1` → tests pass → merge develop → merge main → tag `v4.1.0`.
+`v4.1.0-rc1` → tests pass → merge develop → merge main → tag `v4.1.0`. Amended (CEO review
+addendum §4): also flip `FEATURE_APST_EXPORT` in `api/shared/features.js` and verify
+`apst_intro`/`mypd_intro` cards land on the evidence route (~30 min addition to this sprint).
+
+**v4.2.0 feature branches** (`release/v4.2-onboarding`, cut from `develop` after v4.0.x, per one
+branch per task per the prompt — not the v4.0.0 single-branch deviation):
+`feat/v4.2-profile-schema`, `feat/v4.2-onboarding-wizard`, `feat/v4.2-disclosure-engine`,
+`feat/v4.2-topic-prefilter`, `feat/v4.2-tests`. Tag `v4.2.0-rc1` → tests pass → merge develop →
+merge main → tag `v4.2.0`.
+
+**[PLANNED] v4.3.0 feature branches** (`release/v4.3-generation`, after v4.1.0 merges to main):
+a spike task before `feat/v4.3-source-upload` (validates 15MB multipart upload through both the
+SWA proxy and Functions v4 `request.formData()`), then `feat/v4.3-source-upload`,
+`feat/v4.3-llm-adapter`, `feat/v4.3-draft-endpoints`, `feat/v4.3-review-ui`,
+`feat/v4.3-expansion`, `feat/v4.3-tests`. Full prompt (with all CEO/eng/design review amendments
+folded in) lives in `CC_PROMPTS_v420_v430.md` — build from that file, not the raw
+`QuizPulse_Sprint_Plan_v420_v430.docx`, which carries a supersession notice.
 
 ### Version numbering
 
@@ -196,6 +230,8 @@ class-analytics endpoint), `feat/v4.0-tests`.
 | 6 | v3.0.0 | **MAJOR** — community bank + direct URL workaround removed (breaking) |
 | 7 | v4.0.0 | Comprehensive analytics — class drill-down, confidence+correctness four-cell chart, population benchmarking |
 | 8 | v4.1.0 | APST evidence export — per-quiz VIT artefact + annual MyPD aggregate log (PDF) |
+| 9 | v4.2.0 | Guided onboarding & progressive disclosure — profile wizard, nine-key feature-intro engine, topic prefilter |
+| 10 | v4.3.0 | AI quiz generation (mock provider) — document upload, draft review, spaced repeats, teacher-mediated expansion |
 
 ### Rules
 
@@ -250,6 +286,15 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 8. **[PLANNED] v4.1.0 — APST evidence export.** Per-quiz VIT evidence PDF + annual MyPD aggregate
    log, editable reflection prompts, pre-populated APST/VTLM 2.0 fields. Depends on v4.0.0 schema
    (`topicTag`). Reviewed 2026-07-03 (design + eng).
+9. **v4.2.0 — Guided onboarding & progressive disclosure.** [CURRENT — code complete on
+   `release/v4.2-onboarding`, not yet deployed] Optional teacher profile via a 5-step wizard,
+   nine-key server-eligibility feature-intro engine, topic-dropdown prefilter on Send. Reviewed
+   2026-07-11 (CEO + eng + design).
+10. **[PLANNED] v4.3.0 — AI quiz generation (provider placeholder).** Document upload → mock-LLM
+    draft quiz → teacher review/approve, spaced-repeat scheduling for any quiz, teacher-mediated
+    follow-up expansion from misconceptions. Depends on v4.1.0 shipping first (release order) and
+    v4.2.0's profile for topic pre-filtering. No real LLM key required — ships and tests entirely
+    against a mock provider. Reviewed 2026-07-11 (CEO + eng + design).
 
 ---
 
@@ -258,9 +303,9 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 ### [CURRENT] containers
 
 - `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
-- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, resolved server-side from the teacher's own record at send time — never client-supplied) are **[CURRENT — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum).
+- `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId?, confidenceResponseCount? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, resolved server-side from the teacher's own record at send time — never client-supplied) are **[CURRENT — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum). `confidenceResponseCount` (int) is **[CURRENT — v4.2.0]**, a denormalised counter incremented via an atomic Cosmos `incr` patch at response-submit time (both `api/responses.js` and `api/shared/runSimulation.js`) — read only by `introEligibility.js`'s `analytics_intro`/`misconception_intro` milestones; a legacy quiz with no field is treated as 0.
 - `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
-- `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt } (pk `/id`)
+- `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt, profile?, featureIntros? } (pk `/id`) — `profile` (`{subjects[], yearLevels[], classCount, registrationStatus}`, all optional/independent) and `featureIntros` (`{[key]: {shownAt?, dismissedAt?}}` for the nine keys in `api/shared/featureIntros.js`) are **[CURRENT — v4.2.0]**, additive; a legacy teacher doc with neither field is treated as `profile:{}`/`featureIntros:{}` everywhere (`GET /api/me`, `introEligibility.js`, the SendQuiz topic prefilter).
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
 - `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload).
 - `audit_log` [Sprint 5] (pk `/actorId`) — { id, actorId, actorRole, action, targetType, targetId,
@@ -549,6 +594,66 @@ conflict**, and what's actually built follows the addendum, not the raw .docx.
   (four-cell grid, then option distribution), because "confidently wrong" is only teachable once
   you see WHICH option was picked. Keep both when touching that card.
 
+### Guided onboarding & progressive disclosure [CURRENT — v4.2.0]
+
+Built on `release/v4.2-onboarding` per `CC_PROMPTS_v420_v430.md` as amended by
+`CEO_REVIEW_v420_v430_addendum.md` (addendum wins on conflict — same convention as v4.0.0's
+design-review addendum).
+
+- **Onboarding submit semantics.** `POST /api/onboarding` still fires after step 1 (school name)
+  only — the teacher is onboarded from that moment, exactly as pre-v4.2.0. Steps 2-5 (the profile
+  wizard) accumulate client-side and submit once via `PUT /api/me/profile` at wizard end.
+  Quitting anywhere after step 1 leaves the teacher onboarded with `profileComplete:false` —
+  `ProfileNudge` picks it up later; nothing ever re-gates back to `/onboarding`.
+- **`profileComplete`** = all four profile fields answered (`api/shared/profileSchema.js`'s
+  `isProfileComplete`) — a skipped wizard step is absence, not a falsy answer, so it's never
+  counted as "answered".
+- **Class shells are a first-run convenience, not a general bulk-create tool.**
+  `POST /api/classes/shells` only creates shells when the caller has zero real classes,
+  server-names them "My Class 1..N", and creates sequentially (not `Promise.all`) through the
+  shared `api/shared/createClass.js` helper — the same helper `POST /api/classes` uses, so
+  joinCode/schoolId/cap logic can never drift between the two call sites (this codebase has
+  already been bitten once by copy-pasted logic diverging — see the `rateLimit`-import regression
+  in memory). The create-shells choice itself is never persisted on the profile.
+- **`introEligibility.js` is the one place all nine feature-intro keys' eligibility lives.**
+  `demo_intro`, `analytics_intro`, `community_intro`, `misconception_intro`, and `population_intro`
+  all read teacher-partitioned Cosmos counts and (except `misconception_intro`) exclude demo data
+  via `api/shared/excludeDemo.js`'s `EXCLUDE_DEMO_FRAGMENT` — `misconception_intro` is the one
+  deliberate exception, since a demo quiz is its designed first touch (a teacher exploring
+  misconception analytics on their practice class should still see the card). `apst_intro`,
+  `mypd_intro`, and `ai_generation_intro` are gated behind `api/shared/features.js` flags (both
+  `false` today) and treated as dismissed while dark, so they can never appear before v4.1.0/
+  v4.3.0 flip them. Once every key is dismissed-or-dark, `GET /api/me` skips every milestone
+  query — a brand-new teacher who has dismissed nothing still pays all the queries, but a teacher
+  who's seen everything pays none.
+- **`demo_intro`'s milestone reads `classes.studentCount > 0`** (teacher-partitioned), never a
+  `join_requests` query (pk `/classId` → would be cross-partition, violating `GET /api/me`'s own
+  teacher-partitioned-only rule). Empty class shells (created above) do NOT suppress this card —
+  only a class that's actually been used should.
+- **The `confidenceResponseCount` counter is advisory, never load-bearing for correctness.**
+  `api/responses.js` and `api/shared/runSimulation.js` (the demo-quiz path, which writes
+  `responses` directly and bypasses `responses.js` entirely) both increment it via an atomic
+  Cosmos `incr` patch on the parent quiz doc, wrapped in try/catch — a patch failure is logged and
+  swallowed, never surfaced to the student, because the response write it's counting already
+  succeeded before the patch runs.
+- **`PUT /api/me/feature-intros` uses an ETag-conditioned replace-with-retry, not a nested Cosmos
+  patch path.** A patch on `/featureIntros/{key}/{field}` would require every ancestor object to
+  already exist, which a teacher's first-ever intro interaction won't have; replacing only after
+  reading the current ETag (retried up to 3× on a 412 conflict) keeps two tabs dismissing
+  *different* keys from clobbering each other without that path-existence assumption.
+- **One promotional element per page render** (`src/components/PromoSlot.jsx`): an eligible
+  feature-intro card outranks `ProfileNudge`, which waits. `community_intro` is the one key that
+  never appears in `PromoSlot` — it renders on the Build page instead (`BuildQuiz.jsx`), as its
+  own self-contained slot, since that's a different job-to-be-done from the dashboard.
+- **"One card per browser session"** is enforced client-side via `sessionStorage`
+  (`FeatureIntroCard.jsx`'s `hasShownIntroThisSession()`) — server-side `dismissedAt` is the only
+  *permanent* gate; a shown-but-not-dismissed card is allowed to reappear next session.
+- **Topic prefilter is frontend-only.** `SendQuiz.jsx` segments `TOPIC_TAGS` by the teacher's
+  `profile.subjects`/`profile.yearLevels` (`src/data/topicPrefilter.js`'s `matchTopics`, a pure
+  function). Zero-match fallback (e.g. a Year 8 Maths teacher — no preset tag covers that
+  combination) suppresses the "Your subjects" optgroup entirely rather than rendering an empty
+  one; server-side enum validation in `api/shared/topicTags.js` is unchanged.
+
 ### APST evidence export [PLANNED — v4.1.0]
 
 Depends on v4.0.0's `topicTag` field. New top-level route `/teacher/evidence`, added as its own
@@ -609,6 +714,9 @@ nicety. No individually identifiable student data in any export; no server-side 
 | Upvotes per teacher per question | 1 | 6 |
 | Question reports per teacher/day | 20 | 6 |
 | Community search results/page | 50 | 6 |
+| Profile subjects | 6 | v4.2.0 |
+| Profile year levels | 6 (values 7-12) | v4.2.0 |
+| Class shells per onboarding batch | 20 (shares the real-class cap) | v4.2.0 |
 
 ---
 
@@ -765,6 +873,13 @@ sprint's scope.
 | Topic tag on quiz (optional, 12 presets, api/shared/topicTags.js, feeds population benchmarking) | [CURRENT] v4.0.0 code complete |
 | Pre-release review fixes (CSV formula-injection guard, per-class response rates, server-set sentAt, option bars kept beside four-cell) | [CURRENT] v4.0.0 — /review 2026-07-06, 215/215 tests pass |
 | APST evidence export (/teacher/evidence, per-quiz PDF + annual MyPD log, pdfkit) | [PLANNED — v4.1.0] Design + eng reviewed 2026-07-03; depends on v4.0.0 |
+| Onboarding profile wizard (5-step, PUT /api/me/profile, ProfileWizardSteps, /onboarding/profile) | [CURRENT] v4.2.0 code complete on release/v4.2-onboarding — not yet deployed |
+| Class shells (POST /api/classes/shells, api/shared/createClass.js) | [CURRENT] v4.2.0 code complete |
+| Progressive disclosure engine (introEligibility.js, 9 feature-intro keys, PUT /api/me/feature-intros) | [CURRENT] v4.2.0 code complete |
+| Feature-intro UI (FeatureIntroCard, PromoSlot one-promo-per-page, ProfileNudge) | [CURRENT] v4.2.0 code complete |
+| confidenceResponseCount counter (atomic Cosmos incr patch, api/responses.js + runSimulation.js) | [CURRENT] v4.2.0 code complete |
+| SendQuiz topic dropdown prefilter (profile-matched segment + zero-match fallback) | [CURRENT] v4.2.0 code complete |
+| AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats) | [PLANNED — v4.3.0] Design + eng reviewed 2026-07-11; depends on v4.1.0 |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---

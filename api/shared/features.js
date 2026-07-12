@@ -1,0 +1,8 @@
+// Feature flags gating work not yet built. Both start false; v4.1.0 flips FEATURE_APST_EXPORT,
+// v4.3.0 flips FEATURE_AI_GENERATION (see CEO review addendum §1 process amendments). A
+// flag-dark key's intro card (apst_intro, mypd_intro, ai_generation_intro) is treated as
+// dismissed by introEligibility.js so it can never appear before its sprint ships.
+const FEATURE_APST_EXPORT = false;
+const FEATURE_AI_GENERATION = false;
+
+module.exports = { FEATURE_APST_EXPORT, FEATURE_AI_GENERATION };
