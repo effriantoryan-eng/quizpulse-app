@@ -1,4 +1,21 @@
 
+## /qa session 2026-07-12 (v4.2.0, local, dev-auth bypass, test Cosmos DB)
+
+Fixed this session (branch `develop`, PR #36): live-tested the v4.2.0 onboarding wizard against
+`dev-teacher-001` (an account with 1 real class already) and found two bugs via network trace —
+
+- [x] **MEDIUM — onboarding wizard progress counter read "Step 5 of 4" on the last step**
+  (`src/components/onboarding/ProfileWizardSteps.jsx`) — `totalSteps` was computed as
+  `startStepNumber - 2 + steps.length`, which always equals `steps.length` (4) regardless of
+  `startStepNumber`, while `stepNumber` correctly ranged `startStepNumber..startStepNumber+3`
+  (2..5). Fixed: `startStepNumber - 1 + steps.length`.
+- [x] **MEDIUM — "Create these classes for me now" checkbox silently no-ops for any teacher who
+  already has a class** (`src/components/onboarding/ProfileWizardSteps.jsx`) — confirmed via
+  network trace: `POST /api/classes/shells` always 409s once the teacher has any real class, and
+  the wizard swallowed the error with zero feedback. Fixed at the root: fetch `/api/classes` on
+  mount and hide the checkbox (replaced with an explanatory note) once a real class already
+  exists, so the wizard never offers an action guaranteed to fail.
+
 ## Deferred from design review — v4.2.0/v4.3.0 plan (from /plan-design-review 2026-07-11)
 
 - [ ] **Formalise the design system via /design-consultation → DESIGN.md.**
