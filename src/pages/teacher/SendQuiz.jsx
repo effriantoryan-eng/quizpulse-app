@@ -4,6 +4,7 @@ import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
+import matchTopics from '../../data/topicPrefilter'
 
 function SendQuiz() {
   const location = useLocation()
@@ -23,6 +24,25 @@ function SendQuiz() {
   const [durationMinutes, setDurationMinutes] = useState(30)
   const [scheduledFor, setScheduledFor] = useState('')
   const [topicTag, setTopicTag] = useState('')
+  const [matchedTopics, setMatchedTopics] = useState([])
+  const [showAllTopics, setShowAllTopics] = useState(true)
+
+  // v4.2.0 topic prefilter: segment the dropdown to the teacher's own subjects/year levels
+  // first. Zero-match fallback (e.g. a Year 8 Maths teacher — no preset tag covers that
+  // combination) suppresses the "matched" segment entirely rather than showing an empty one.
+  useEffect(() => {
+    fetch(`${API_BASE}/me`)
+      .then((r) => r.json())
+      .then((data) => {
+        const { subjects, yearLevels } = data.profile || {}
+        const matched = matchTopics(subjects, yearLevels, TOPIC_TAGS)
+        if (matched.length > 0) {
+          setMatchedTopics(matched)
+          setShowAllTopics(false)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     async function fetchClasses() {
@@ -218,10 +238,37 @@ function SendQuiz() {
             style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '8px', background: 'white' }}
           >
             <option value="">No topic</option>
-            {TOPIC_TAGS.map(t => (
-              <option key={t} value={t}>{t}</option>
-            ))}
+            {matchedTopics.length > 0 ? (
+              <>
+                <optgroup label="Your subjects">
+                  {matchedTopics.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </optgroup>
+                {showAllTopics && (
+                  <optgroup label="All topics">
+                    {TOPIC_TAGS.filter(t => !matchedTopics.includes(t)).map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </optgroup>
+                )}
+              </>
+            ) : (
+              TOPIC_TAGS.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))
+            )}
           </select>
+          {matchedTopics.length > 0 && !showAllTopics && (
+            <button
+              type="button"
+              data-testid="send-topic-show-all"
+              onClick={() => setShowAllTopics(true)}
+              style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '12px', cursor: 'pointer', padding: 0, marginBottom: '8px' }}
+            >
+              Show all topics
+            </button>
+          )}
           <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '20px' }}>
             {onlyDemoSelected
               ? 'Practice quizzes sent to a demo class don’t count toward your school’s benchmark on the Population page.'
