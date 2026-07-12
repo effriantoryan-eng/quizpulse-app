@@ -1,0 +1,277 @@
+<html><head><meta charset="utf-8"/><title>QuizPulse — v4.2.0 Guided Onboarding &amp; Progressive Disclosure Test Report</title><style type="text/css">:root {
+  --text-primary: #111;
+  --text-secondary: #4f4f4f;
+  --success: #006633;
+  --success-bright: #80ffbf;
+  --danger: #cc071e;
+  --danger-bright: #fbdfe0;
+  --warning: #995c00;
+  --warning-bright: #ffeea8;
+  --panel: #eee;
+  --border: #949494;
+  --disabled: #6b6b6b;
+}
+
+html,
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+body {
+  padding: 2rem 1rem;
+}
+.jesthtml-content {
+  margin: 0 auto;
+  max-width: 70rem;
+}
+header {
+  display: flex;
+  align-items: center;
+}
+#title {
+  margin: 0;
+  flex-grow: 1;
+}
+#logo {
+  height: 4rem;
+}
+#timestamp {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+#metadata-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.additional-information-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/** SUMMARY */
+#summary {
+  color: var(--text-primary);
+  display: flex;
+  font-family: monospace;
+  font-size: 1rem;
+}
+#summary > div {
+  margin-right: 0.5rem;
+  background: var(--panel);
+  padding: 1rem;
+  min-width: 15rem;
+}
+#summary > div:last-child {
+  margin-right: 0;
+}
+@media only screen and (max-width: 720px) {
+  #summary {
+    flex-direction: column;
+  }
+  #summary > div {
+    margin-right: 0;
+    margin-top: 1rem;
+  }
+  #summary > div:first-child {
+    margin-top: 0;
+  }
+}
+
+.summary-total {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.summary-passed {
+  color: var(--success);
+  border-left: 0.4rem solid var(--success);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-failed,
+.summary-obsolete-snapshots {
+  color: var(--danger);
+  border-left: 0.4rem solid var(--danger);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-pending {
+  color: var(--warning);
+  border-left: 0.4rem solid var(--warning);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-empty {
+  color: var(--disabled);
+  border-left: 0.4rem solid var(--disabled);
+  margin-bottom: 0.15rem;
+}
+
+.test-result {
+  padding: 1rem;
+  margin-bottom: 0.25rem;
+}
+.test-result:last-child {
+  border: 0;
+}
+.test-result.passed {
+  background-color: var(--success-bright);
+  color: var(--success);
+}
+.test-result.failed {
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.test-result.pending {
+  background-color: var(--warning-bright);
+  color: var(--warning);
+}
+
+.test-info {
+  display: flex;
+  justify-content: space-between;
+}
+.test-suitename {
+  width: 20%;
+  text-align: left;
+  font-weight: bold;
+  word-break: break-word;
+}
+.test-title {
+  width: 40%;
+  text-align: left;
+  font-style: italic;
+}
+.test-status {
+  width: 20%;
+  text-align: right;
+}
+.test-duration {
+  width: 10%;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.failureMessages {
+  padding: 0 1rem;
+  margin-top: 1rem;
+  border-top: 1px dashed var(--danger);
+}
+.failureMessages.suiteFailure {
+  border-top: none;
+}
+.failureMsg {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+.suite-container {
+  margin-bottom: 1rem;
+}
+.suite-info {
+  padding: 1rem;
+  background-color: var(--panel);
+  color: var(--text-secondary);
+  border: 0.15rem solid;
+  border-color: var(--panel);
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.suite-info:hover {
+  border-color: var(--border);
+  cursor: pointer;
+}
+.suite-info .suite-path {
+  word-break: break-all;
+  flex-grow: 1;
+  font-family: monospace;
+  font-size: 1rem;
+}
+.suite-info .suite-time {
+  margin-left: 1rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.85rem;
+}
+.suite-info .suite-time.warn {
+  background-color: var(--danger);
+  color: #fff;
+}
+.suite-info:before {
+  content: "\2303";
+  display: inline-block;
+  margin-right: 1rem;
+  transform: rotate(180deg) translateY(0.15rem);
+}
+.suite-container[open] .suite-info:before {
+  transform: rotate(0deg) translateY(0.15rem);
+}
+
+/* CONSOLE LOGS */
+.suite-consolelog {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--panel);
+}
+.suite-consolelog-header {
+  font-weight: bold;
+}
+.suite-consolelog-item {
+  padding: 0.5rem;
+}
+.suite-consolelog-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-consolelog-item-origin {
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+.suite-consolelog-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* OBSOLETE SNAPSHOTS */
+.suite-obsolete-snapshots {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.suite-obsolete-snapshots-header {
+  font-weight: bold;
+}
+.suite-obsolete-snapshots-item {
+  padding: 0.5rem;
+}
+.suite-obsolete-snapshots-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-obsolete-snapshots-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+</style></head><body><main class="jesthtml-content"><header><h1 id="title">QuizPulse — v4.2.0 Guided Onboarding &amp; Progressive Disclosure Test Report</h1></header><section id="metadata-container"><div id="timestamp">Started: 2026-07-12 12:00:25</div><div id="summary"><div id="suite-summary"><div class="summary-total">Suites (5)</div><div class="summary-passed ">5 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div><div id="test-summary"><div class="summary-total">Tests (51)</div><div class="summary-passed ">51 passed</div><div class="summary-failed  summary-empty">0 failed</div><div class="summary-pending  summary-empty">0 pending</div></div></div></section><details id="suite-1" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\topicPrefilter.test.js</div><div class="suite-time">0.245s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">matchTopics</div><div class="test-title">returns tags matching both a subject and a year level</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">matchTopics</div><div class="test-title">zero-match fallback: an unanswered combination (e.g. Year 8 Maths) returns empty</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">matchTopics</div><div class="test-title">returns empty when subjects is empty (profile step skipped)</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">matchTopics</div><div class="test-title">returns empty when yearLevels is empty (profile step skipped)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">matchTopics</div><div class="test-title">returns empty when profile is entirely undefined</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">matchTopics</div><div class="test-title">matches across multiple subjects and year levels</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-2" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\createClass.test.js</div><div class="suite-time">0.068s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">generateJoinCode</div><div class="test-title">is 8 characters, alphanumeric, excluding ambiguous chars</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">createRealClass</div><div class="test-title">creates a class doc with a join code and denormalised schoolId</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">createRealClass</div><div class="test-title">throws ClassLimitError (429) at the 20-class cap</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">createRealClass</div><div class="test-title">rejects an empty name without creating a doc</div><div class="test-status">passed</div><div class="test-duration">0.009s</div></div></div></div></details><details id="suite-3" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\responses.test.js</div><div class="suite-time">0.068s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — confidence validation</div><div class="test-title">accepts valid confidence values: sure, pretty_sure, guessing</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — confidence validation</div><div class="test-title">rejects missing confidence with 400</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — confidence validation</div><div class="test-title">rejects an unknown confidence value with 400</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — confidence validation</div><div class="test-title">stores confidence on each answer in the persisted document</div><div class="test-status">passed</div><div class="test-duration">0.003s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — responseTimeMs validation</div><div class="test-title">accepts a valid responseTimeMs</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — responseTimeMs validation</div><div class="test-title">accepts omitted responseTimeMs</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — responseTimeMs validation</div><div class="test-title">rejects negative responseTimeMs with 400</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — responseTimeMs validation</div><div class="test-title">rejects absurdly large responseTimeMs (&gt;30 min) with 400</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — responseTimeMs validation</div><div class="test-title">accepts valid quizDurationMs</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — responseTimeMs validation</div><div class="test-title">rejects negative quizDurationMs with 400</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — approval gate</div><div class="test-title">returns 403 when student has no approved join request for the quiz classes</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — approval gate</div><div class="test-title">returns 201 when student has an approved join request</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — duplicate submission</div><div class="test-title">returns 409 when a response already exists for this student + quiz</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — confidenceResponseCount counter (v4.2.0)</div><div class="test-title">CRITICAL: a patch failure never fails the student submission</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — confidenceResponseCount counter (v4.2.0)</div><div class="test-title">increments the counter by 1 on a successful submission</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — closed quiz</div><div class="test-title">returns 410 when quiz.closedAt is in the past</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — closed quiz</div><div class="test-title">returns 201 when quiz.closedAt is in the future</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">responses — closed quiz</div><div class="test-title">returns 404 when the quiz does not exist</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details><details id="suite-4" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\introEligibility.test.js</div><div class="suite-time">0.074s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">a brand-new teacher (no classes, no quizzes) is only eligible for demo_intro</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">demo_intro is NOT suppressed by empty class shells (studentCount 0)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">demo_intro is suppressed once a class has an approved student</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">every key dismissed short-circuits to an empty array without querying milestones</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">apst_intro/mypd_intro/ai_generation_intro never appear while their flags are off</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">analytics_intro fires once a non-demo quiz has confidenceResponseCount &gt;= 1</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">community_intro requires &gt;= 2 quizzes created (server-countable)</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">demo data satisfies misconception_intro (the one deliberate exception to demo exclusion)</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">population_intro query excludes demo data</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">computeEligibleIntros</div><div class="test-title">returns keys in CANDIDATE_KEYS priority order regardless of check order</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div></div></details><details id="suite-5" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">C:\Users\Ryan\quizpulse - PWA\tests\unit\api\profileSchema.test.js</div><div class="suite-time">0.054s</div></summary><div class="suite-tests"><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">accepts a fully valid partial payload</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">accepts an empty object (every step skipped)</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">rejects an unknown subject</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">rejects more than 6 subjects</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">rejects a year level outside 7-12</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">rejects a non-integer classCount</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">rejects classCount above 20</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">rejects an invalid registrationStatus</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">accepts "undisclosed" registrationStatus</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">validateProfile</div><div class="test-title">rejects a non-object body</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">isProfileComplete</div><div class="test-title">false when any field is missing</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">isProfileComplete</div><div class="test-title">true only once all four fields are answered</div><div class="test-status">passed</div><div class="test-duration"> </div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">isProfileComplete</div><div class="test-title">a skipped step (field absent) does not count as answered even if value would be falsy</div><div class="test-status">passed</div><div class="test-duration">0.001s</div></div></div></div></details></main></body></html>
