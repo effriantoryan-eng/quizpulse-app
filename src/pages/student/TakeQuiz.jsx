@@ -11,6 +11,10 @@ import ENCOURAGEMENTS from '../../data/encouragements'
 
 const CONFIDENCE_KEY = 'quizpulse_confidence_explained'
 const DEVICE_ID_KEY = 'quizpulse_device_id'
+// Per-quiz "this device already submitted" flag. The device UUID IS the student identity,
+// so a local flag matches the server's duplicate check for the same device; if storage is
+// cleared the server's 409 still catches the duplicate at submit.
+const submittedKey = (quizId) => `quizpulse_submitted_${quizId}`
 
 // Confidence levels shown to students — plain language, no score implication.
 const CONFIDENCE_LEVELS = [
@@ -142,6 +146,14 @@ function TakeQuiz() {
   useEffect(() => {
     if (!quizId) return
 
+    // Already submitted from this device — go straight to the done screen instead of
+    // making the student re-answer everything only to hit the duplicate check at submit.
+    if (localStorage.getItem(submittedKey(quizId))) {
+      setOutcome('already')
+      setLoading(false)
+      return
+    }
+
     async function load() {
       try {
         const quizRes = await fetch(`${API_BASE}/quizzes/${quizId}`)
@@ -227,10 +239,12 @@ function TakeQuiz() {
       })
 
       if (res.status === 201) {
+        localStorage.setItem(submittedKey(quizId), '1')
         setOutcome('submitted')
         return
       }
       if (res.status === 409) {
+        localStorage.setItem(submittedKey(quizId), '1')
         setOutcome('already')
         return
       }

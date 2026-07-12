@@ -183,7 +183,7 @@ function Population() {
 
       {!loading && !error && data && hasPopulationData && !hasSchoolData && (
         <div style={{ padding: '14px', background: '#f8f8f8', borderRadius: '8px', fontSize: '13px', color: '#888', marginBottom: '20px', textAlign: 'center' }}>
-          You haven't sent a quiz tagged {topic} yet — pick a topic when you send a quiz to see your own comparison here.
+          You haven't sent a quiz tagged {topic} yet — pick a topic when you send a quiz to see your own comparison here. (Practice quizzes sent to a demo class don't count.)
         </div>
       )}
 

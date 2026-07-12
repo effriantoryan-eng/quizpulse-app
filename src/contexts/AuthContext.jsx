@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo } from 'react'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 import { InteractionStatus } from '@azure/msal-browser'
 import { loginRequest } from '../authConfig'
+import { DEV_AUTH_BYPASS, devAuthUser } from '../devAuth'
 
 const AuthContext = createContext(null)
 
@@ -13,6 +14,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = useIsAuthenticated()
 
   const value = useMemo(() => {
+    if (DEV_AUTH_BYPASS) return devAuthUser
     const account = accounts[0] || instance.getActiveAccount() || null
     const claims = account?.idTokenClaims || {}
     const teacherId = isAuthenticated
