@@ -3,6 +3,7 @@ const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
+const { validateProfile, isProfileComplete } = require('./shared/profileSchema');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -59,10 +60,75 @@ app.http('teacherMe', {
         }
       }
 
-      return respond(200, { onboarded: true, teacher, school }, teacherId);
+      const profile = teacher.profile || {};
+      const featureIntros = teacher.featureIntros || {};
+      return respond(
+        200,
+        {
+          onboarded: true,
+          teacher,
+          school,
+          profile,
+          profileComplete: isProfileComplete(profile),
+          featureIntros,
+        },
+        teacherId
+      );
     } catch (err) {
       context.error('teacherMe error:', err.message);
       logRequest(context, { endpoint: 'me', method: 'GET', status: 500, durationMs: Date.now() - start });
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
+// PUT /api/me/profile — accumulates the optional onboarding-wizard profile fields (subjects,
+// yearLevels, classCount, registrationStatus). Additive/partial: only keys present in the body
+// are validated and merged onto any existing profile — quitting the wizard mid-way and coming
+// back later (ProfileNudge) must never lose already-answered steps. Never re-gates onboarding —
+// POST /api/onboarding already fired at step 1.
+app.http('updateProfile', {
+  methods: ['PUT'],
+  authLevel: 'anonymous',
+  route: 'me/profile',
+  handler: async (request, context) => {
+    const start = Date.now();
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: 'me/profile', method: 'PUT', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const teacherId = auth.teacherId;
+
+      const ip = getClientIp(request);
+      if (!rateLimit(`me-profile:${ip}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+      if (contentLength > 4096) {
+        return respond(413, { error: 'Request body too large.' }, teacherId);
+      }
+
+      const body = await request.json();
+      const { error, profile: incoming } = validateProfile(body);
+      if (error) return respond(400, { error }, teacherId);
+
+      const teacher = await getTeacher(teacherId);
+      if (!teacher) {
+        return respond(404, { error: 'Not found' }, teacherId);
+      }
+
+      const mergedProfile = { ...(teacher.profile || {}), ...incoming };
+      await teachers.item(teacherId, teacherId).patch([{ op: 'set', path: '/profile', value: mergedProfile }]);
+
+      return respond(200, { profile: mergedProfile, profileComplete: isProfileComplete(mergedProfile) }, teacherId);
+    } catch (err) {
+      context.error('updateProfile error:', err.message);
+      logRequest(context, { endpoint: 'me/profile', method: 'PUT', status: 500, durationMs: Date.now() - start });
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
   },
