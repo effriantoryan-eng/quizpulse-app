@@ -1,5 +1,6 @@
 import { PublicClientApplication, EventType } from '@azure/msal-browser'
 import { msalConfig, apiRequest } from './authConfig'
+import { DEV_AUTH_BYPASS, DEV_AUTH_TOKEN } from './devAuth'
 
 // Single app-wide MSAL instance. Created here (not inside React) so non-React code —
 // e.g. the fetch interceptor below — can acquire tokens too.
@@ -20,6 +21,7 @@ msalInstance.addEventCallback((event) => {
 // Acquires the ID token silently for the active account, or null if not signed in.
 // The ID token is a signed RS256 JWT (oid claim = teacherId) validated by Azure Functions.
 export async function getApiToken() {
+  if (DEV_AUTH_BYPASS) return DEV_AUTH_TOKEN
   const account = msalInstance.getActiveAccount()
   if (!account) return null
   try {

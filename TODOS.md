@@ -1,10 +1,41 @@
 
+## Deferred from design review — v4.2.0/v4.3.0 plan (from /plan-design-review 2026-07-11)
+
+- [ ] **Formalise the design system via /design-consultation → DESIGN.md.**
+  **What:** name the typography, spacing scale, and palette as a committed DESIGN.md.
+  **Why:** design reviews currently calibrate against informal references
+  (quizpulse_mockups_v301.html tokens + addendum notes); every review starts from
+  "no DESIGN.md found".
+  **Context:** de-facto house style — system-ui, purple #534AB7, reserved accents: demo purple,
+  misconception terracotta (#B5482E), AI blue (#2C6BAA, added 2026-07-11 addendum §6.9),
+  four-cell green/amber. **Priority:** P3, post-pilot — spend the session when a second
+  contributor or a rebrand makes it pay. **Depends on:** nothing.
+
+## Deferred from CEO review — v4.2.0/v4.3.0 plan (from /plan-ceo-review 2026-07-11)
+
+- [ ] **E2 — Retroactive source attachment for manual quizzes.**
+  **What:** let a teacher attach source material to an existing hand-built quiz so it gains
+  sourceRef lineage and joins the misconception → follow-up-draft loop (v4.3.0's expand endpoint).
+  **Why:** the loop is the product's moat but only works for AI-generated quizzes; the entire
+  manual corpus (all quizzes that exist today) can never trigger "Create follow-up practice".
+  **Cons / blocker:** attaching a source can't say WHICH pages/sections each manual question came
+  from, so follow-ups would ground on the whole document — weakening the page-reference
+  hallucination guard. Needs a design answer (per-question section tagging? whole-doc grounding
+  with honest copy?) before building.
+  **Context:** decided at the 2026-07-11 CEO review (D5.2 → Defer); full record in
+  `C:\Users\Ryan\Doc\Quizpulse\CEO_REVIEW_v420_v430_addendum.md` §1 and the CEO plan doc.
+  Revisit post-pilot alongside the AI-question community-sharing block review.
+  **Effort:** M (human ~2 days / CC ~45 min once designed). **Priority:** P3.
+  **Depends on:** v4.3.0 shipped; page-mapping design decision.
+
 ## Design debt — v4.0.0 Analytics (from /plan-design-review 2026-07-03)
 
 - [ ] **Screen-reader ARIA for the four-cell segmented chart** — add role + aria-label so SR users
   hear the four counts (correct-confident / correct-unsure / incorrect-confident / incorrect-unsure)
   per question. D4's visible legend + counts cover sighted low-vision users; this covers SR users.
   Blocked by: v4.0.0 chart shipping. File: src/pages/teacher/Analytics.jsx.
+  **→ Bundled into v4.3.0 scope** (design review 2026-07-11, CEO_REVIEW_v420_v430_addendum.md
+  §6.11 — feat/v4.3-expansion edits the same file); close this entry when v4.3.0 lands.
 
 ## Ponytail debt (from /ponytail-debt 2026-07-04)
 
@@ -26,8 +57,11 @@ three came out of the same pass but were left as follow-ups:
 - [ ] `api/analyticsPopulation.js` — the population point-read's `.catch(() => ({ resource: null }))`
   swallows ALL Cosmos errors: a 503/throttle renders as "No benchmark data for {topic} yet"
   instead of an error. Distinguish 404 (genuinely unseeded) from other failures.
+  **→ Bundled into v4.3.0 scope** (eng review 2026-07-11, CEO_REVIEW_v420_v430_addendum.md §5.8);
+  close this entry when v4.3.0 lands.
 - [ ] `api/analytics.js` `classAnalytics` — only analytics endpoint with no `rateLimit(...)` call
   (`analytics` and `analyticsExport` both have one). Add for consistency.
+  **→ Bundled into v4.3.0 scope** (eng review 2026-07-11, addendum §5.8); close when v4.3.0 lands.
 - [ ] Integration tests for `GET /api/analytics/class/{classId}` — the endpoint had zero coverage,
   which is how the cross-class rate inflation shipped in Sprint 6 and survived to v4.0.0. Cover:
   single-class quiz, multi-class quiz (rate must not exceed 100%), demo class, cross-tenant 404.
@@ -81,3 +115,30 @@ three came out of the same pass but were left as follow-ups:
   config gap, not fixable from source — needs the Google Cloud OAuth client + CIAM IdP setup in
   `docs/azure/B2C_SETUP.md`'s "Google" section actually completed. Until then, consider hiding the
   button (same treatment as Apple ID, which is correctly not shown pending its own portal setup).
+
+## /qa session 2026-07-11 (local, dev-auth bypass, test Cosmos DB)
+
+Fixed this session (branch `feat/v4.0-demo-gallery-cards-v2`): analytics rate-limit window 1hr→1min
+(ISSUE-002, high — live analytics died with 429 after ~3 min of polling), "No classId provided."
+dead-ends on Roster/Requests/Settings (ISSUE-001), raw class UUIDs in quiz history (ISSUE-003,
+stale Sprint-0 CLASS_NAMES map), backwards analytics copy + "1 students" pluralization
+(ISSUE-004/005).
+
+All four deferred items below were fixed in a follow-up pass the same day (commits `ce6841f`,
+`e9fa1c8`, `4005336`, `b2e6664` — each verified live in the browser; 215/215 unit tests pass):
+
+- [x] **LOW — Misconception hero card says "N students answered confidently but got it wrong"
+  but N sums per-question confident-wrong ANSWERS** (`src/pages/teacher/Analytics.jsx`) —
+  fixed: copy now says "N answers were confident but wrong" (per-question counts in the Home
+  feed are genuinely per-student and were left as-is).
+- [x] **LOW — Send page shows "Picking a topic lets this quiz count toward your school's
+  benchmark" even when only a demo class is selected** (`src/pages/teacher/SendQuiz.jsx`) —
+  fixed: when every selected class is a demo class the note now reads "Practice quizzes sent
+  to a demo class don't count toward your school's benchmark".
+- [x] **LOW — Student who revisits an already-submitted quiz gets the full quiz form again**
+  (`src/pages/student/TakeQuiz.jsx`) — fixed: per-quiz localStorage flag (set on 201 and 409)
+  short-circuits straight to the done screen on revisit; server 409 remains the backstop if
+  storage is cleared.
+- [x] **LOW — Population "You haven't sent a quiz tagged X yet" message shows even when a demo
+  quiz with that tag exists** (`src/pages/teacher/Population.jsx`) — fixed: empty state now
+  appends "(Practice quizzes sent to a demo class don't count.)".

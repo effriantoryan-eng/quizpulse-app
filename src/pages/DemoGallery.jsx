@@ -336,6 +336,141 @@ function Card2() {
   )
 }
 
+// ─── Card 2b: Confidence × correctness (v4.0.0) ───────────────────
+const FOURCELL_COLORS = {
+  correctConfident:   { bg: '#DCEFC8', border: '#3B6D11', text: '#3B6D11', label: 'Correct, confident' },
+  correctUnsure:       { bg: '#EEF6E4', border: '#6B9A44', text: '#6B9A44', label: 'Correct, unsure' },
+  incorrectConfident:  { bg: '#FBEDE8', border: '#B5482E', text: '#B5482E', label: 'Misconception' },
+  incorrectUnsure:      { bg: '#FDF3E3', border: '#B8860B', text: '#B8860B', label: 'Incorrect, unsure' },
+}
+const FOURCELL_DATA = [
+  { q: 'Which organelle does photosynthesis?', cells: { correctConfident: 11, correctUnsure: 3, incorrectConfident: 1, incorrectUnsure: 3 } },
+  { q: 'What do plants need alongside light?', cells: { correctConfident: 6, correctUnsure: 2, incorrectConfident: 6, incorrectUnsure: 4 } },
+]
+
+function Card2b() {
+  const [qIdx, setQIdx] = useState(0)
+  const q = FOURCELL_DATA[qIdx]
+  const total = Object.values(q.cells).reduce((a, b) => a + b, 0)
+  const misconceptionQ = FOURCELL_DATA.reduce((best, cur, i) => cur.cells.incorrectConfident > FOURCELL_DATA[best].cells.incorrectConfident ? i : best, 0)
+
+  return (
+    <CardShell title="Confidence × correctness" subtitle="Not just right/wrong — how sure students were" badge="Live" hint="Click Q1 / Q2 to switch questions. The misconception cell (confident but wrong) is the strongest signal a teacher can act on.">
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+        {FOURCELL_DATA.map((_, i) => (
+          <button key={i} onClick={() => setQIdx(i)}
+            style={{ padding: '4px 12px', borderRadius: '20px', border: `1px solid ${qIdx===i ? C.purple : C.border}`, background: qIdx===i ? C.purple : 'white', color: qIdx===i ? 'white' : C.sub, fontSize: '11px', fontWeight: '500', cursor: 'pointer' }}>
+            Q{i+1}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: '10px 12px', background: FOURCELL_COLORS.incorrectConfident.bg, border: `1px solid ${FOURCELL_COLORS.incorrectConfident.border}`, borderRadius: '10px', marginBottom: '14px' }}>
+        <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: FOURCELL_COLORS.incorrectConfident.text, marginBottom: '3px' }}>Misconception signal</div>
+        <div style={{ fontSize: '12px', color: FOURCELL_COLORS.incorrectConfident.text, lineHeight: '1.4' }}>
+          {FOURCELL_DATA[misconceptionQ].cells.incorrectConfident} students confident but wrong — Q{misconceptionQ+1} has the strongest signal.
+        </div>
+      </div>
+
+      <div style={{ fontSize: '12px', fontWeight: '600', color: C.text, marginBottom: '10px', lineHeight: '1.4' }}>{q.q}</div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        {Object.entries(q.cells).map(([key, count]) => {
+          const cfg = FOURCELL_COLORS[key]
+          const pct = Math.round((count / total) * 100)
+          return (
+            <div key={key} style={{ background: cfg.bg, borderRadius: '6px', padding: '8px 10px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: cfg.text }}>{count} <span style={{ fontSize: '11px', fontWeight: '500' }}>({pct}%)</span></div>
+              <div style={{ fontSize: '11px', color: cfg.text }}>{cfg.label}</div>
+            </div>
+          )
+        })}
+      </div>
+    </CardShell>
+  )
+}
+
+// ─── Card 2c: Population benchmarking (v4.0.0) ────────────────────
+const POPULATION_DATA = { you: 18, norm: 11 }
+
+// Illustrative reference cloud + "your class" marker — demo-only static data, matches the
+// diagonal trend shape from the design mockup (quizpulse_mockups_v301.html, t-population screen).
+const DEMO_REFERENCE_DOTS = [
+  [50, 33], [53, 30], [55, 27], [57, 25], [59, 23], [61, 21], [63, 20], [64, 18],
+  [66, 17], [67, 16], [68, 15], [70, 14], [72, 13], [74, 12], [76, 11], [78, 10],
+  [80, 9], [83, 7], [86, 6], [89, 5],
+]
+
+function DemoScatter() {
+  const X0 = 44, X1 = 300, Y0 = 200, Y1 = 20
+  const tx = pct => X0 + (Math.min(Math.max(pct, 0), 100) / 100) * (X1 - X0)
+  const ty = pct => Y0 - (Math.min(Math.max(pct, 0), 40) / 40) * (Y0 - Y1)
+  const avgX = tx(68)
+  const avgY = ty(15)
+  const youX = tx(75)
+  const youY = ty(24)
+
+  return (
+    <div style={{ marginTop: '16px' }}>
+      <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.6px', color: C.muted, marginBottom: '4px' }}>Where this sits, compared to other classes</div>
+      <div style={{ fontSize: '11px', color: C.sub, marginBottom: '10px', lineHeight: '1.4' }}>Each grey dot is a sample class. Classes toward the bottom-right are doing best.</div>
+      <svg viewBox="0 0 320 220" style={{ width: '100%', height: 'auto', display: 'block' }}>
+        <rect x={avgX} y={avgY} width={X1 - avgX} height={Y0 - avgY} fill="#EAF3DE" opacity="0.7" />
+        <rect x={X0} y={Y1} width={avgX - X0} height={avgY - Y1} fill="#FBEDE8" opacity="0.7" />
+        <line x1={avgX} y1={Y1} x2={avgX} y2={Y0} stroke="#999" strokeWidth="1" strokeDasharray="3,3" />
+        <line x1={X0} y1={avgY} x2={X1} y2={avgY} stroke="#999" strokeWidth="1" strokeDasharray="3,3" />
+        <text x={avgX + 4} y={Y1 + 10} fontSize="8" fill="#888">population avg</text>
+        <line x1={X0} y1={Y1} x2={X0} y2={Y0} stroke="#e0e0e0" strokeWidth="1.5" />
+        <line x1={X0} y1={Y0} x2={X1} y2={Y0} stroke="#e0e0e0" strokeWidth="1.5" />
+        <g fill="#b3b3b3" opacity="0.75">
+          {DEMO_REFERENCE_DOTS.map(([x, y], i) => <circle key={i} cx={tx(x)} cy={ty(y)} r="4" />)}
+        </g>
+        <line x1={youX} y1={youY} x2={youX} y2={avgY} stroke="#B5482E" strokeWidth="1" strokeDasharray="2,2" />
+        <circle cx={youX} cy={youY} r="7" fill="#B5482E" stroke="white" strokeWidth="2" />
+        <text x={youX + 10} y={youY - 3} fontSize="11" fontWeight="700" fill="#5A2416">Your class</text>
+        <text x="172" y="215" fontSize="10" fill="#888" textAnchor="middle">Correct answers →</text>
+        <text fontSize="10" fill="#888" textAnchor="middle" transform="translate(12,130) rotate(-90)">Confident-but-wrong →</text>
+        <text x={X0} y="212" fontSize="8" fill="#aaa">0%</text>
+        <text x="288" y="212" fontSize="8" fill="#aaa">100%</text>
+        <text x="26" y="203" fontSize="8" fill="#aaa">0%</text>
+        <text x="20" y="28" fontSize="8" fill="#aaa">40%</text>
+      </svg>
+      <div style={{ display: 'flex', gap: '14px', fontSize: '10px', color: C.sub, marginTop: '6px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#b3b3b3', display: 'inline-block' }} /> Other classes, same topic</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#B5482E', display: 'inline-block' }} /> Your class</span>
+      </div>
+    </div>
+  )
+}
+
+function Card2c() {
+  const gap = POPULATION_DATA.you - POPULATION_DATA.norm
+  return (
+    <CardShell title="Population benchmarking" subtitle="See how your class compares to other schools" badge="Live" hint="Real classes are compared against a seeded benchmark for the same topic — this card uses sample numbers.">
+      <div style={{ textAlign: 'center', padding: '14px', background: '#FBEDE8', border: '1px solid #B5482E', borderRadius: '10px', marginBottom: '16px' }}>
+        <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#5A2416', marginBottom: '6px' }}>Confident but wrong</div>
+        <div style={{ fontSize: '32px', fontWeight: '800', color: '#5A2416', lineHeight: 1 }}>{POPULATION_DATA.you}%</div>
+        <div style={{ fontSize: '11px', color: '#7A3B28', marginTop: '6px' }}>vs {POPULATION_DATA.norm}% norm — {gap} points above</div>
+      </div>
+      <DemoScatter />
+      <div style={{ marginTop: '16px' }}>
+      {[
+        { label: 'You', value: POPULATION_DATA.you, color: '#B5482E' },
+        { label: 'Norm', value: POPULATION_DATA.norm, color: '#B5482E', faded: true },
+      ].map(({ label, value, color, faded }) => (
+        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <span style={{ width: '36px', fontSize: '10px', color: C.sub }}>{label}</span>
+          <div style={{ flex: 1, height: '10px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${value}%`, background: color, opacity: faded ? 0.35 : 1, borderRadius: '4px' }} />
+          </div>
+          <span style={{ width: '30px', fontSize: '11px', textAlign: 'right', fontWeight: faded ? '400' : '600', color: faded ? C.sub : C.text }}>{value}%</span>
+        </div>
+      ))}
+      </div>
+    </CardShell>
+  )
+}
+
 // ─── Card 3: Scheduling ───────────────────────────────────────────
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
@@ -500,6 +635,8 @@ export default function DemoGallery() {
         <SectionLabel role="teacher" />
         <div style={{ display: 'grid', gridTemplateColumns: cols, gap: '20px' }}>
           <Card2 />
+          <Card2b />
+          <Card2c />
           <Card3 />
         </div>
       </div>
