@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
-import ProfileNudge from '../../components/ProfileNudge'
+import PromoSlot from '../../components/PromoSlot'
 
 const POLL_INTERVAL_MS = 8000
 
@@ -63,7 +63,7 @@ export default function TeacherHome() {
         Here's what's happening with your classes.
       </div>
 
-      <ProfileNudge />
+      <PromoSlot />
 
       {/* Quick actions */}
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>

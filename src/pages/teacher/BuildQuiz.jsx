@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
+import FeatureIntroCard, { hasShownIntroThisSession } from '../../components/FeatureIntroCard'
 import API_BASE from '../../api'
 
 const TOPIC_COLORS = {
@@ -23,6 +24,15 @@ function BuildQuiz() {
   const [previewIndex, setPreviewIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [communityIntro, setCommunityIntro] = useState(false)
+
+  useEffect(() => {
+    if (hasShownIntroThisSession()) return
+    fetch(`${API_BASE}/me`)
+      .then((r) => r.json())
+      .then((data) => setCommunityIntro((data.eligibleIntros || []).includes('community_intro')))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!teacherId) return
@@ -96,6 +106,7 @@ function BuildQuiz() {
           onDismiss={dismissHint}
         />
       )}
+      {communityIntro && <FeatureIntroCard introKey="community_intro" onDismissed={() => setCommunityIntro(false)} />}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
 

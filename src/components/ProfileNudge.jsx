@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import API_BASE from '../api'
 
 // Dashboard banner nudging a teacher who skipped the onboarding profile steps to answer them
-// later. Permanently dismissible via the featureIntros.profile_nudge key. Per the design review
-// (§6.2), this is the dashboard's "one promo" slot — a task-3 eligible intro card outranks it and
-// the nudge simply doesn't render that render (handled by the caller passing `suppressed`).
-function ProfileNudge({ suppressed = false }) {
+// later. Permanently dismissible via the featureIntros.profile_nudge key. Rendered only when
+// PromoSlot (../components/PromoSlot.jsx) has no eligible feature-intro card to show instead —
+// see CEO review addendum §6.2's "one promo per page" rule.
+function ProfileNudge() {
   const navigate = useNavigate()
   const [visible, setVisible] = useState(false)
 
@@ -36,7 +36,7 @@ function ProfileNudge({ suppressed = false }) {
     }
   }
 
-  if (!visible || suppressed) return null
+  if (!visible) return null
 
   return (
     <div

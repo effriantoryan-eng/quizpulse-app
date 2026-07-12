@@ -26,9 +26,17 @@ function validateAnswers(answers) {
   return null;
 }
 
-function makeHandler({ quiz = null, approvedJoinRequests = [], existingResponses = [] } = {}) {
+function makeHandler({ quiz = null, approvedJoinRequests = [], existingResponses = [], patchShouldThrow = false } = {}) {
+  const patchCalls = [];
   const quizzesContainer = {
     items: { query: () => ({ fetchAll: async () => ({ resources: quiz ? [quiz] : [] }) }) },
+    item: () => ({
+      patch: async (ops) => {
+        patchCalls.push(ops);
+        if (patchShouldThrow) throw new Error('simulated Cosmos patch failure');
+        return { resource: {} };
+      },
+    }),
   };
   const joinRequestsContainer = {
     items: { query: () => ({ fetchAll: async () => ({ resources: approvedJoinRequests }) }) },
@@ -79,7 +87,14 @@ function makeHandler({ quiz = null, approvedJoinRequests = [], existingResponses
       ...(quizDurationMs !== undefined && { quizDurationMs }),
       completedAt: new Date().toISOString(),
     });
-    return { status: 201, resource };
+
+    // Mirrors api/responses.js: the counter increment is advisory and must never fail the
+    // submission that already succeeded above.
+    try {
+      await quizzesContainer.item().patch([{ op: 'incr', path: '/confidenceResponseCount', value: 1 }]);
+    } catch { /* non-fatal, by design */ }
+
+    return { status: 201, resource, patchCalls };
   };
 }
 
@@ -190,6 +205,23 @@ describe('responses — duplicate submission', () => {
     const handler = makeHandler({ quiz, approvedJoinRequests: [{ id: 'jr1' }], existingResponses: [{ id: 'r0' }] });
     const result = await handler({ quizId: 'q1', studentId: 'device-1', answers: [validAnswer({ questionId: 'a' })] });
     expect(result.status).toBe(409);
+  });
+});
+
+describe('responses — confidenceResponseCount counter (v4.2.0)', () => {
+  test('CRITICAL: a patch failure never fails the student submission', async () => {
+    const quiz = { id: 'q1', classIds: ['c1'] };
+    const handler = makeHandler({ quiz, approvedJoinRequests: [{ id: 'jr1' }], patchShouldThrow: true });
+    const result = await handler({ quizId: 'q1', studentId: 'device-1', answers: [validAnswer({ questionId: 'a' })] });
+    expect(result.status).toBe(201);
+  });
+
+  test('increments the counter by 1 on a successful submission', async () => {
+    const quiz = { id: 'q1', classIds: ['c1'] };
+    const handler = makeHandler({ quiz, approvedJoinRequests: [{ id: 'jr1' }] });
+    const result = await handler({ quizId: 'q1', studentId: 'device-1', answers: [validAnswer({ questionId: 'a' })] });
+    expect(result.status).toBe(201);
+    expect(result.patchCalls).toEqual([[{ op: 'incr', path: '/confidenceResponseCount', value: 1 }]]);
   });
 });
 

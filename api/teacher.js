@@ -5,6 +5,7 @@ const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
 const { validateProfile, isProfileComplete } = require('./shared/profileSchema');
 const { isValidIntroKey } = require('./shared/featureIntros');
+const { computeEligibleIntros } = require('./shared/introEligibility');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -15,6 +16,8 @@ const client = new CosmosClient({
 const database = client.database(process.env.COSMOS_DATABASE);
 const teachers = database.container(process.env.COSMOS_CONTAINER_TEACHERS || 'teachers');
 const schools = database.container(process.env.COSMOS_CONTAINER_SCHOOLS || 'schools');
+const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
+const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes');
 
 const SCHOOL_NAME_MAX = 120; // Security limits table — School name length
 
@@ -63,6 +66,7 @@ app.http('teacherMe', {
 
       const profile = teacher.profile || {};
       const featureIntros = teacher.featureIntros || {};
+      const eligibleIntros = await computeEligibleIntros({ teacherId, teacher, classesContainer, quizzesContainer });
       return respond(
         200,
         {
@@ -72,6 +76,7 @@ app.http('teacherMe', {
           profile,
           profileComplete: isProfileComplete(profile),
           featureIntros,
+          eligibleIntros,
         },
         teacherId
       );
