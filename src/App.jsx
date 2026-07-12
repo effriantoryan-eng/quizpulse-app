@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import DemoGallery from './pages/DemoGallery'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
+import OnboardingProfile from './pages/OnboardingProfile'
 import Classes from './pages/teacher/Classes'
 import CreateQuestion from './pages/teacher/CreateQuestion'
 import QuestionBank from './pages/teacher/QuestionBank'
@@ -81,7 +82,7 @@ function RequireTeacher({ children }) {
 }
 
 // Public, full-bleed routes (student-facing + auth) render without the teacher sidebar.
-const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/quiz', '/join', '/student/subscribe']
+const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/onboarding/profile', '/quiz', '/join', '/student/subscribe']
 
 function AppRoutes() {
   usePageView()
@@ -95,6 +96,7 @@ function AppRoutes() {
       <Route path="/demo" element={<DemoGallery />} />
       <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+      <Route path="/onboarding/profile" element={<RequireTeacher><OnboardingProfile /></RequireTeacher>} />
       <Route path="/teacher/home" element={<RequireTeacher><TeacherHome /></RequireTeacher>} />
       <Route path="/teacher/classes" element={<RequireTeacher><Classes /></RequireTeacher>} />
       <Route path="/teacher/create" element={<RequireTeacher><CreateQuestion /></RequireTeacher>} />

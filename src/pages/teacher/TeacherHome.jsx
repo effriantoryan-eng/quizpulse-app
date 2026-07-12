@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
+import PromoSlot from '../../components/PromoSlot'
 
 const POLL_INTERVAL_MS = 8000
 
@@ -61,6 +62,8 @@ export default function TeacherHome() {
       <div style={{ fontSize: '13px', color: '#888', marginBottom: '20px' }}>
         Here's what's happening with your classes.
       </div>
+
+      <PromoSlot />
 
       {/* Quick actions */}
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>

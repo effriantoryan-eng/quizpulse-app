@@ -6,6 +6,7 @@ const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
 const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
 const { selectDemoStudents } = require('./shared/demoNames');
+const { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, generateJoinCode, createRealClass } = require('./shared/createClass');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -15,17 +16,8 @@ const client = new CosmosClient({
 const database = client.database(process.env.COSMOS_DATABASE);
 const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
 
-const CLASS_NAME_MAX = 80;       // Security limits table — Class name length
-const CLASSES_PER_TEACHER = 20;  // Security limits table — Classes per teacher (real classes only)
 const DEMO_CLASSES_PER_TEACHER = 1;  // v3.3.0 — at most one simulated demo class per teacher
 const DEMO_STUDENT_COUNT = 24;       // v3.3.0 — demo students generated per demo class
-
-// 8-char alphanumeric join code, excluding visually ambiguous characters (0/O, 1/I/L).
-function generateJoinCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const bytes = crypto.randomBytes(8);
-  return Array.from(bytes, b => chars[b % chars.length]).join('');
-}
 
 // GET /api/classes — list all classes for the authenticated teacher, oldest first.
 app.http('classesGet', {
@@ -143,35 +135,89 @@ app.http('classesCreate', {
         return respond(201, resource, teacherId);
       }
 
-      // Real class: enforce the 20-real-class-per-teacher limit before writing. Demo classes are
-      // excluded from this count (isDemo != true, tolerating legacy docs with no field).
-      const { resources: counts } = await classesContainer.items.query({
-        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND (NOT IS_DEFINED(c.isDemo) OR c.isDemo = false)',
-        parameters: [{ name: '@tid', value: teacherId }],
-      }).fetchAll();
-      if ((counts[0] || 0) >= CLASSES_PER_TEACHER) {
-        return respond(429, { error: `You can have at most ${CLASSES_PER_TEACHER} classes.` }, teacherId);
+      // Real class: joinCode/schoolId/cap logic lives in shared/createClass.js — the single
+      // place adopted by both this endpoint and the v4.2.0 onboarding-wizard class shells.
+      let resource;
+      try {
+        resource = await createRealClass(classesContainer, {
+          teacherId,
+          schoolId: teacher?.schoolId,
+          name,
+          studentCount,
+        });
+      } catch (err) {
+        if (err instanceof ClassLimitError) return respond(429, { error: err.message }, teacherId);
+        throw err;
       }
-
-      const doc = {
-        id: crypto.randomUUID(),
-        teacherId,
-        schoolId: teacher?.schoolId || null,
-        name: name.trim(),
-        studentCount: studentCount !== undefined ? Math.floor(studentCount) : 0,
-        joinCode: generateJoinCode(),
-        nameList: [],
-        nameListEnabled: false,
-        cap: 40,
-        isDemo: false,
-        createdAt: new Date().toISOString(),
-      };
-      const { resource } = await classesContainer.items.create(doc);
 
       return respond(201, resource, teacherId);
     } catch (err) {
       context.error('classesCreate error:', err.message);
       logRequest(context, { endpoint: 'classes', method: 'POST', status: 500, durationMs: Date.now() - start });
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
+// POST /api/classes/shells — v4.2.0 onboarding wizard: creates N empty "My Class 1..N" shells
+// server-side, named server-side (never client-provided). Only when the caller currently has
+// ZERO real classes — this is a first-run convenience, not a way to bulk-create classes later.
+// Sequential creates (not Promise.all — same convention as school merge), so the shared 20-class
+// cap in createRealClass is respected even mid-batch; a request for more than fit just creates as
+// many as fit and reports the real count back.
+app.http('classesCreateShells', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'classes/shells',
+  handler: async (request, context) => {
+    const start = Date.now();
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: 'classes/shells', method: 'POST', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const { teacherId } = auth;
+
+      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      const body = await request.json().catch(() => ({}));
+      const count = Number(body?.count);
+      if (!Number.isInteger(count) || count < 1 || count > CLASSES_PER_TEACHER) {
+        return respond(400, { error: `count must be an integer between 1 and ${CLASSES_PER_TEACHER}` }, teacherId);
+      }
+
+      const { resources: existingCounts } = await classesContainer.items.query({
+        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND (NOT IS_DEFINED(c.isDemo) OR c.isDemo = false)',
+        parameters: [{ name: '@tid', value: teacherId }],
+      }).fetchAll();
+      if ((existingCounts[0] || 0) > 0) {
+        return respond(409, { error: 'Class shells are only created when you have no classes yet.' }, teacherId);
+      }
+
+      const teacher = await getTeacher(teacherId);
+      let created = 0;
+      for (let i = 1; i <= count; i++) {
+        try {
+          await createRealClass(classesContainer, {
+            teacherId,
+            schoolId: teacher?.schoolId,
+            name: `My Class ${i}`,
+          });
+          created++;
+        } catch (err) {
+          if (err instanceof ClassLimitError) break; // hit the cap mid-batch — stop, report what fit
+          throw err;
+        }
+      }
+
+      return respond(201, { created }, teacherId);
+    } catch (err) {
+      context.error('classesCreateShells error:', err.message);
+      logRequest(context, { endpoint: 'classes/shells', method: 'POST', status: 500, durationMs: Date.now() - start });
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
   },

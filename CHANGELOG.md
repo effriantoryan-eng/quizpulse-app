@@ -2,6 +2,70 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.2.0] — Guided onboarding & progressive disclosure (on `release/v4.2-onboarding`)
+
+An optional profile (subjects, year levels, class count, registration status) collected via a
+5-step onboarding wizard, a nine-key server-eligibility "progressive disclosure" engine that
+surfaces one feature-intro card at a time as a teacher hits real milestones, and a topic-dropdown
+prefilter on Send. Built per `CC_PROMPTS_v420_v430.md` as amended by
+`CEO_REVIEW_v420_v430_addendum.md` (addendum wins on conflict). No breaking changes — every new
+field is additive and legacy teacher docs are treated as empty.
+
+### New features
+
+#### Teacher profile + onboarding wizard (`feat/v4.2-profile-schema`, `feat/v4.2-onboarding-wizard`)
+- Optional `profile{subjects,yearLevels,classCount,registrationStatus}` on the teacher doc
+  (`api/shared/profileSchema.js`). `POST /api/onboarding` still fires after step 1 (school name)
+  only — the teacher is onboarded from that moment, exactly as before. New
+  `PUT /api/me/profile` accumulates steps 2-5 client-side and submits once at wizard end (or from
+  `/onboarding/profile` later); quitting mid-wizard never re-gates onboarding.
+- `src/components/onboarding/ProfileWizardSteps.jsx`: 4 skippable steps (subjects, year levels,
+  class count + shell checkbox, registration status) with progress dots. "Next" on an empty
+  selection behaves exactly like "Skip" — the primary button is never disabled.
+- `api/shared/createClass.js`: joinCode/schoolId/cap logic extracted into one place, adopted by
+  both `POST /api/classes` and the new `POST /api/classes/shells` (server-generates
+  "My Class 1..N", only when the caller has zero real classes, sequential + cap-respecting).
+- `src/components/ProfileNudge.jsx`: dashboard banner for a teacher who skipped the profile
+  steps, permanently dismissible via the `profile_nudge` feature-intro key.
+
+#### Progressive disclosure engine (`feat/v4.2-disclosure-engine`)
+- `api/shared/introEligibility.js` computes `eligibleIntros[]` server-side for nine keys
+  (`demo_intro`, `analytics_intro`, `community_intro`, `misconception_intro`, `population_intro`,
+  `apst_intro`, `mypd_intro`, `ai_generation_intro`, `profile_nudge`). Milestone counts are
+  teacher-partitioned and demo-excluded (`api/shared/excludeDemo.js`), with one deliberate
+  exception: `misconception_intro` includes demo data (its designed first touch).
+  `apst_intro`/`mypd_intro`/`ai_generation_intro` are gated behind `api/shared/features.js` flags
+  (`FEATURE_APST_EXPORT`, `FEATURE_AI_GENERATION` — both `false` until v4.1.0/v4.3.0) and treated
+  as dismissed until their flag flips. Once every key is dismissed or flag-dark, `GET /api/me`
+  skips all milestone queries.
+- `api/responses.js` and `api/shared/runSimulation.js` both increment a denormalised
+  `confidenceResponseCount` on the parent quiz doc via an atomic Cosmos `incr` patch — advisory
+  only, a patch failure never fails the student's submission.
+- `PUT /api/me/feature-intros` records a card was shown/dismissed via an ETag-conditioned
+  replace-with-retry (not a read-modify-write of the whole object), so two tabs dismissing
+  different keys can't clobber each other.
+- `src/components/FeatureIntroCard.jsx` + `src/data/featureIntros.js`: one card per browser
+  session, "Show me" navigates / "✕" dismisses forever. `src/components/PromoSlot.jsx` is the
+  dashboard's single promo slot — an eligible intro card outranks `ProfileNudge`, which waits.
+  `community_intro` renders on the Build page instead, as its own slot.
+
+#### Topic dropdown prefilter (`feat/v4.2-topic-prefilter`)
+- `SendQuiz.jsx`'s topic dropdown segments the teacher's profile-matched subjects/year levels
+  first (an optgroup), with a "Show all topics" expander for the rest. Zero-match fallback (e.g.
+  Year 8 Maths — no preset tag covers it) suppresses the matched segment entirely rather than
+  showing an empty one. Frontend-only; server-side enum validation unchanged.
+
+### New endpoints
+- `PUT /api/me/profile` — accumulate onboarding-wizard profile answers.
+- `PUT /api/me/feature-intros` — record a feature-intro card shown/dismissed.
+- `POST /api/classes/shells` — create N empty class shells for a first-run teacher.
+
+### Data model additions
+- `teachers`: optional `profile{subjects[],yearLevels[],classCount,registrationStatus}` and
+  `featureIntros{[key]:{shownAt,dismissedAt}}` — additive, legacy docs treated as empty.
+- `quizzes`: optional `confidenceResponseCount` (int) — denormalised counter incremented at
+  response-submit time, read by `misconception_intro`'s milestone check.
+
 ## [v4.0.0] — Comprehensive analytics (unreleased — on `release/v4.0-analytics`)
 
 Class drill-down, a four-cell confidence+correctness chart with a promoted misconception hero
