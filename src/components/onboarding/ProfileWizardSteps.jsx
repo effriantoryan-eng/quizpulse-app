@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import API_BASE from '../../api'
 
 const SUBJECTS = ['Science', 'Maths', 'English', 'Humanities', 'Other']
@@ -36,6 +36,17 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
   const [registrationStatus, setRegistrationStatus] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [hasExistingClasses, setHasExistingClasses] = useState(false)
+
+  // POST /api/classes/shells always 409s once the teacher has any real class — hide the
+  // checkbox in that case rather than letting the teacher check a box that can never succeed
+  // and get silent no-op feedback.
+  useEffect(() => {
+    fetch(`${API_BASE}/classes`)
+      .then((r) => r.json())
+      .then((classes) => setHasExistingClasses(Array.isArray(classes) && classes.some((c) => !c.isDemo)))
+      .catch(() => {})
+  }, [])
 
   const steps = [
     { key: 'subjects', answered: subjects.length > 0 },
@@ -73,7 +84,7 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
           return
         }
       }
-      if (createShells && classCount !== '') {
+      if (createShells && classCount !== '' && !hasExistingClasses) {
         await fetch(`${API_BASE}/classes/shells`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -93,7 +104,7 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
 
   const current = steps[stepIndex]
   const stepNumber = startStepNumber + stepIndex
-  const totalSteps = startStepNumber - 2 + steps.length // total across the whole wizard (5 when starting at step 2)
+  const totalSteps = startStepNumber - 1 + steps.length // total across the whole wizard (5 when starting at step 2)
 
   return (
     <div style={{ textAlign: 'left' }}>
@@ -164,15 +175,21 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
               border: 'var(--bw) solid var(--border)', fontSize: '14px', boxSizing: 'border-box', marginBottom: '12px',
             }}
           />
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-            <input
-              data-testid="wizard-create-shells-checkbox"
-              type="checkbox"
-              checked={createShells}
-              onChange={(e) => setCreateShells(e.target.checked)}
-            />
-            Create these classes for me now
-          </label>
+          {hasExistingClasses ? (
+            <p style={{ fontSize: '12px', color: 'var(--muted)' }}>
+              You already have a class set up — head to My Classes to add more.
+            </p>
+          ) : (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+              <input
+                data-testid="wizard-create-shells-checkbox"
+                type="checkbox"
+                checked={createShells}
+                onChange={(e) => setCreateShells(e.target.checked)}
+              />
+              Create these classes for me now
+            </label>
+          )}
         </div>
       )}
 
