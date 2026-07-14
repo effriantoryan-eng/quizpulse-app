@@ -136,7 +136,13 @@ function buildQuestionBreakdown(questions, responses) {
         }
       }
     });
-    return { id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect, fourCell };
+    return {
+      id: q.id, text: q.text, options: q.options, correctIndex: q.correctIndex, counts, confidentButIncorrect, fourCell,
+      // v4.3.0 E1 — lets the UI offer "Create follow-up practice" on an AI-sourced question
+      // without a second round-trip; absent on manually-authored questions.
+      generatedBy: q.generatedBy || null,
+      sourceRefLabel: q.sourceRefLabel || null,
+    };
   });
 }
 
@@ -214,6 +220,11 @@ app.http('analytics', {
         isDemo,
         classes: classesMeta,
         selectedClassId: activeClassId || null,
+        // v4.3.0 E1 — lets the drill-down offer "Create follow-up practice" only for a quiz with
+        // live lineage; also lets Results.jsx's list-level nudge check presence without a
+        // separate quiz fetch. parentQuizId identifies (and lets the UI skip) spaced-repeat clones.
+        sourceId: quiz.sourceId || null,
+        parentQuizId: quiz.parentQuizId || null,
         questions: buildQuestionBreakdown(questions, responses),
         nonResponders: nonResponders.map(s => ({ studentName: s.studentName })),
         timeline,
@@ -314,6 +325,12 @@ app.http('classAnalytics', {
       const auth = await authenticateTeacher(request);
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
+
+      // Bundled debt fix (v4.3.0 §5.8) — this endpoint had no rate limit; mirrors the main
+      // analytics endpoint's 60/min (line ~187).
+      if (!rateLimit(`class-analytics:${getClientIp(request)}`, 60, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
 
       // Ownership check: teacher must own the class
       const { resources: classMatches } = await classesContainer.items.query({

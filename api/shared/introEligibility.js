@@ -65,9 +65,11 @@ async function computeEligibleIntros({ teacherId, teacher, classesContainer, qui
   }
 
   if (checkable('analytics_intro')) {
+    // Clone-excluded (v4.3.0 §5.5): a spaced-repeat clone of an already-counted quiz must not
+    // re-trigger this milestone — one send + 5 repeats is still one send for this purpose.
     const { resources } = await quizzesContainer.items
       .query({
-        query: `SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND ${EXCLUDE_DEMO_FRAGMENT} AND c.confidenceResponseCount >= 1`,
+        query: `SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND ${EXCLUDE_DEMO_FRAGMENT} AND NOT IS_DEFINED(c.parentQuizId) AND c.confidenceResponseCount >= 1`,
         parameters: [{ name: '@tid', value: teacherId }],
       })
       .fetchAll();
@@ -94,7 +96,7 @@ async function computeEligibleIntros({ teacherId, teacher, classesContainer, qui
     // class), so it must not satisfy this milestone.
     const { resources } = await quizzesContainer.items
       .query({
-        query: `SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND ${EXCLUDE_DEMO_FRAGMENT} AND c.status = 'sent' AND IS_DEFINED(c.topicTag)`,
+        query: `SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND ${EXCLUDE_DEMO_FRAGMENT} AND NOT IS_DEFINED(c.parentQuizId) AND c.status = 'sent' AND IS_DEFINED(c.topicTag)`,
         parameters: [{ name: '@tid', value: teacherId }],
       })
       .fetchAll();
@@ -111,7 +113,7 @@ async function computeEligibleIntros({ teacherId, teacher, classesContainer, qui
   if (checkable('community_intro')) {
     const { resources } = await quizzesContainer.items
       .query({
-        query: `SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND ${EXCLUDE_DEMO_FRAGMENT}`,
+        query: `SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND ${EXCLUDE_DEMO_FRAGMENT} AND NOT IS_DEFINED(c.parentQuizId)`,
         parameters: [{ name: '@tid', value: teacherId }],
       })
       .fetchAll();

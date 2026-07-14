@@ -16,6 +16,8 @@ const ALLOWED_PREFIXES = [
   '/teacher/results',
   '/teacher/population',
   '/teacher/evidence',
+  '/teacher/generate',
+  '/teacher/drafts',
   '/teacher/analytics',
   '/admin/log',
   '/join',

@@ -24,14 +24,14 @@ function routedContainer(routes) {
 }
 
 describe('computeEligibleIntros', () => {
-  test('a brand-new teacher (no classes, no quizzes) is eligible for demo_intro plus the flag-gated APST cards (FEATURE_APST_EXPORT is true as of v4.1.0; ai_generation_intro stays dark)', async () => {
+  test('a brand-new teacher (no classes, no quizzes) is eligible for demo_intro plus every flag-gated card (FEATURE_APST_EXPORT + FEATURE_AI_GENERATION are both true as of v4.1.0/v4.3.0)', async () => {
     const result = await computeEligibleIntros({
       teacherId: 't1',
       teacher: {},
       classesContainer: countContainer(0),
       quizzesContainer: countContainer(0),
     });
-    expect(result).toEqual(['demo_intro', 'apst_intro', 'mypd_intro']);
+    expect(result).toEqual(['demo_intro', 'apst_intro', 'mypd_intro', 'ai_generation_intro']);
   });
 
   test('demo_intro is NOT suppressed by empty class shells (studentCount 0)', async () => {
@@ -78,7 +78,7 @@ describe('computeEligibleIntros', () => {
     expect(queried).toBe(false);
   });
 
-  test('ai_generation_intro never appears while its flag is off; apst_intro/mypd_intro do (FEATURE_APST_EXPORT flipped true in v4.1.0)', async () => {
+  test('all three flag-gated cards appear once their flags are on (FEATURE_APST_EXPORT + FEATURE_AI_GENERATION both true)', async () => {
     const result = await computeEligibleIntros({
       teacherId: 't1',
       teacher: {},
@@ -87,6 +87,17 @@ describe('computeEligibleIntros', () => {
     });
     expect(result).toContain('apst_intro');
     expect(result).toContain('mypd_intro');
+    expect(result).toContain('ai_generation_intro');
+  });
+
+  test('a dismissed ai_generation_intro key is excluded even though its flag is on', async () => {
+    const teacher = { featureIntros: { ai_generation_intro: { dismissedAt: '2026-01-01' } } };
+    const result = await computeEligibleIntros({
+      teacherId: 't1',
+      teacher,
+      classesContainer: countContainer(1),
+      quizzesContainer: countContainer(0),
+    });
     expect(result).not.toContain('ai_generation_intro');
   });
 

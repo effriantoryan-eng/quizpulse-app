@@ -2,6 +2,96 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.3.0] — AI quiz generation, provider placeholder (on `release/v4.3-generation`)
+
+Document upload (PDF/docx/txt, 15MB) → mock-LLM draft → teacher review/approve → send through the
+normal SendQuiz flow, plus spaced repeats for any quiz and misconception-triggered follow-up
+practice. Built per `CC_PROMPTS_v420_v430.md` as amended by `CEO_REVIEW_v420_v430_addendum.md`.
+No breaking changes. **No real LLM API key required or used** — `FEATURE_AI_GENERATION` is on,
+but `LLM_PROVIDER` defaults to `mock`; see `docs/azure/LLM_PROVIDER_SETUP.md` before ever
+activating a real provider.
+
+### New features
+
+#### Source upload + extraction + chunking (`api/generationSources.js`)
+- `POST /api/generation/sources` — multipart upload, MIME-sniffed by magic bytes
+  (`api/shared/sniffFileKind.js`), extracted via `unpdf` (PDF) / `mammoth` (docx) inside a ~10s
+  timeout box with named 400 failure paths (scanned/too-short, too-many-pages, unreadable/
+  encrypted). The original binary is never persisted — only extracted text + chunk boundaries.
+- `api/shared/sourceChunker.js` — chunk index is the universal `sourceRef` addressing unit;
+  PDFs additionally carry a chunk→page map.
+- Verified locally: a real 15MB file survives `request.formData()` without truncation. The SWA
+  linked-backend proxy path still needs live-deploy verification before production use.
+
+#### LLM adapter + mock provider (`api/shared/llmAdapter.js`, `api/shared/llmProviders/*`)
+- Provider resolution (`LLM_PROVIDER`, default `mock`), a shared ~60k-char input cap identical
+  across all providers, range-first-then-even-sampling chunk selection, and one structured
+  observability log line per generation/regeneration/expand call.
+- Mock provider is deterministic (seeded from sourceId) and structurally cannot reproduce a
+  verbatim 8-word source run — it builds questions from single short extracted terms in a fixed
+  template, never from concatenated source text.
+- `api/shared/draftSchema.js` — single validator for both raw adapter output (→502) and teacher
+  edits (→400), including a hallucination guard on `sourceRef` chunk indexes.
+
+#### Draft endpoints, approve, expand, send-transition
+- `POST/GET/PUT /api/generation/drafts[/{id}]`, `POST .../regenerate-question` (resets its tick),
+  `POST .../approve` (server-enforces every question reviewed-or-edited, pre-checks caps before
+  writing, deterministic idempotent materialisation).
+- `POST /api/generation/expand` — misconception-triggered follow-up, resolves lineage via the
+  materialised questions' own `sourceRef`s (draft doc not required); checks source liveness only
+  on click.
+- New `POST /api/quizzes/{id}/send` — the one send-transition path for both AI-generated and
+  manual quizzes (manual quizzes now create as `status:'draft'` then transition through the same
+  endpoint). Computes spaced-repeat clones (E3, max 5, deterministic ids, 409-tolerant) before
+  marking the parent sent/scheduled.
+
+#### Review UI (`GenerateQuiz.jsx`, `ReviewDraft.jsx`, `AiBadge.jsx`)
+- Two-phase GenerateQuiz screen with staged pending copy and a ~90s client timeout.
+- ReviewDraft: AI banner, per-question tick/edit/regenerate/delete, a schedule editor for spaced
+  repeats, sticky footer gating Approve. Approve → send bridge lands straight in SendQuiz with the
+  schedule carried over.
+- Persistent generation CTA on the Build page; AiBadge on AI-generated questions in the bank.
+
+#### Misconception-triggered expansion (Analytics.jsx)
+- "Create follow-up practice" (hero card) / "Revisit {sourceRefLabel}" (per-question) when a
+  question's incorrect rate ≥40% OR confident-but-incorrect rate ≥25%, only for quizzes with live
+  source lineage.
+
+### New endpoints
+- `POST /api/generation/sources`, `POST/GET/PUT /api/generation/drafts[/{id}]`,
+  `POST /api/generation/drafts/{id}/regenerate-question`, `POST /api/generation/drafts/{id}/approve`,
+  `POST /api/generation/expand`, `POST /api/quizzes/{id}/send`.
+
+### Data model additions
+- New containers: `source_materials` (pk `/teacherId`, 90-day TTL), `quiz_drafts` (pk `/teacherId`).
+- Questions: `generatedBy`, `sourceId`, `sourceRef`, `sourceRefLabel` (AI-materialised only).
+- Quizzes: `sourceId`, `draftId` (lineage), `parentQuizId` (marks a spaced-repeat clone; excluded
+  from population benchmarking and progressive-disclosure milestone counts).
+
+### Fixed during this sprint
+- `api/shared/dailyQuota.js`'s regeneration counter crashed with a 500 when the caller's teacher
+  doc didn't exist yet (its Cosmos PATCH requires an existing document) — now tolerates a missing
+  doc non-fatally, matching `confidenceResponseCount`'s existing convention.
+- The send-transition endpoint didn't compute `classSize` from the selected classes' real
+  `studentCount` — fixed to derive it server-side rather than trusting a client-supplied value.
+- Bundled debt: `classAnalytics` gained a missing rate limit; `analyticsPopulation.js` no longer
+  swallows non-404 Cosmos errors into a fake empty benchmark page; AI-generated questions can't
+  have their `visibility` changed via a direct PUT.
+
+### Scope cut
+- The Results-list-level "Create follow-up practice" nudge (lazy evaluation across a teacher's 10
+  most recent closed lineage-bearing quizzes) was not built — the same action already exists in
+  the Analytics drill-down and the misconception hero card, both shipped. Deferred as a follow-up.
+
+### Tests
+- Unit: `sourceChunker`, `dailyQuota`, `sniffFileKind`, `seededRandom`, `draftSchema`,
+  `llmProviderMock` (incl. the hard no-verbatim-8-words check), `llmAdapter`,
+  `analyticsFollowUpTrigger`. Integration: `v4.3-source-upload.test.js` (9 cases),
+  `v4.3-drafts.test.js` (23 cases covering the full upload→generate→review→approve→send loop,
+  cross-tenant negative tests on every new endpoint, and a retry-idempotency test).
+- Verified live end-to-end against a real local func host, including a real AI-generated quiz
+  sent to the demo class and the resulting misconception nudge triggering a real follow-up draft.
+
 ## [v4.4.0] — Traffic monitor (unreleased — on `release/v4.4-traffic`)
 
 Adopted from the demo repo's traffic-monitor feature and hardened. `GET /api/manage/traffic` +

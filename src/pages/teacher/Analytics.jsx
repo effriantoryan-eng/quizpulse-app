@@ -95,6 +95,8 @@ function Analytics() {
   const [hintVisible, dismissHint, showHint] = useHint('analytics')
   const [quizName, setQuizName] = useState('')
   const [isDemo, setIsDemo] = useState(false)
+  const [sourceId, setSourceId] = useState(null) // v4.3.0 E1 — gates the expansion nudge
+  const [expandingIds, setExpandingIds] = useState([])
   const [classSize, setClassSize] = useState(null)
   const [totalResponses, setTotalResponses] = useState(0)
   const [questions, setQuestions] = useState([])
@@ -123,6 +125,7 @@ function Analytics() {
 
         setQuizName(data.quizName)
         setIsDemo(data.isDemo === true)
+        setSourceId(data.sourceId || null)
         setClassSize(data.classSize ?? null)
         setTotalResponses(data.totalResponses)
         setQuestions(data.questions)
@@ -150,6 +153,37 @@ function Analytics() {
     const params = {}
     if (next) params.classId = next
     setSearchParams(params, { replace: true })
+  }
+
+  // v4.3.0 E1 — "Create follow-up practice" from a question that shows a real misconception
+  // signal. Only rendered when the quiz has live sourceId lineage; liveness itself is checked
+  // server-side on click (§6.6) — an expired source returns a plain message here.
+  async function handleExpand(questionId) {
+    setExpandingIds(ids => [...ids, questionId])
+    try {
+      const res = await fetch(`${API_BASE}/generation/expand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId, focusQuestionIds: [questionId] }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.')
+      navigate(`/teacher/drafts/${data.id}`)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setExpandingIds(ids => ids.filter(id => id !== questionId))
+    }
+  }
+
+  // §3.6 — incorrect >=40% OR confident-but-incorrect >=25%, two independent constants.
+  function shouldOfferFollowUp(fourCell) {
+    if (!fourCell) return false
+    const total = fourCell.correctConfident + fourCell.correctUnsure + fourCell.incorrectConfident + fourCell.incorrectUnsure
+    if (total === 0) return false
+    const incorrectRate = (fourCell.incorrectConfident + fourCell.incorrectUnsure) / total
+    const confidentIncorrectRate = fourCell.incorrectConfident / total
+    return incorrectRate >= 0.4 || confidentIncorrectRate >= 0.25
   }
 
   async function handleExportCsv() {
@@ -287,9 +321,19 @@ function Analytics() {
                 ? '1 answer was confident but wrong.'
                 : `${totalConfidentButIncorrect} answers were confident but wrong.`}
             </div>
-            <div style={{ fontSize: '13px', color: '#7A3B28' }}>
+            <div style={{ fontSize: '13px', color: '#7A3B28', marginBottom: sourceId ? '12px' : 0 }}>
               Worst question: <strong>Question {worstIndex + 1}</strong> ({worst.confidentButIncorrect} confident-but-wrong)
             </div>
+            {sourceId && (
+              <button
+                data-testid="hero-create-followup"
+                onClick={() => handleExpand(worst.id)}
+                disabled={expandingIds.includes(worst.id)}
+                style={{ padding: '8px 16px', background: MISCONCEPTION_BORDER, color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: expandingIds.includes(worst.id) ? 'not-allowed' : 'pointer', opacity: expandingIds.includes(worst.id) ? 0.6 : 1 }}
+              >
+                {expandingIds.includes(worst.id) ? 'Creating…' : 'Create follow-up practice'}
+              </button>
+            )}
           </div>
         )
       })()}
@@ -358,6 +402,21 @@ function Analytics() {
                   </div>
                 )
               })()
+            )}
+
+            {sourceId && shouldOfferFollowUp(q.fourCell) && (
+              <div style={{ marginBottom: '18px' }}>
+                <button
+                  data-testid={`question-create-followup-${qi}`}
+                  onClick={() => handleExpand(q.id)}
+                  disabled={expandingIds.includes(q.id)}
+                  style={{ padding: '8px 16px', background: MISCONCEPTION_BORDER, color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: expandingIds.includes(q.id) ? 'not-allowed' : 'pointer', opacity: expandingIds.includes(q.id) ? 0.6 : 1 }}
+                >
+                  {expandingIds.includes(q.id)
+                    ? 'Creating…'
+                    : q.sourceRefLabel ? `Revisit ${q.sourceRefLabel}` : 'Create follow-up practice'}
+                </button>
+              </div>
             )}
 
             {/* Per-option distribution — always shown alongside the four-cell chart: "confidently

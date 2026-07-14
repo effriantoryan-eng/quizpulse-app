@@ -108,6 +108,24 @@ function BuildQuiz() {
       )}
       {communityIntro && <FeatureIntroCard introKey="community_intro" onDismissed={() => setCommunityIntro(false)} />}
 
+      {/* v4.3.0 E6 — persistent generation CTA, complementing the one-time ai_generation_intro
+          card. Never a third banner: this is the drafts section's permanent header action. */}
+      <div
+        data-testid="build-generate-cta"
+        onClick={() => navigate('/teacher/generate')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 18px',
+          background: '#E8F1FB', border: '1px solid #2C6BAA', borderRadius: '10px',
+          marginBottom: '20px', cursor: 'pointer',
+        }}
+      >
+        <span style={{ fontSize: '20px' }}>🤖</span>
+        <div>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: '#123A5C' }}>Have a document? Draft a quiz from it</div>
+          <div style={{ fontSize: '12px', color: '#2C6BAA' }}>Upload a PDF, Word doc, or text file and review AI-drafted questions.</div>
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
 
         {/* Left — quiz details and questions */}

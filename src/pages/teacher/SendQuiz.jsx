@@ -10,7 +10,27 @@ function SendQuiz() {
   const location = useLocation()
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('send')
-  const { quizName = '', questionIds = [] } = location.state || {}
+  // v4.3.0 quizId mode: an approved AI draft is already a real quiz doc (status 'draft') —
+  // load it instead of building a new one from questionIds, and skip question-picking.
+  const {
+    quizName: quizNameFromState = '',
+    questionIds: questionIdsFromState = [],
+    quizId: incomingQuizId = null,
+    spacedRepeats: incomingSpacedRepeats = null,
+  } = location.state || {}
+  const [loadedQuiz, setLoadedQuiz] = useState(null)
+  const [loadingQuiz, setLoadingQuiz] = useState(!!incomingQuizId)
+  const quizName = incomingQuizId ? (loadedQuiz?.name || '') : quizNameFromState
+  const questionIds = incomingQuizId ? (loadedQuiz?.questionIds || []) : questionIdsFromState
+
+  useEffect(() => {
+    if (!incomingQuizId) return
+    fetch(`${API_BASE}/quizzes/${incomingQuizId}`)
+      .then(r => r.json())
+      .then(setLoadedQuiz)
+      .catch(() => {})
+      .finally(() => setLoadingQuiz(false))
+  }, [incomingQuizId])
 
   const [classes, setClasses] = useState([])
   const [classesLoading, setClassesLoading] = useState(true)
@@ -26,6 +46,11 @@ function SendQuiz() {
   const [topicTag, setTopicTag] = useState('')
   const [matchedTopics, setMatchedTopics] = useState([])
   const [showAllTopics, setShowAllTopics] = useState(true)
+  // E3 — spaced repeats for ANY quiz. Comma-separated day offsets, e.g. "2,7,21"; max 5.
+  // Approve → send bridge (§6.4) carries the schedule chips chosen in ReviewDraft over here.
+  const [spacedRepeatsInput, setSpacedRepeatsInput] = useState(
+    Array.isArray(incomingSpacedRepeats) ? incomingSpacedRepeats.join(', ') : ''
+  )
 
   // v4.2.0 topic prefilter: segment the dropdown to the teacher's own subjects/year levels
   // first. Zero-match fallback (e.g. a Year 8 Maths teacher — no preset tag covers that
@@ -59,6 +84,10 @@ function SendQuiz() {
     }
     fetchClasses()
   }, [])
+
+  if (incomingQuizId && loadingQuiz) {
+    return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
+  }
 
   if (!quizName || questionIds.length === 0) {
     return (
@@ -111,61 +140,60 @@ function SendQuiz() {
       }
     }
 
+    const spacedRepeats = spacedRepeatsInput
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(Number)
+    if (spacedRepeats.some(d => !Number.isInteger(d) || d < 1 || d > 365)) {
+      setError('Spaced repeats must be whole numbers of days (1-365), separated by commas.')
+      return
+    }
+    if (spacedRepeats.length > 5) {
+      setError('You can schedule at most 5 spaced repeats.')
+      return
+    }
+
     setSending(true)
     try {
-      setSendingMsg('Saving quiz…')
-      const quizRes = await fetch(`${API_BASE}/quizzes`, {
+      // v4.3.0: one send path for both manual and AI-generated quizzes. A manual quiz is first
+      // created as status:'draft' (no push, no clones yet), then transitions through the same
+      // POST /api/quizzes/{id}/send every approved AI draft uses — that endpoint sets sentAt/
+      // closedAt, creates spaced-repeat clones, and fires the push notification itself.
+      let quizId = incomingQuizId
+      if (!quizId) {
+        setSendingMsg('Saving quiz…')
+        const createRes = await fetch(`${API_BASE}/quizzes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: quizName, questionIds, status: 'draft', ...(topicTag && { topicTag }) }),
+        })
+        if (!createRes.ok) {
+          const data = await createRes.json().catch(() => ({}))
+          throw new Error(data.error || 'Something went wrong. Please try again.')
+        }
+        quizId = (await createRes.json()).id
+      }
+
+      setSendingMsg(mode === 'schedule' ? 'Scheduling quiz…' : 'Sending quiz…')
+      const sendRes = await fetch(`${API_BASE}/quizzes/${quizId}/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          mode === 'now'
-            ? {
-                name: quizName,
-                questionIds,
-                classIds: selectedClasses,
-                classSize: totalStudents,
-                status: 'sent',
-                sentAt: new Date().toISOString(),
-                durationMinutes,
-                ...(topicTag && { topicTag }),
-              }
-            : {
-                name: quizName,
-                questionIds,
-                classIds: selectedClasses,
-                classSize: totalStudents,
-                status: 'scheduled',
-                scheduledFor: new Date(scheduledFor).toISOString(),
-                durationMinutes,
-                ...(topicTag && { topicTag }),
-              }
-        ),
+        body: JSON.stringify({
+          classIds: selectedClasses,
+          durationMinutes,
+          mode,
+          ...(mode === 'schedule' && { scheduledFor: new Date(scheduledFor).toISOString() }),
+          ...(spacedRepeats.length > 0 && { spacedRepeats }),
+        }),
       })
-      if (!quizRes.ok) {
-        const data = await quizRes.json().catch(() => ({}))
+      if (!sendRes.ok) {
+        const data = await sendRes.json().catch(() => ({}))
         throw new Error(data.error || 'Something went wrong. Please try again.')
       }
-      const quiz = await quizRes.json()
+      const sendResult = await sendRes.json()
 
-      if (mode === 'now') {
-        // Send push notifications to subscribed students (best-effort — failures don't block).
-        setSendingMsg('Sending notifications…')
-        try {
-          await fetch(`${API_BASE}/send-notification`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              quizId: quiz.id,
-              quizTitle: quizName,
-              questionCount: questionIds.length,
-            }),
-          })
-        } catch {
-          // Push delivery is best-effort; don't fail the whole send flow.
-        }
-      }
-
-      setSentResult({ quizId: quiz.id, scheduled: mode === 'schedule', demo: sendingToDemo })
+      setSentResult({ quizId, scheduled: mode === 'schedule', demo: sendingToDemo, clonesCreated: sendResult.clonesCreated || 0 })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -189,6 +217,12 @@ function SendQuiz() {
         />
       )}
 
+      {incomingQuizId && (
+        <div data-testid="send-approved-banner" style={{ padding: '12px 14px', background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: '8px', fontSize: '13px', color: '#085041', marginBottom: '16px' }}>
+          Approved — pick who gets it.
+        </div>
+      )}
+
       {/* Quiz summary */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', background: '#f8f8f8', borderRadius: '10px', marginBottom: '24px', border: 'var(--bw) solid var(--border)' }}>
         <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}>📋</div>
@@ -204,7 +238,7 @@ function SendQuiz() {
           <div style={{ fontSize: '16px', fontWeight: '600', color: '#085041', marginBottom: '8px' }}>
             {sentResult.scheduled ? 'Quiz scheduled!' : 'Quiz sent!'}
           </div>
-          <div style={{ fontSize: '12px', color: '#3a7a65', marginBottom: '20px' }}>
+          <div style={{ fontSize: '12px', color: '#3a7a65', marginBottom: '8px' }}>
             {sentResult.demo
               ? (sentResult.scheduled
                   ? 'Responses will be generated automatically at the scheduled time — no one is notified.'
@@ -213,6 +247,12 @@ function SendQuiz() {
                   ? 'It will be sent automatically at the scheduled time.'
                   : 'Students will receive a notification and analytics will update as they respond.')}
           </div>
+          {sentResult.clonesCreated > 0 && (
+            <div data-testid="send-repeats-confirmation" style={{ fontSize: '12px', color: '#3a7a65', marginBottom: '20px' }}>
+              {sentResult.clonesCreated} practice repeat{sentResult.clonesCreated === 1 ? '' : 's'} scheduled.
+            </div>
+          )}
+          {sentResult.clonesCreated === 0 && <div style={{ marginBottom: '20px' }} />}
           <button
             onClick={() => navigate(`/teacher/analytics/${sentResult.quizId}`)}
             style={{ width: '100%', padding: '11px', background: '#085041', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
@@ -390,6 +430,21 @@ function SendQuiz() {
               />
             </>
           )}
+
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
+            Schedule spaced repeats <span style={{ fontWeight: '400', color: '#aaa' }}>(optional, up to 5)</span>
+          </label>
+          <input
+            data-testid="send-spaced-repeats-input"
+            type="text"
+            placeholder="e.g. 2, 7, 21 (days after send)"
+            value={spacedRepeatsInput}
+            onChange={e => setSpacedRepeatsInput(e.target.value)}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '4px' }}
+          />
+          <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '16px' }}>
+            After you send this quiz, we'll resend practice on the days you list here.
+          </p>
 
           {sending && sendingMsg && (
             <div style={{ padding: '10px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', color: 'var(--primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
