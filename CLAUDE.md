@@ -52,8 +52,17 @@ model; see the Architecture decisions entry below). **Deploy blocker:** the new
 feature works in a deployed environment — see `docs/azure/POPULATION_BENCHMARK_SETUP.md` and
 Known issues below.
 
-**[PLANNED] v4.1.0 (APST Evidence Export)** is reviewed and locked (design + eng review complete,
-2026-07-03) but not yet built — depends on v4.0.0's `topicTag` field, which now exists.
+**v4.1.0 (APST Evidence Export) is [CURRENT] — code complete on `release/v4.1-evidence`, not yet
+merged to main/deployed.** A per-quiz VIT evidence PDF (`/teacher/evidence`, a two-screen inline
+export flow) and an annual aggregate MyPD log PDF, built server-side with pdfkit. Descriptor
+text, VTLM 2.0 wording, and reflection templates are verbatim from AITSL/DET source
+(`src/data/apstContent.js` + its server-side mirror `api/shared/apstContent.js`). Built per
+`C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v410.md` (generated from
+`QuizPulse_Sprint_Plan_v400_v410.docx`'s v4.1.0 section, corrected — see that file's "Corrections
+from the raw .docx" section — and folded together with `CEO_REVIEW_v420_v430_addendum.md` §4's
+amendment). `FEATURE_APST_EXPORT` flipped to `true` as part of this sprint. No breaking changes,
+no deploy blockers — the API deploy just needs the new `pdfkit` dependency installed from Node
+20/22 before publishing (see Deploy below).
 
 **v4.2.0 (Guided Onboarding & Progressive Disclosure) is [CURRENT] — code complete on
 `release/v4.2-onboarding`, not yet merged to main/deployed.** An optional teacher profile
@@ -123,8 +132,12 @@ Azure services.
 - Sprint 5 security audit: `docs/security/SPRINT5_AUDIT.md`
 - Sprint 1 test checklist: `SPRINT_TEST_CHECKLIST.md`
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
-- [PLANNED] v4.0.0/v4.1.0 sprint plan: `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v400_v410.docx`
+- v4.0.0 sprint plan: `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v400_v410.docx`
   — amended by `C:\Users\Ryan\Doc\Quizpulse\DESIGN_REVIEW_v400_v410_addendum.md` (addendum wins on conflict)
+- v4.1.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v410.md` — generated from the
+  .docx above's v4.1.0 section, corrected (see that file's "Corrections from the raw .docx"), and
+  folded together with `CEO_REVIEW_v420_v430_addendum.md` §4's amendment. Build from this file,
+  not the raw .docx. Its APST/VTLM source text: `C:\Users\Ryan\Downloads\QuizPulse_VIT_Export_Research_Brief.docx`.
 - [PLANNED] v4.4.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (no .docx — the prompt file is the source of truth)
 - Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
   - `graphify-out/graph.json` — queryable JSON graph (697 nodes, 1091 edges)
@@ -197,7 +210,7 @@ main                          (production — tagged releases only)
     │   └── feat/s1-tests                (merged)
     ├── release/v1.1-sprint2  ← next sprint
     ├── release/v4.0-analytics  ← [PLANNED] cut after v3.3.0 on main; see feature branches below
-    ├── release/v4.1-evidence   ← [PLANNED] cut after v4.0.0 on main; depends on v4.0.0 schema
+    ├── release/v4.1-evidence   ← [CURRENT] cut from develop after v4.0.x; see feature branches below
     ├── release/v4.2-onboarding ← [CURRENT] cut from develop after v4.0.x; see feature branches below
     ├── release/v4.3-generation ← [PLANNED] cut after v4.1.0 on main; depends on v4.1.0
     ├── release/v4.4-traffic    ← [PLANNED] cut from develop; NO dependencies — buildable in any gap
@@ -213,12 +226,14 @@ per the amended field list — no `correct`/`confidenceLevel`/`yearLevel`/`isPop
 `responses`), `feat/v4.0-analytics-ui` (extends existing `buildQuestionBreakdown`, no new
 class-analytics endpoint), `feat/v4.0-tests`.
 
-**[PLANNED] v4.1.0 feature branches** (`release/v4.1-evidence`, after v4.0.0 merges to main):
-`feat/v4.1-apst-content` (DO FIRST, review for AITSL/DET verbatim accuracy before rc1),
-`feat/v4.1-evidence-route`, `feat/v4.1-pdf-generation` (pdfkit), `feat/v4.1-tests`. Tag
-`v4.1.0-rc1` → tests pass → merge develop → merge main → tag `v4.1.0`. Amended (CEO review
-addendum §4): also flip `FEATURE_APST_EXPORT` in `api/shared/features.js` and verify
-`apst_intro`/`mypd_intro` cards land on the evidence route (~30 min addition to this sprint).
+**v4.1.0 implementation note:** built directly on `release/v4.1-evidence` as a series of commits
+mirroring the task boundaries below, rather than separate branches + PRs per task — same
+pragmatic single-branch deviation v4.0.0 used. Tasks covered: `apstContent.js` data module
+(verbatim AITSL/DET content, reviewed separately from code review before rc1), the
+`/teacher/evidence` route + two-screen export flow, `api/evidenceExport.js` +
+`api/evidenceAnnualLog.js` (pdfkit), flipping `FEATURE_APST_EXPORT` and verifying
+`apst_intro`/`mypd_intro` land on the route (CEO review addendum §4), and unit + integration
+tests. Tag `v4.1.0-rc1` → tests pass → merge develop → merge main → tag `v4.1.0`.
 
 **v4.2.0 feature branches** (`release/v4.2-onboarding`, cut from `develop` after v4.0.x, per one
 branch per task per the prompt — not the v4.0.0 single-branch deviation):
@@ -307,9 +322,10 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 7. **v4.0.0 — Comprehensive analytics.** [CURRENT — code complete, deploy steps pending] Class
    drill-down, four-cell confidence+correctness chart, population benchmarking against a seeded
    synthetic dataset. Reviewed 2026-07-03 (design + eng), implemented same day.
-8. **[PLANNED] v4.1.0 — APST evidence export.** Per-quiz VIT evidence PDF + annual MyPD aggregate
-   log, editable reflection prompts, pre-populated APST/VTLM 2.0 fields. Depends on v4.0.0 schema
-   (`topicTag`). Reviewed 2026-07-03 (design + eng).
+8. **v4.1.0 — APST evidence export.** [CURRENT — code complete on `release/v4.1-evidence`, not
+   yet deployed] Per-quiz VIT evidence PDF + annual MyPD aggregate log, editable reflection
+   prompts, pre-populated APST/VTLM 2.0 fields. Reviewed 2026-07-03 (design + eng), implemented
+   2026-07-15.
 9. **v4.2.0 — Guided onboarding & progressive disclosure.** [CURRENT — code complete on
    `release/v4.2-onboarding`, not yet deployed] Optional teacher profile via a 5-step wizard,
    nine-key server-eligibility feature-intro engine, topic-dropdown prefilter on Send. Reviewed
@@ -699,18 +715,69 @@ design-review addendum).
   combination) suppresses the "Your subjects" optgroup entirely rather than rendering an empty
   one; server-side enum validation in `api/shared/topicTags.js` is unchanged.
 
-### APST evidence export [PLANNED — v4.1.0]
+### APST evidence export [CURRENT — v4.1.0]
 
-Depends on v4.0.0's `topicTag` field. New top-level route `/teacher/evidence`, added as its own
-hub in `src/teacherNav.js` (not a Results sub-tab, and not `DemoNav`) — distinct job-to-be-done
-from Analytics ("prove you did it" vs "act on data now"). Two artefacts: a per-quiz VIT PDF
-(`POST /api/evidence/export`, pdfkit, 2 pages, `assertScope` on quizId) and an annual MyPD
-aggregate log (`GET /api/evidence/annual-log?from=&to=`). `src/data/apstContent.js` is a static,
-logic-free data module (AITSL/DET verbatim text) — reviewed for accuracy before `v4.1.0-rc1` is
-tagged, separately from code review. Reflection fields are pre-templated with `[PERSONALISE: ...]`
-placeholders; the API rejects export (400) if the literal placeholder text is still present — this
-is an enforcement mechanism against VIT auditors flagging non-personalised reflections, not a UX
-nicety. No individually identifiable student data in any export; no server-side PDF storage.
+Depends on v4.0.0's `topicTag` field (exists). New top-level route `/teacher/evidence`, added as
+its own hub in `src/teacherNav.js` (not a Results sub-tab, and not `DemoNav`) — distinct
+job-to-be-done from Analytics ("prove you did it" vs "act on data now"). Two artefacts: a
+per-quiz VIT PDF (`POST /api/evidence/export`) and an annual MyPD aggregate log
+(`GET /api/evidence/annual-log?from=&to=`), both pdfkit, both capped at 2 pages, both generated
+on demand with no server-side storage.
+
+- **Content is duplicated, not shared, across the frontend/backend boundary.** `src/data/apstContent.js`
+  (ESM, used by `Evidence.jsx`) and `api/shared/apstContent.js` (CommonJS, used by both export
+  endpoints) hold the same 18 APST descriptors, `APST_DEFAULTS`, VTLM 2.0 alignment text, and AERO
+  citations — verbatim from AITSL/DET source
+  (`C:\Users\Ryan\Downloads\QuizPulse_VIT_Export_Research_Brief.docx`, Parts I/III/IV), same
+  pattern as `TOPIC_TAGS` already being duplicated client/server. Both files must be reviewed
+  together for verbatim accuracy — that review happened before `v4.1.0-rc1` was tagged, separately
+  from code review. `src/data/apstContent.js` is logic-free (data only); `api/shared/apstContent.js`
+  additionally exports `domainCoverage()`, a pure function used by both the per-activity
+  domain-coverage note and the annual log's three-domain confirmation.
+- **18 of 37 APST descriptors are evidenceable** (10 Strong + 8 Moderate, per the research
+  brief) — `1.1, 1.2, 1.5, 2.1, 2.2, 2.3, 2.6, 3.2, 3.3, 3.4, 3.6, 4.5, 5.1, 5.2, 5.4, 6.1, 6.2,
+  6.4`. `APST_DEFAULTS` pre-ticks `['3.3', '3.6', '5.1', '5.4', '6.2']` on the export screen —
+  teacher can add/remove any of the 18.
+- **VIT number is a plain, unpersisted text input on the export screen**, not a teacher-profile
+  field — no such field exists on the `teachers` doc (the v4.2.0 `profile` object is
+  `{subjects, yearLevels, classCount, registrationStatus}` only), and a single-use export detail
+  didn't warrant adding one. If a future sprint needs it persisted, that's new scope, not part of
+  v4.1.0.
+- **Reflection personalisation gate.** Both reflection fields are pre-templated with
+  `[PERSONALISE: ...]` gaps (`src/data/apstContent.js`'s `REFLECTION_TEMPLATE_1/2`). The export
+  button is disabled client-side while either field still contains the literal marker, and
+  `POST /api/evidence/export` re-validates the same thing server-side (400) via
+  `api/shared/evidenceHelpers.js`'s `containsUnpersonalisedMarker` — this is an enforcement
+  mechanism against VIT auditors flagging non-personalised reflections, not just a UX nicety, so
+  the server check is never relaxed to trust the client.
+- **Per-activity export reuses `api/analytics.js`'s `loadQuizAnalytics`/`buildQuestionBreakdown`**
+  rather than re-deriving correctness/confidence — ownership (`quiz.teacherId === teacherId`,
+  404-on-mismatch) comes for free from `loadQuizAnalytics`, and the four-cell breakdown is
+  aggregated across all questions into cohort-level correctness %, confidence %, and a
+  confident-but-incorrect total. No individually identifiable student data is included in any
+  export — only counts.
+- **The annual log doesn't persist per-quiz descriptor selections** (nothing is stored
+  server-side by design, per the "no server-side storage" rule) — `api/evidenceAnnualLog.js`
+  summarises using `APST_DEFAULTS` for every quiz in range rather than reconstructing a per-export
+  choice that was never recorded. ponytail: upgrade to real per-export descriptor tracking if
+  teachers need the aggregate to reflect actual per-activity selections.
+- **Annual log scoping follows the house "list endpoints scope the query" rule** — the Cosmos
+  query filters `c.teacherId = @tid AND c.status = 'sent' AND c.sentAt BETWEEN @from AND @to`
+  plus `EXCLUDE_DEMO_FRAGMENT`, never a broad fetch filtered in code.
+- **PDF footer bug (fixed same session it was introduced):** `renderFooter()` in
+  `api/shared/pdfEvidence.js` originally placed the required footer text near the bottom margin
+  with a bounding `width` and no `lineBreak: false`. If that text wrapped, pdfkit auto-paginated
+  mid-render — and since both PDF builders looped `for (i = 0; i < doc.bufferedPageRange().count;
+  i++)` to stamp the footer on every page, a growing page count made the loop infinite (the
+  export endpoint would hang forever with no error). Fixed by adding `lineBreak: false` to the
+  footer's `.text()` call and capturing `bufferedPageRange().count` once before each loop instead
+  of re-evaluating it every iteration. `tests/unit/api/pdfEvidence.test.js` guards this — it fails
+  on a timeout, not a hang, if the bug regresses.
+- **Rate limit:** 10 req/hr/teacher on both `evidence/export` and `evidence/annual-log`,
+  keyed separately — see Security limits table below (matches the CSV-export precedent).
+- **`FEATURE_APST_EXPORT` flipped to `true`** in `api/shared/features.js` — `apst_intro`/
+  `mypd_intro` (already fully built in v4.2.0: copy, eligibility gating, `route: '/teacher/evidence'`)
+  are eligible again and verified to navigate to a real, working page.
 
 ---
 
@@ -762,6 +829,7 @@ nicety. No individually identifiable student data in any export; no server-side 
 | Profile subjects | 6 | v4.2.0 |
 | Profile year levels | 6 (values 7-12) | v4.2.0 |
 | Class shells per onboarding batch | 20 (shares the real-class cap) | v4.2.0 |
+| Evidence export rate/teacher (per-quiz + annual log, each) | 10/hr | v4.1.0 |
 | pageView beacon rate | 60 req/min/IP (already enforced pre-Sprint 1) | v4.4.0 |
 | pageView payload | 4 KB max (already enforced pre-Sprint 1) | v4.4.0 |
 | Traffic API calls/hr/admin | 60 | v4.4.0 |
@@ -921,7 +989,7 @@ sprint's scope.
 | Population benchmarking (/teacher/population, population_benchmark container, api/analyticsPopulation.js) | [CURRENT] v4.0.0 code complete — container provisioning + seed run still pending, see Known issues |
 | Topic tag on quiz (optional, 12 presets, api/shared/topicTags.js, feeds population benchmarking) | [CURRENT] v4.0.0 code complete |
 | Pre-release review fixes (CSV formula-injection guard, per-class response rates, server-set sentAt, option bars kept beside four-cell) | [CURRENT] v4.0.0 — /review 2026-07-06, 215/215 tests pass |
-| APST evidence export (/teacher/evidence, per-quiz PDF + annual MyPD log, pdfkit) | [PLANNED — v4.1.0] Design + eng reviewed 2026-07-03; depends on v4.0.0 |
+| APST evidence export (/teacher/evidence, per-quiz PDF + annual MyPD log, pdfkit) | [CURRENT] v4.1.0 code complete on release/v4.1-evidence — not yet deployed |
 | Onboarding profile wizard (5-step, PUT /api/me/profile, ProfileWizardSteps, /onboarding/profile) | [CURRENT] v4.2.0 code complete on release/v4.2-onboarding — not yet deployed |
 | Class shells (POST /api/classes/shells, api/shared/createClass.js) | [CURRENT] v4.2.0 code complete |
 | Progressive disclosure engine (introEligibility.js, 9 feature-intro keys, PUT /api/me/feature-intros) | [CURRENT] v4.2.0 code complete |

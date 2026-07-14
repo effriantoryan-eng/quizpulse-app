@@ -245,3 +245,56 @@ Added to `tests/integration/api/teacher.test.js` (⬜ requires `func start` + th
   contract, but a true concurrent-load assertion needs a live Cosmos instance.
 - E2E walk of the onboarding wizard + ProfileNudge + intro-card flow (Playwright, real auth).
 | 4 | v3-3-demo-class.spec.ts | Demo class unreachable from /join | demo class carries no joinCode | ⬜ Requires creds |
+
+## v4.1.0 — APST Evidence Export
+
+Full report: `tests/reports/v4.1.0-report.html`. Unit + integration suite run together:
+`RUN_INTEGRATION=true npx jest --config jest.config.cjs tests/unit/api/evidenceHelpers.test.js
+tests/unit/api/pdfEvidence.test.js tests/integration/api/v4-evidence.test.js` (func started
+against `quizpulse-int-test-db`, per CLAUDE.md's Testing section — never the production Cosmos).
+
+### Unit tests
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | evidenceHelpers.test.js | `calculateHours` — PD-hours auto-calculation | 3 quizzes → 1.8hrs; 0 quizzes → 0hrs; 1 quiz → 0.6hrs | ✅ PASS |
+| 2 | evidenceHelpers.test.js | `containsUnpersonalisedMarker` — unfilled reflection blocked | payload containing `[PERSONALISE:` flagged; personalised text passes | ✅ PASS |
+| 3 | evidenceHelpers.test.js | `validateDateRange` — annual-log date-range validation | end-before-start → invalid; >365 days → invalid; valid range passes | ✅ PASS |
+| 4 | evidenceHelpers.test.js (via `apstContent.domainCoverage`) | APST domain-balance check | `['3.3','5.1','6.2']` → all three domains present; `['3.3','3.6']` → Professional Engagement missing | ✅ PASS |
+| 5 | pdfEvidence.test.js | `buildActivityPdf`/`buildAnnualLogPdf` resolve with a non-empty buffer within the test timeout | **regression test** — a footer-text call near the bottom margin previously triggered pdfkit auto-pagination mid-loop over `bufferedPageRange().count`, hanging generation forever; fixed with `lineBreak: false` + a cached page count | ✅ PASS |
+
+### Integration tests — `RUN_INTEGRATION=true npm run test:integration`
+
+`tests/integration/api/v4-evidence.test.js` (⬜ requires `func start` + the isolated
+`quizpulse-int-test-db`, never the production Cosmos DB).
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | `POST /api/evidence/export` unauthenticated | 401 | ✅ PASS |
+| 2 | **REQUIRED cross-tenant negative test:** Teacher B requests Teacher A's quizId | 404 (never 200/403) | ✅ PASS |
+| 3 | `POST /api/evidence/export` with `[PERSONALISE:` still present in a reflection field | 400 | ✅ PASS |
+| 4 | Valid `POST /api/evidence/export` | 200, `Content-Type: application/pdf`, non-zero byte length | ✅ PASS |
+| 5 | Exported PDF contains no student-identifying substrings (`quizpulse_device_id`) | not found in the PDF bytes | ✅ PASS |
+| 6 | `GET /api/evidence/annual-log` unauthenticated | 401 | ✅ PASS |
+| 7 | `GET /api/evidence/annual-log` with an end-before-start range | 400 | ✅ PASS |
+| 8 | `GET /api/evidence/annual-log` with a valid range, scoped to the caller's own quizzes | 200, `Content-Type: application/pdf`, non-zero byte length | ✅ PASS |
+
+### Manual verification (this session, dev-auth bypass — see `memory/project_local_qa_setup.md`)
+
+- `/teacher/evidence` reachable from the sidebar (new "Evidence" hub, `teacherNav.js`); quiz
+  cards render topic/date/class from `GET /api/quizzes` + `GET /api/classes`.
+- Export flow: Screen 1 pre-populated (all 18 APST descriptors listed, 5 pre-ticked, VTLM
+  alignment read-only) → Screen 2 shows both reflection templates with `[PERSONALISE: ...]`
+  gaps visible and the Export button disabled with an inline warning while either marker
+  remains → clearing both markers and exporting downloads a PDF (`POST /api/evidence/export`
+  200).
+- "Generate annual log" date-range picker → `GET /api/evidence/annual-log` 200, PDF downloads.
+- `FEATURE_APST_EXPORT` flipped true; a teacher meeting the `apst_intro` milestone sees the
+  card via `PromoSlot` on `TeacherHome`, and "Show me" navigates to the real `/teacher/evidence`
+  page (not a 404).
+
+### Deferred to a live-Cosmos / real-auth session (not exercised in this build)
+
+- E2E walk (Playwright, real auth) — same "Requires creds" precedent as prior sprints.
+- `apstContent.js` verbatim-accuracy review against the AITSL/DET source docx — separate from
+  code review, required before `v4.1.0-rc1` is tagged (see CLAUDE.md).
