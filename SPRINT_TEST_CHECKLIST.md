@@ -245,3 +245,116 @@ Added to `tests/integration/api/teacher.test.js` (⬜ requires `func start` + th
   contract, but a true concurrent-load assertion needs a live Cosmos instance.
 - E2E walk of the onboarding wizard + ProfileNudge + intro-card flow (Playwright, real auth).
 | 4 | v3-3-demo-class.spec.ts | Demo class unreachable from /join | demo class carries no joinCode | ⬜ Requires creds |
+
+## v4.4.0 — Traffic Monitor
+
+Full report: `tests/reports/v4.4.0-report.html`. Unit suite run: `npm run test:unit` (345/345 pass,
+35 suites — includes all prior sprints' tests, unaffected by this sprint's changes).
+
+### Unit tests
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | pageView.test.js | `buildPageViewDoc` — validation (missing/oversized page, unrecognised eventType, default eventType) | 400s where expected, `eventType:'view'` default | ✅ PASS |
+| 2 | pageView.test.js | Page-allowlist bucketing — unknown page stored as `'other'`, never rejected | 201-shape doc with `page:'other'` | ✅ PASS |
+| 3 | pageView.test.js | **Student privacy posture** — a `/quiz` doc strips userAgent/screen/language/timezone/referrer even if the client sent them | all five fields `null` | ✅ PASS |
+| 4 | pageView.test.js | `/quiz` keeps teacherId/sessionId/quizId; quizId length-capped; quizId never carried on non-`/quiz` pages | exact field presence/absence | ✅ PASS |
+| 5 | pageViewAllowlist.test.js | `classifyPage` — known routes pass through, unknown bucket to `'other'`, no false-positive prefix matches (`/joinclass` ≠ `/join`) | exact classification per case | ✅ PASS |
+| 6 | pageViewAllowlist.test.js | **Allowlist-coupling test** — every route declared in `src/App.jsx`'s `<Routes>` (walked from the real source, not a hand-copied list) is covered by the allowlist | 24/24 routes classify to something other than `'other'` | ✅ PASS |
+| 7 | trafficAggregate.test.js | `getRangeStart` — `today`/`7d`/`30d` math (fixed clock), invalid range throws | exact ISO timestamps | ✅ PASS |
+| 8 | trafficAggregate.test.js | `classifyAudience`/`classifyDevice`/`classifyBrowser` — prefix rules, 767/768 device boundary, Edge-before-Chrome-before-Safari UA precedence | exact bucket per case | ✅ PASS |
+| 9 | trafficAggregate.test.js | **CRITICAL regression:** a pageview doc with NO `eventType` field counts as a view in every aggregate | legacy doc counted, not silently dropped | ✅ PASS |
+| 10 | trafficAggregate.test.js | `pwa_install` events counted in `pwaInstalls`, excluded from view totals; daily bucketing across a UTC day boundary; topPages sorted + capped to 10; `pagesPerSession` never NaN on empty input | exact counts, no NaN | ✅ PASS |
+| 11 | trafficAggregate.test.js | `computeFunnelRates` — zero-division produces `null`, not NaN; normal case rounds to 2dp | `openRate`/`completionRate` null or exact | ✅ PASS |
+| 12 | rangeQuizStats.test.js | `computeRangeQuizStats` — sums push counts only across quizzes that have them (legacy quizzes excluded from the sum, not coerced to 0); skips the responses query when no quizzes are in range | exact sums, 0 extra query | ✅ PASS |
+| 13 | resolveApprovedDeviceIds.test.js | Demo class reads `demoStudents` and never queries `join_requests`; real class queries `join_requests`; mixed demo+real unions correctly; a device approved in two classes counts once | exact `Set` contents | ✅ PASS |
+| 14 | sendNotification.test.js | **Advisory-counter regression (mandatory):** the pushSuccessCount/pushFailCount persistence write mocked to throw → send still returns 200 (pushes already went out) | 200, `sent` correct | ✅ PASS |
+| 15 | sendNotification.test.js | pushSuccessCount/pushFailCount computed from actual send outcomes; a successful persistence write still returns 200 | exact counts persisted | ✅ PASS |
+| 16 | usePageView.test.js | Payload reads the visitor id under the `quizpulse_device_id` key (regression: was previously called with no key) | `getSessionId` called with the real key, never `undefined` | ✅ PASS |
+| 17 | usePageView.test.js | `/quiz` payload carries only page/eventType/teacherId/sessionId/quizId; quizId parsed from `?quizId=`; non-`/quiz` pages keep full telemetry | exact key set per route | ✅ PASS |
+| 18 | usePageView.test.js | `usePwaInstallTracking`'s `appinstalled` handler fires a beacon with `eventType:'pwa_install'` | beacon payload shape | ✅ PASS |
+| 19 | metrics.test.js | `buildStubbedMetrics` — per-group `stubbed` flags (systemHealth/security/spending `true`; usageGrowth/engagement `false`); no top-level `stubbed` field | exact flags | ✅ PASS |
+
+### Integration tests — `RUN_INTEGRATION=true npm run test:integration`
+
+Added in `tests/integration/api/v440-traffic.test.js` (⬜ requires `func start` + the isolated
+`quizpulse-int-test-db` — see the Testing section of CLAUDE.md, never the production Cosmos DB).
+Not run in this build session (no live Function host / test Cosmos available) — written and
+syntax-verified, all 14 cases correctly gate-skip via `RUN_INTEGRATION`.
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | `POST /api/pageView` — valid payload | 201 `{ok:true}` | ⬜ Requires func |
+| 2 | `POST /api/pageView` — missing page / unrecognised eventType | 400 | ⬜ Requires func |
+| 3 | `POST /api/pageView` — unrecognised page still accepted (bucketed server-side) | 201 | ⬜ Requires func |
+| 4 | `GET /api/manage/traffic` — teacher-app token (wrong audience) | 401 | ⬜ Requires func |
+| 5 | **REQUIRED cross-tenant negative test:** admin token with no/teacher role | 404 (never the resource, never 403) | ⬜ Requires func |
+| 6 | `GET /api/manage/traffic` — owner role | 200, full response shape incl. `funnel` | ⬜ Requires func |
+| 7 | `GET /api/manage/traffic` — support role (proves the READ side of the role matrix) | 200 | ⬜ Requires func |
+| 8 | `GET /api/manage/traffic` — invalid range / missing range | 400 / defaults to `today` | ⬜ Requires func |
+| 9 | `GET /api/manage/traffic` — 61st call within the hour | 429 | ⬜ Requires func |
+| 10 | `GET /api/manage/metrics` — usageGrowth/engagement `stubbed:false`; systemHealth/security/spending `stubbed:true`; no top-level `stubbed` | exact flags | ⬜ Requires func |
+| 11 | `GET /api/manage/metrics` — de-stubbed fields are finite numbers or null, never NaN | `Number.isFinite` or `null` | ⬜ Requires func |
+| 12 | A demo-quiz send does not corrupt usageGrowth/engagement aggregation | finite `quizzesPerDay` after a demo send | ⬜ Requires func |
+
+### Deferred to a live-Cosmos session (not exercised in this build)
+
+- All 12 integration cases above (no `func start` + test Cosmos available in this session).
+- E2E walk of the admin Traffic page (Playwright, real admin CIAM credentials) — the admin
+  portal has no dev-auth bypass (unlike the teacher app), so this session verified Traffic.jsx
+  via a clean admin build only, not a live render.
+- Manual portal verification of the `pageviews` container TTL + RU cap
+  (`docs/azure/V440_CONTAINERS_SETUP.md`) — Azure Portal steps, not testable from CI.
+
+## v4.1.0 — APST Evidence Export
+
+Full report: `tests/reports/v4.1.0-report.html`. Unit + integration suite run together:
+`RUN_INTEGRATION=true npx jest --config jest.config.cjs tests/unit/api/evidenceHelpers.test.js
+tests/unit/api/pdfEvidence.test.js tests/integration/api/v4-evidence.test.js` (func started
+against `quizpulse-int-test-db`, per CLAUDE.md's Testing section — never the production Cosmos).
+
+### Unit tests
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | evidenceHelpers.test.js | `calculateHours` — PD-hours auto-calculation | 3 quizzes → 1.8hrs; 0 quizzes → 0hrs; 1 quiz → 0.6hrs | ✅ PASS |
+| 2 | evidenceHelpers.test.js | `containsUnpersonalisedMarker` — unfilled reflection blocked | payload containing `[PERSONALISE:` flagged; personalised text passes | ✅ PASS |
+| 3 | evidenceHelpers.test.js | `validateDateRange` — annual-log date-range validation | end-before-start → invalid; >365 days → invalid; valid range passes | ✅ PASS |
+| 4 | evidenceHelpers.test.js (via `apstContent.domainCoverage`) | APST domain-balance check | `['3.3','5.1','6.2']` → all three domains present; `['3.3','3.6']` → Professional Engagement missing | ✅ PASS |
+| 5 | pdfEvidence.test.js | `buildActivityPdf`/`buildAnnualLogPdf` resolve with a non-empty buffer within the test timeout | **regression test** — a footer-text call near the bottom margin previously triggered pdfkit auto-pagination mid-loop over `bufferedPageRange().count`, hanging generation forever; fixed with `lineBreak: false` + a cached page count | ✅ PASS |
+
+### Integration tests — `RUN_INTEGRATION=true npm run test:integration`
+
+`tests/integration/api/v4-evidence.test.js` (⬜ requires `func start` + the isolated
+`quizpulse-int-test-db`, never the production Cosmos DB).
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | `POST /api/evidence/export` unauthenticated | 401 | ✅ PASS |
+| 2 | **REQUIRED cross-tenant negative test:** Teacher B requests Teacher A's quizId | 404 (never 200/403) | ✅ PASS |
+| 3 | `POST /api/evidence/export` with `[PERSONALISE:` still present in a reflection field | 400 | ✅ PASS |
+| 4 | Valid `POST /api/evidence/export` | 200, `Content-Type: application/pdf`, non-zero byte length | ✅ PASS |
+| 5 | Exported PDF contains no student-identifying substrings (`quizpulse_device_id`) | not found in the PDF bytes | ✅ PASS |
+| 6 | `GET /api/evidence/annual-log` unauthenticated | 401 | ✅ PASS |
+| 7 | `GET /api/evidence/annual-log` with an end-before-start range | 400 | ✅ PASS |
+| 8 | `GET /api/evidence/annual-log` with a valid range, scoped to the caller's own quizzes | 200, `Content-Type: application/pdf`, non-zero byte length | ✅ PASS |
+
+### Manual verification (this session, dev-auth bypass — see `memory/project_local_qa_setup.md`)
+
+- `/teacher/evidence` reachable from the sidebar (new "Evidence" hub, `teacherNav.js`); quiz
+  cards render topic/date/class from `GET /api/quizzes` + `GET /api/classes`.
+- Export flow: Screen 1 pre-populated (all 18 APST descriptors listed, 5 pre-ticked, VTLM
+  alignment read-only) → Screen 2 shows both reflection templates with `[PERSONALISE: ...]`
+  gaps visible and the Export button disabled with an inline warning while either marker
+  remains → clearing both markers and exporting downloads a PDF (`POST /api/evidence/export`
+  200).
+- "Generate annual log" date-range picker → `GET /api/evidence/annual-log` 200, PDF downloads.
+- `FEATURE_APST_EXPORT` flipped true; a teacher meeting the `apst_intro` milestone sees the
+  card via `PromoSlot` on `TeacherHome`, and "Show me" navigates to the real `/teacher/evidence`
+  page (not a 404).
+
+### Deferred to a live-Cosmos / real-auth session (not exercised in this build)
+
+- E2E walk (Playwright, real auth) — same "Requires creds" precedent as prior sprints.
+- `apstContent.js` verbatim-accuracy review against the AITSL/DET source docx — separate from
+  code review, required before `v4.1.0-rc1` is tagged (see CLAUDE.md).

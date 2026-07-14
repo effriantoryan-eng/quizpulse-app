@@ -1,4 +1,54 @@
 
+## /plan session 2026-07-15 — v4.4.0 Traffic Monitor planned
+
+Adopted the demo repo's (`github.com/effriantoryan-eng/quizpulse`) traffic-monitor feature as
+sprint v4.4.0. Full CC-ready prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md`. CLAUDE.md
+updated ([PLANNED] blurb, roadmap #11, version table, branch plan, data model, security limits,
+feature status, Known issues #13). **No dependencies on v4.1–v4.3 — buildable in any gap. No new
+paid Azure services** (Cosmos serverless RU + existing Function App only; App Insights stays out
+of scope). Discovery: the write path (`usePageView` → `POST /api/pageView` → `pageviews`
+container) has been live since the baseline import — the sprint hardens it and builds the read
+side (admin Traffic page, funnel, PWA-install + push-delivery tracking, metrics de-stub).
+
+- [ ] **Build sprint v4.4.0** from `CC_PROMPTS_v440.md` (branch `release/v4.4-traffic`, 6 tasks).
+- [ ] **LOW (pre-sprint quick fix, optional)** — `src/hooks/usePageView.js:26` calls
+  `getSessionId()` with no key → visitor UUID stored under the literal localStorage key
+  `"undefined"`, and doesn't match `quizpulse_device_id`, so pageviews can't join to quiz
+  activity. One-line fix (`getSessionId('quizpulse_device_id')`) is v4.4.0 Task 1, but every day
+  it waits is a day of funnel-unusable data.
+- [ ] **LOW (cost hygiene, portal-only, can do anytime)** — the `pageviews` container has no TTL
+  and grows unbounded; set default TTL 180 days in the portal (no code change needed).
+
+## Deferred from eng review — v4.4.0 plan (from /plan-eng-review 2026-07-15)
+
+- [ ] **Student data-collection summary for school pilots (post-v4.4.0).**
+  **What:** one-page `docs/privacy/STUDENT_DATA.md` — exactly what QuizPulse stores about a
+  student (device UUID, responses+confidence, join requests, minimal /quiz pageviews
+  {page, id, session, time, quizId}, push subscription endpoint, 180-day traffic TTL) and
+  what it deliberately does NOT (browser fingerprint on student routes, location, names
+  beyond the join request). **Why:** the v4.4.0 eng review (outside voice D7) locked a
+  student-privacy posture — strip UA/screen/timezone/referrer on /quiz beacons — and the
+  first school that asks "what do you collect?" needs a real answer. **Context:** no privacy
+  doc exists in the repo (docs/ has azure/, security/, fixes/ only); the posture is defined
+  in `CC_PROMPTS_v440.md` Task 1. **Depends on:** most accurate once v4.4.0 ships.
+
+## /qa session 2026-07-12 (v4.2.0, local, dev-auth bypass, test Cosmos DB)
+
+Fixed this session (branch `develop`, PR #36): live-tested the v4.2.0 onboarding wizard against
+`dev-teacher-001` (an account with 1 real class already) and found two bugs via network trace —
+
+- [x] **MEDIUM — onboarding wizard progress counter read "Step 5 of 4" on the last step**
+  (`src/components/onboarding/ProfileWizardSteps.jsx`) — `totalSteps` was computed as
+  `startStepNumber - 2 + steps.length`, which always equals `steps.length` (4) regardless of
+  `startStepNumber`, while `stepNumber` correctly ranged `startStepNumber..startStepNumber+3`
+  (2..5). Fixed: `startStepNumber - 1 + steps.length`.
+- [x] **MEDIUM — "Create these classes for me now" checkbox silently no-ops for any teacher who
+  already has a class** (`src/components/onboarding/ProfileWizardSteps.jsx`) — confirmed via
+  network trace: `POST /api/classes/shells` always 409s once the teacher has any real class, and
+  the wizard swallowed the error with zero feedback. Fixed at the root: fetch `/api/classes` on
+  mount and hide the checkbox (replaced with an explanatory note) once a real class already
+  exists, so the wizard never offers an action guaranteed to fail.
+
 ## Deferred from design review — v4.2.0/v4.3.0 plan (from /plan-design-review 2026-07-11)
 
 - [ ] **Formalise the design system via /design-consultation → DESIGN.md.**
