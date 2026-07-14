@@ -60,6 +60,7 @@ const NAV_LINKS = [
   { to: '/schools', label: 'Schools' },
   { to: '/institutions', label: 'Institutions' },
   { to: '/monitoring', label: 'Monitoring' },
+  { to: '/traffic', label: 'Traffic' },
   { to: '/audit', label: 'Audit Log' },
   { to: '/roles', label: 'Roles' },
 ]
