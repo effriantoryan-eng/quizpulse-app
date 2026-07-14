@@ -9,6 +9,7 @@ import Schools from './pages/Schools.jsx'
 import MergeTool from './pages/MergeTool.jsx'
 import Institutions from './pages/Institutions.jsx'
 import Monitoring from './pages/Monitoring.jsx'
+import Traffic from './pages/Traffic.jsx'
 import AuditLog from './pages/AuditLog.jsx'
 import RoleManagement from './pages/RoleManagement.jsx'
 
@@ -47,6 +48,7 @@ function AdminShell() {
           <Route path="/schools/merge" element={<MergeTool />} />
           <Route path="/institutions" element={<Institutions />} />
           <Route path="/monitoring" element={<Monitoring />} />
+          <Route path="/traffic" element={<Traffic />} />
           <Route path="/audit" element={<AuditLog />} />
           <Route path="/roles" element={<RoleManagement />} />
           <Route path="*" element={<Navigate to="/schools" replace />} />
