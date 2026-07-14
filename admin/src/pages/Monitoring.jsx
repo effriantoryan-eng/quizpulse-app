@@ -104,9 +104,11 @@ export default function Monitoring() {
 
       {error && <div style={{ color: '#dc2626', marginBottom: 12, fontSize: 13 }}>Error: {error}</div>}
 
-      {m?.stubbed && (
+      {m && (m.systemHealth?.stubbed || m.security?.stubbed || m.spending?.stubbed) && (
         <div style={{ background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 4, padding: '8px 14px', fontSize: 12, color: '#854d0e', marginBottom: 16 }}>
-          Metrics are stubbed — App Insights wiring is not yet built. Values shown as "—".
+          System health, security, and spending are stubbed — App Insights wiring is not yet
+          built (values shown as "—"). Usage/growth and engagement carry real Cosmos-backed
+          values (v4.4.0).
         </div>
       )}
 

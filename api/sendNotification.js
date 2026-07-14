@@ -114,7 +114,16 @@ async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount
   if (stale.length) context.log(`Pruned ${stale.length} stale subscription(s)`);
 
   quiz.notificationSentAt = new Date().toISOString();
-  await quizzesContainer.items.upsert(quiz);
+  // pushSuccessCount/pushFailCount (v4.4.0) — advisory, same semantics as confidenceResponseCount
+  // (CLAUDE.md v4.2.0): the pushes already went out to devices, so a persistence hiccup here must
+  // never surface as a failed send.
+  quiz.pushSuccessCount = sent;
+  quiz.pushFailCount = subs.length - sent;
+  try {
+    await quizzesContainer.items.upsert(quiz);
+  } catch (err) {
+    context.warn(`failed to persist notificationSentAt/push counts for quiz ${quiz.id}: ${err?.message}`);
+  }
 
   context.log(`Notification sent to ${sent}/${subs.length} subscriber(s) for quiz ${quiz.id}`);
   return { sent, total: subs.length };
