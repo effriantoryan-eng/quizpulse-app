@@ -2,6 +2,82 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.4.0] — Traffic monitor (unreleased — on `release/v4.4-traffic`)
+
+Adopted from the demo repo's traffic-monitor feature and hardened. `GET /api/manage/traffic` +
+an admin Traffic dashboard (page views, uniques, top pages, audience/device/browser breakdowns,
+a notification→open→submit funnel), PWA-install tracking from any route, and a partial de-stub
+of `manage/metrics`. Built per `CC_PROMPTS_v440.md`, reviewed via `/review` and `/plan-eng-review`
+(10 findings folded in before the build). No breaking changes — every new field is additive, no
+new paid Azure services, and `POST /api/pageView` still accepts the old payload shape. Zero
+dependencies on v4.1.0/v4.2.0/v4.3.0.
+
+### New features
+
+#### Hardened page-view write path (`feat/v4.4-pageview-hardening`)
+- `src/hooks/usePageView.js` now keys the visitor UUID under `quizpulse_device_id` (matches the
+  UUID join requests/responses/subscriptions already use — was previously stored under the
+  literal localStorage key `"undefined"`).
+- `api/pageView.js` no longer self-creates the `pageviews` Cosmos container at runtime; it's now
+  lazily initialised from `COSMOS_CONTAINER_PAGEVIEWS`, same convention as every other container.
+- New route allowlist (`api/shared/pageViewAllowlist.js`): an unrecognised `page` value is stored
+  bucketed as `'other'`, never rejected — closes off junk-cardinality inflation from the
+  anonymous, spoofable-rate-limited beacon endpoint.
+- New student privacy posture: on `/quiz`, the beacon carries no userAgent/screen size/language/
+  timezone/referrer — enforced server-side regardless of what the client sends. An optional
+  `quizId` (parsed from `?quizId=`) is the one extra field `/quiz` beacons carry, enabling
+  per-quiz funnel attribution.
+- `docs/azure/V440_CONTAINERS_SETUP.md`: formalises the (already-existing, previously unmanaged)
+  `pageviews` container — 180-day TTL, a dedicated RU cap (blast-radius guard against the
+  anonymous endpoint's spoofable rate limit burning the $100/mo budget), `COSMOS_CONTAINER_PAGEVIEWS`.
+
+#### Traffic endpoint + funnel (`feat/v4.4-traffic-endpoint`, `feat/v4.4-funnel-and-destub`)
+- `GET /api/manage/traffic?range=today|7d|30d` — owner/support, same auth/rate-limit conventions
+  as `manage/metrics`. Aggregation logic in `api/shared/trafficAggregate.js` (pure, unit-tested).
+  A legacy pageview doc with no `eventType` field counts as a view in every aggregate (mandatory
+  regression — all pre-v4.4.0 production data has no `eventType`).
+- Funnel block: quizzes sent → notifications delivered → rostered opens → responses submitted,
+  with `openRate`/`completionRate`. Roster resolution is per-class, in-partition
+  (`api/shared/resolveApprovedDeviceIds.js`) — never a cross-partition scan. Legacy quizzes (sent
+  before v4.4.0, no push-count fields) are excluded from denominators, never coerced to 0.
+- `api/sendNotification.js` now persists `pushSuccessCount`/`pushFailCount` on the quiz doc at
+  send time (both the manual and scheduled-send paths). The write is advisory — same semantics
+  as `confidenceResponseCount` — since the pushes have already gone out by the time it runs.
+- `api/metrics.js`: `usageGrowth`/`engagement.completionRate` are now real Cosmos aggregates
+  (shared query helper `api/shared/rangeQuizStats.js`, reused by the traffic funnel so the two
+  endpoints can't drift on what "demo-excluded, legacy-excluded" means). The single top-level
+  `stubbed: true` is replaced with per-group flags; `systemHealth`/`security`/`spending` remain
+  fully stubbed (App Insights wiring stays out of scope).
+
+#### PWA-install tracking (`feat/v4.4-pwa-install-tracking`)
+- `usePwaInstallTracking()` registers one app-level `window.addEventListener('appinstalled', …)`
+  (separate from `usePwaInstall`'s own UI-state listener, which only mounts where `InstallButton`
+  renders) so an install triggered from the browser's own UI on any route gets counted.
+
+#### Admin Traffic dashboard (`feat/v4.4-admin-traffic-ui`)
+- `admin/src/pages/Traffic.jsx` — range picker, stat tiles, funnel strip, top-pages/daily bar
+  rows, audience/device/browser breakdowns. No chart library, matches `Monitoring.jsx`'s idiom.
+
+### New endpoints
+- `GET /api/manage/traffic?range=today|7d|30d` — traffic analytics + funnel (owner/support).
+
+### Data model additions
+- `pageviews`: formalised (was an unmanaged, self-created container) — added `eventType`
+  (`'view'|'pwa_install'`) and optional `quizId`. `page` now server-bucketed through the
+  allowlist; student-route (`/quiz`) docs never carry browser-fingerprint fields.
+- `quizzes`: optional `pushSuccessCount`/`pushFailCount` (int) — additive, advisory, set at send
+  time.
+
+### Testing
+- 345/345 unit tests pass (35 suites). New: `pageView.test.js`, `pageViewAllowlist.test.js`
+  (incl. the mandatory allowlist-coupling test against `src/App.jsx`'s real route table),
+  `trafficAggregate.test.js`, `rangeQuizStats.test.js`, `resolveApprovedDeviceIds.test.js`,
+  `usePageView.test.js`; extended `sendNotification.test.js` (advisory-counter regression) and
+  `metrics.test.js` (per-group stubbed flags).
+- Integration tests written (`tests/integration/api/v440-traffic.test.js`, 14 cases incl. the
+  required cross-tenant negative test and a support-role read-access test) but not run in the
+  build session — no live `func start` + test Cosmos available. See CLAUDE.md Known issues.
+
 ## [v4.2.0] — Guided onboarding & progressive disclosure (on `release/v4.2-onboarding`)
 
 An optional profile (subjects, year levels, class count, registration status) collected via a
