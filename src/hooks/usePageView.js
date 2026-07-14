@@ -67,3 +67,18 @@ export function usePageView() {
     sendPageViewBeacon(buildPageViewPayload({ pathname: location.pathname, search: location.search }))
   }, [location.pathname, location.search])
 }
+
+// App-level 'appinstalled' listener — separate from usePwaInstall's own listener (which only
+// tracks UI state and only mounts where InstallButton renders, e.g. Home/JoinClass). This one
+// is mounted once for the whole app so an install triggered from the browser's own UI on any
+// other route still gets counted. Reuses buildPageViewPayload/sendPageViewBeacon so the beacon
+// shape can never drift between the route-change beacon and this one.
+export function usePwaInstallTracking() {
+  useEffect(() => {
+    function onAppInstalled() {
+      sendPageViewBeacon(buildPageViewPayload({ pathname: window.location.pathname, eventType: 'pwa_install' }))
+    }
+    window.addEventListener('appinstalled', onAppInstalled)
+    return () => window.removeEventListener('appinstalled', onAppInstalled)
+  }, [])
+}
