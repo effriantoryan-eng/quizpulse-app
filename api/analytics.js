@@ -315,6 +315,12 @@ app.http('classAnalytics', {
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
 
+      // Bundled debt fix (v4.3.0 §5.8) — this endpoint had no rate limit; mirrors the main
+      // analytics endpoint's 60/min (line ~187).
+      if (!rateLimit(`class-analytics:${getClientIp(request)}`, 60, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
       // Ownership check: teacher must own the class
       const { resources: classMatches } = await classesContainer.items.query({
         query: 'SELECT * FROM c WHERE c.id = @id',

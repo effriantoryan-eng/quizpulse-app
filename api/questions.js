@@ -336,6 +336,12 @@ app.http('questionById', {
           if (!ALLOWED_VISIBILITY.includes(visibility)) {
             return respond(400, { error: `visibility must be one of: ${ALLOWED_VISIBILITY.join(', ')}` }, teacherId);
           }
+          // v4.3.0: AI-generated questions can't be shared to the community bank yet — locked
+          // 'private' at materialisation (api/generationDrafts.js), enforced again here so a
+          // direct PUT can't route around that lock.
+          if (existing.generatedBy === 'ai' && visibility !== existing.visibility) {
+            return respond(400, { error: "AI-created questions can't be shared to the community bank yet" }, teacherId);
+          }
           // Enforce 500 public questions per teacher when publishing to public
           if (visibility === 'public' && existing.visibility !== 'public') {
             const { resources: pubCount } = await container.items.query({

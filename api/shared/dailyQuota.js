@@ -31,10 +31,25 @@ function todayDateKey() {
 
 async function checkAndIncrRegenQuota(teachersContainer, teacherId, max) {
   const field = `quotaRegen_${todayDateKey()}`;
-  const { resource: teacherDoc } = await teachersContainer.item(teacherId, teacherId).read();
+  let teacherDoc = null;
+  try {
+    const { resource } = await teachersContainer.item(teacherId, teacherId).read();
+    teacherDoc = resource || null;
+  } catch (err) {
+    if (err.code !== 404) throw err;
+  }
   const current = (teacherDoc && teacherDoc[field]) || 0;
   if (current >= max) return false;
-  await teachersContainer.item(teacherId, teacherId).patch([{ op: 'incr', path: `/${field}`, value: 1 }]);
+
+  // patch requires an existing document — a teacher doc can be legitimately absent (e.g. a
+  // pre-onboarding account in a test/dev context). Advisory counter: tolerate a missing doc by
+  // simply not tracking the count rather than failing the caller's whole request, same
+  // non-fatal-counter convention as confidenceResponseCount elsewhere in this codebase.
+  try {
+    await teachersContainer.item(teacherId, teacherId).patch([{ op: 'incr', path: `/${field}`, value: 1 }]);
+  } catch (err) {
+    if (err.code !== 404) throw err;
+  }
   return true;
 }
 

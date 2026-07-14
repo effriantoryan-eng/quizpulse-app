@@ -24,8 +24,10 @@ const CONFIDENT_VALUES = new Set(['sure', 'pretty_sure']);
 // the two are directly comparable in the UI. Answer-level, not response-doc-level (matches the
 // seed's units) — a 5-question quiz contributes 5 answers per student, not 1.
 async function aggregateSchoolTopic(teacherId, topic) {
+  // NOT IS_DEFINED(c.parentQuizId) — v4.3.0 E3 spaced-repeat clones are excluded from population
+  // benchmarking (§5.5): repeat answers on the same content would skew "you vs norm".
   const { resources: quizzes } = await quizzesContainer.items.query({
-    query: `SELECT c.id, c.questionIds FROM c WHERE c.teacherId = @tid AND c.topicTag = @topic AND c.status = 'sent' AND ${EXCLUDE_DEMO_FRAGMENT}`,
+    query: `SELECT c.id, c.questionIds FROM c WHERE c.teacherId = @tid AND c.topicTag = @topic AND c.status = 'sent' AND NOT IS_DEFINED(c.parentQuizId) AND ${EXCLUDE_DEMO_FRAGMENT}`,
     parameters: [{ name: '@tid', value: teacherId }, { name: '@topic', value: topic }],
   }).fetchAll();
 
@@ -108,8 +110,14 @@ app.http('analyticsPopulation', {
         schoolId = teacherDoc?.schoolId || null;
       } catch (_) { /* teacher doc missing — schoolId stays null, "your school" will be all zeros */ }
 
+      // Bundled debt fix (v4.3.0 §5.8): only a real 404 means "no benchmark data yet" — any
+      // other Cosmos error (throttling, network) must surface as a genuine error state, not be
+      // silently swallowed into an empty/zero population page that looks like real data.
       const [populationResult, school] = await Promise.all([
-        populationContainer.item(topic, topic).read().catch(() => ({ resource: null })),
+        populationContainer.item(topic, topic).read().catch(err => {
+          if (err.code === 404) return { resource: null };
+          throw err;
+        }),
         aggregateSchoolTopic(teacherId, topic),
       ]);
 
