@@ -358,3 +358,73 @@ against `quizpulse-int-test-db`, per CLAUDE.md's Testing section — never the p
 - E2E walk (Playwright, real auth) — same "Requires creds" precedent as prior sprints.
 - `apstContent.js` verbatim-accuracy review against the AITSL/DET source docx — separate from
   code review, required before `v4.1.0-rc1` is tagged (see CLAUDE.md).
+
+## v4.3.0 — AI Quiz Generation (provider placeholder)
+
+Full report: `tests/reports/v4.3.0-report.html`. Unit + integration suite run together:
+`RUN_INTEGRATION=true npx jest --config jest.config.cjs tests/unit
+tests/integration/api/v4.3-source-upload.test.js tests/integration/api/v4.3-drafts.test.js`
+(func started against `quizpulse-int-test-db`, per CLAUDE.md's Testing section — never the
+production Cosmos). 457/457 pass (425 unit, 32 integration).
+
+### Unit tests (new files)
+
+| # | File | What is tested | Expected | Status |
+|---|---|---|---|---|
+| 1 | sourceChunker.test.js | `chunkPages`/`chunkText` — one chunk per short page, an overlong page splits without spanning pages, global char cap truncates, docx/txt paragraph grouping and hard-slicing of a huge paragraph | exact chunk boundaries, `truncated:true` when capped | ✅ PASS |
+| 2 | dailyQuota.test.js | `countCreatedToday`, `checkAndIncrRegenQuota` — allows/rejects at the max, tolerates a teacher doc with no counter field yet | exact counts, correct patch calls | ✅ PASS |
+| 3 | sniffFileKind.test.js | PDF/docx magic-byte detection, UTF-8 txt fallback, invalid-UTF-8 binary rejected | exact `kind` or `null` | ✅ PASS |
+| 4 | seededRandom.test.js | Same seed → same sequence; different seeds diverge; `seededShuffle` doesn't mutate input | deterministic output | ✅ PASS |
+| 5 | draftSchema.test.js | Question count bounds (3-15), option count/length, `correctIndex` range, sourceRef hallucination guard (chunk index ≥ chunkCount rejected), topicTag enum | exact valid/invalid per case | ✅ PASS |
+| 6 | llmProviderMock.test.js | Determinism (same sourceId → same draft); **hard constraint:** no generated string is an 8+ word verbatim run from real source text; every question is a complete sentence ending in "?"; distractors are unique; `InsufficientContentError` on <4 distinct terms | exact/boolean per case | ✅ PASS |
+| 7 | llmAdapter.test.js | `selectChunks` — range-first, even sampling under the 60k cap, spread not just a prefix; provider resolution defaults to mock; a real provider missing its env vars throws `MissingProviderKeyError`; structured success/error log lines | exact shape per case | ✅ PASS |
+| 8 | analyticsFollowUpTrigger.test.js | E1 trigger — incorrect ≥40% OR confident-incorrect ≥25%, both boundaries, zero-answer and null-fourCell no-ops | boolean per case | ✅ PASS |
+
+### Integration tests — `RUN_INTEGRATION=true npm run test:integration`
+
+`tests/integration/api/v4.3-source-upload.test.js` (9 cases) — real hand-built PDF/docx/txt
+fixtures through a live func host: unauthenticated 401, missing-attestation 400, valid uploads
+for all three formats return correct chunk/page metadata, scanned/too-short doc 400, >15MB 413,
+unrecognised binary 400, 11th upload in a day 429.
+
+`tests/integration/api/v4.3-drafts.test.js` (23 cases) — the full loop against a live func host:
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1-7 | `POST /api/generation/drafts` — 401, missing sourceId, questionCount bounds, out-of-bounds range, a valid draft with unreviewed questions, unknown sourceId treated as expired, 11th generation/day → 429 | exact statuses | ✅ PASS |
+| 8-10 | `GET`/`PUT /api/generation/drafts/{id}` — **cross-tenant negative test** (Teacher B → 404), invalid question shape → 400, valid edit marks reviewed | 404 / 400 / 200 | ✅ PASS |
+| 11-12 | Regenerate-question resets the tick; out-of-range index → 400 | exact behaviour | ✅ PASS |
+| 13-15 | Approve rejects while unreviewed; approving materialises N questions + 1 quiz then a second approve 400s; materialised questions locked to private (direct PUT to public → 400) | exact statuses | ✅ PASS |
+| 16-20 | `POST /api/quizzes/{id}/send` — **cross-tenant negative test**, >5 spacedRepeats → 400, sending now with 2 repeats creates exactly 2 clones carrying `parentQuizId`, re-sending an already-sent quiz → 400, **retry-idempotency test: a resent request creates zero duplicate clones** | exact statuses, exact clone counts | ✅ PASS |
+| 21-23 | `POST /api/generation/expand` — a quiz with no linked source → 400, **cross-tenant negative test**, a valid expand returns a new draft | exact statuses | ✅ PASS |
+
+### Manual verification (this session, dev-auth bypass — see `memory/project_local_qa_setup.md`)
+
+- Full browser walk against a live local func host: Build page CTA → GenerateQuiz (real PDF
+  upload) → mock-generated 4-question draft → ReviewDraft (ticked all 4) → Approve → bridge
+  navigated straight into SendQuiz with the schedule chips carried over (verified via
+  `window.history.state`) → sent to the demo class with 2 spaced repeats → "Quiz sent! 3 practice
+  repeats scheduled." Confirmed via func logs: the mock adapter's observability line fired, and
+  `classSize` on the sent quiz was correctly computed from the real class's `studentCount` (24,
+  not 0 — this was a real bug found and fixed during the session).
+- E1 expansion nudge: sent a second AI-generated quiz to the demo class, confirmed the
+  misconception hero card and 3 of 4 per-question cards crossed the real trigger thresholds from
+  actual simulated response data, clicked "Create follow-up practice", landed on a fresh
+  5-question draft. Zero browser console errors across the whole session.
+- 15MB multipart upload spike: verified locally that `request.formData()` receives a real 15MB
+  file intact with no truncation (Functions v4's documented large-field-truncation issue,
+  `azure-functions-nodejs-library` #206, was not observed locally). **Not verified against the
+  deployed SWA linked-backend proxy** — that requires a live deployment; see
+  `docs/azure/V430_CONTAINERS_SETUP.md` for the required pre-production check.
+
+### Deferred / scope cuts (not exercised in this build)
+
+- Results-list-level "Create follow-up practice" nudge (lazy evaluation across a teacher's 10
+  most recent closed lineage-bearing quizzes) — scope cut, see CLAUDE.md's AI quiz generation
+  section. The same action ships via the Analytics drill-down and misconception hero card.
+- Real-provider (`azureOpenai`/`anthropic`) end-to-end generation — no API key configured in this
+  session; both providers are structurally complete and unit-tested for the missing-key → 503
+  path only. `docs/azure/LLM_PROVIDER_SETUP.md`'s founder-authored smoke run is required before
+  any pilot activation.
+- E2E walk (Playwright, real auth) — same "Requires creds" precedent as prior sprints.
+- SWA linked-backend proxy verification for the 15MB upload endpoint (see above).

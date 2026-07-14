@@ -5,6 +5,8 @@ const { logRequest } = require('./logger');
 const { authenticateTeacher, extractBearer } = require('./auth');
 const { assertScope, ScopeError } = require('./shared/authz');
 const { isValidTopicTag } = require('./shared/topicTags');
+const { cloneIdForQuiz } = require('./shared/materializeAi');
+const { sendNotificationForQuiz } = require('./sendNotification');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -19,6 +21,7 @@ const teachersContainer = database.container(process.env.COSMOS_CONTAINER_TEACHE
 
 const MIN_QUIZ_DURATION_MS = 5 * 60 * 1000;     // Security limits table — Quiz min duration (closedAt), 5 min
 const MAX_PENDING_SCHEDULED = 50;                // Security limits table — Scheduled quizzes pending, 50 per teacher
+const MAX_SPACED_REPEATS = 5;                    // Security limits table — Spaced-repeat entries per action (E3)
 
 // GET /api/quizzes/{id}/questions — public, used by the student quiz-taking screen.
 // Returns question text/options only (never correctIndex) so the answer key isn't exposed
@@ -308,4 +311,180 @@ app.http('quizzes', {
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
   }
+});
+
+// POST /api/quizzes/{id}/send — the v4.3.0 send-transition endpoint. Every draft-status quiz
+// (AI-generated approvals, and per E3 any manual quiz that wants spaced repeats) goes through
+// SendQuiz, which calls this. Classes/duration are chosen here, exactly like any quiz always has
+// been — one send path for generated and manual quizzes (CEO review addendum §3.1/§5.1).
+app.http('sendQuizTransition', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  route: 'quizzes/{id}/send',
+  handler: async (request, context) => {
+    const start = Date.now();
+    const id = request.params.id;
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: 'quizzes/:id/send', method: 'POST', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const { teacherId } = auth;
+
+      if (!rateLimit(`quiz-send:${getClientIp(request)}`, 10, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      const { resources: matches } = await container.items.query({
+        query: 'SELECT * FROM c WHERE c.id = @id',
+        parameters: [{ name: '@id', value: id }],
+      }).fetchAll();
+      if (matches.length === 0) return respond(404, { error: 'Quiz not found' }, teacherId);
+      let quiz;
+      try {
+        quiz = assertScope(matches[0], { teacherId }, { mutate: true });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Quiz not found' }, teacherId);
+        throw err;
+      }
+
+      if (quiz.status !== 'draft') {
+        return respond(400, { error: 'This quiz has already been sent or scheduled' }, teacherId);
+      }
+
+      const body = await request.json().catch(() => null);
+      if (!body || typeof body !== 'object') return respond(400, { error: 'Request body must be a JSON object' }, teacherId);
+
+      const { classIds, durationMinutes, mode, scheduledFor, spacedRepeats } = body;
+      if (mode !== 'now' && mode !== 'schedule') {
+        return respond(400, { error: "mode must be 'now' or 'schedule'" }, teacherId);
+      }
+      const minutes = typeof durationMinutes === 'number' && Number.isFinite(durationMinutes) ? durationMinutes : null;
+      if (minutes === null || minutes * 60000 < MIN_QUIZ_DURATION_MS) {
+        return respond(400, { error: 'durationMinutes is required and must be at least 5 minutes' }, teacherId);
+      }
+      if (classIds !== undefined && !Array.isArray(classIds)) {
+        return respond(400, { error: 'classIds must be an array' }, teacherId);
+      }
+
+      let offsets = [];
+      if (spacedRepeats !== undefined && spacedRepeats !== null) {
+        if (!Array.isArray(spacedRepeats) || spacedRepeats.length > MAX_SPACED_REPEATS) {
+          return respond(400, { error: `spacedRepeats must be an array of at most ${MAX_SPACED_REPEATS} entries` }, teacherId);
+        }
+        if (spacedRepeats.some(d => !Number.isInteger(d) || d < 1 || d > 365)) {
+          return respond(400, { error: 'each spacedRepeats entry must be an integer number of days between 1 and 365' }, teacherId);
+        }
+        offsets = spacedRepeats;
+      }
+
+      const resolvedClassIds = Array.isArray(classIds) ? classIds.map(cid => String(cid).trim().slice(0, 100)) : [];
+
+      // Recompute isDemo + classSize from the classes actually chosen at send time — a
+      // draft-status AI quiz has no classIds until now. classSize is derived from the real class
+      // docs' studentCount server-side, never trusted from the client (the original POST
+      // /api/quizzes accepted a client-supplied classSize; this endpoint doesn't repeat that).
+      let isDemoQuiz = false;
+      let resolvedClassSize = 0;
+      if (resolvedClassIds.length > 0) {
+        const cParams = resolvedClassIds.map((cid, i) => ({ name: `@c${i}`, value: cid }));
+        const cList = cParams.map(p => p.name).join(', ');
+        const { resources: cls } = await classesContainer.items.query({
+          query: `SELECT c.id, c.isDemo, c.studentCount FROM c WHERE c.id IN (${cList})`,
+          parameters: cParams,
+        }).fetchAll();
+        isDemoQuiz = cls.some(c => c.isDemo === true);
+        resolvedClassSize = cls.reduce((sum, c) => sum + (c.studentCount || 0), 0);
+      }
+
+      // Anchor is computed BEFORE any writes so clones can be created first — the parent is
+      // marked sent/scheduled LAST (§3.8 idempotency: a retry after a partial failure re-attempts
+      // clone creates, which 409-tolerate on anything already written, then reaches the final
+      // parent write it never got to).
+      let anchorDate, sentAt = null, closedAt = null, scheduledForValue = null, newStatus;
+      if (mode === 'now') {
+        anchorDate = new Date();
+        sentAt = anchorDate.toISOString();
+        closedAt = new Date(anchorDate.getTime() + minutes * 60000).toISOString();
+        newStatus = 'sent';
+      } else {
+        if (typeof scheduledFor !== 'string' || isNaN(new Date(scheduledFor).getTime())) {
+          return respond(400, { error: 'scheduledFor is required and must be a valid date for scheduled sends' }, teacherId);
+        }
+        anchorDate = new Date(scheduledFor);
+        if (anchorDate.getTime() <= Date.now()) {
+          return respond(400, { error: 'scheduledFor must be in the future' }, teacherId);
+        }
+        scheduledForValue = scheduledFor;
+        newStatus = 'scheduled';
+
+        const { resources: pendingCount } = await container.items.query({
+          query: "SELECT VALUE COUNT(1) FROM c WHERE c.teacherId = @tid AND c.status = 'scheduled'",
+          parameters: [{ name: '@tid', value: teacherId }],
+        }).fetchAll();
+        // +1 for this quiz itself going scheduled, plus every clone about to be created — all of
+        // them count toward the same pending cap (E3).
+        if ((pendingCount[0] || 0) + 1 + offsets.length > MAX_PENDING_SCHEDULED) {
+          return respond(429, { error: `You can have at most ${MAX_PENDING_SCHEDULED} pending scheduled quizzes.` }, teacherId);
+        }
+      }
+
+      let clonesCreated = 0;
+      for (let i = 0; i < offsets.length; i++) {
+        const cloneScheduledFor = new Date(anchorDate.getTime() + offsets[i] * 86400000).toISOString();
+        const cloneDoc = {
+          id: cloneIdForQuiz(quiz.id, i),
+          teacherId,
+          name: quiz.name,
+          questionIds: quiz.questionIds,
+          classIds: resolvedClassIds,
+          classSize: resolvedClassSize,
+          status: 'scheduled',
+          sentAt: null,
+          closedAt: null,
+          scheduledFor: cloneScheduledFor,
+          durationMinutes: minutes,
+          isDemo: isDemoQuiz,
+          topicTag: quiz.topicTag || null,
+          schoolId: quiz.schoolId || null,
+          parentQuizId: quiz.id,
+          draftId: quiz.draftId || null,
+          sourceId: quiz.sourceId || null,
+          createdAt: new Date().toISOString(),
+        };
+        try {
+          await container.items.create(cloneDoc);
+          clonesCreated++;
+        } catch (err) {
+          if (err.code === 409) continue; // already created by a prior retry
+          throw err;
+        }
+      }
+
+      const updatedQuiz = {
+        ...quiz,
+        classIds: resolvedClassIds,
+        classSize: resolvedClassSize,
+        durationMinutes: minutes,
+        status: newStatus,
+        sentAt,
+        closedAt,
+        scheduledFor: scheduledForValue,
+        isDemo: isDemoQuiz,
+      };
+      await container.items.upsert(updatedQuiz);
+
+      if (mode === 'now') {
+        const result = await sendNotificationForQuiz(updatedQuiz, context);
+        if (result.error) context.warn(`send-transition push for quiz ${quiz.id} failed: ${result.error}`);
+      }
+
+      return respond(200, { quiz: updatedQuiz, clonesCreated }, teacherId);
+    } catch (err) {
+      context.error('sendQuizTransition error:', err.message);
+      return respond(500, { error: 'An unexpected error occurred' });
+    }
+  },
 });
