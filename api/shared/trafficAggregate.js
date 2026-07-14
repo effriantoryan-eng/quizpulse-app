@@ -3,6 +3,7 @@
 // functions do the math.
 
 const ALLOWED_RANGES = ['today', '7d', '30d'];
+const RANGE_DAYS = { today: 1, '7d': 7, '30d': 30 };
 
 // UTC start-of-window for a range. 'today' = UTC midnight of the current day; '7d'/'30d' are
 // rolling windows (now minus N days) — there is no history/trend requirement that needs a fixed
@@ -124,8 +125,22 @@ function aggregateTraffic(docs) {
   };
 }
 
+// Pure funnel-rate math — zero-division never produces NaN, it produces null (no meaningful
+// rate to show yet). Counts pass through unchanged so the caller doesn't need two objects.
+function computeFunnelRates({ quizzesSent, notificationsSent, quizOpens, responsesSubmitted }) {
+  return {
+    quizzesSent,
+    notificationsSent,
+    quizOpens,
+    responsesSubmitted,
+    openRate: notificationsSent > 0 ? round2((quizOpens / notificationsSent) * 100) : null,
+    completionRate: quizOpens > 0 ? round2((responsesSubmitted / quizOpens) * 100) : null,
+  };
+}
+
 module.exports = {
   ALLOWED_RANGES,
+  RANGE_DAYS,
   getRangeStart,
   isViewEvent,
   isPwaInstallEvent,
@@ -133,4 +148,5 @@ module.exports = {
   classifyDevice,
   classifyBrowser,
   aggregateTraffic,
+  computeFunnelRates,
 };

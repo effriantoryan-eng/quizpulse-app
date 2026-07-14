@@ -6,10 +6,9 @@
 const { buildStubbedMetrics } = require('../../../api/metrics');
 
 describe('buildStubbedMetrics', () => {
-  test('echoes the requested range and flags the response as stubbed', () => {
+  test('echoes the requested range', () => {
     const result = buildStubbedMetrics('7d');
     expect(result.range).toBe('7d');
-    expect(result.stubbed).toBe(true);
   });
 
   test('includes all five documented metric groups', () => {
@@ -19,5 +18,21 @@ describe('buildStubbedMetrics', () => {
     expect(result).toHaveProperty('engagement');
     expect(result).toHaveProperty('security');
     expect(result).toHaveProperty('spending');
+  });
+
+  // v4.4.0: a single top-level `stubbed` boolean can't represent a response where some groups
+  // are real and some aren't — each group now carries its own flag.
+  test('flags systemHealth/security/spending as stubbed, usageGrowth/engagement as not', () => {
+    const result = buildStubbedMetrics('today');
+    expect(result.systemHealth.stubbed).toBe(true);
+    expect(result.security.stubbed).toBe(true);
+    expect(result.spending.stubbed).toBe(true);
+    expect(result.usageGrowth.stubbed).toBe(false);
+    expect(result.engagement.stubbed).toBe(false);
+  });
+
+  test('has no top-level stubbed field', () => {
+    const result = buildStubbedMetrics('today');
+    expect(result).not.toHaveProperty('stubbed');
   });
 });
