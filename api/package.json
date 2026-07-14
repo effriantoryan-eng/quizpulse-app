@@ -13,7 +13,9 @@
     "fuse.js": "^7.4.2",
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",
+    "mammoth": "^1.12.0",
     "pdfkit": "^0.19.1",
+    "unpdf": "^1.6.2",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
