@@ -71,6 +71,20 @@ eng review complete, 2026-07-11) but not yet built — depends on v4.1.0 (APST) 
 the release-branch order in the sprint plan; both v4.1.0 and v4.3.0's Claude Code prompts live in
 `CC_PROMPTS_v420_v430.md`.
 
+**[PLANNED] v4.4.0 (Traffic Monitor)** is planned (2026-07-15, adopted from the demo repo
+`github.com/effriantoryan-eng/quizpulse`) but not yet built — prompt in
+`C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md`. **Zero dependencies on v4.1–v4.3; buildable in
+any gap.** Important context: the traffic WRITE path already exists and is live —
+`src/hooks/usePageView.js` (mounted in App.jsx) has been POSTing every route change to
+`api/pageView.js`, which writes to a self-created `pageviews` Cosmos container, since the
+baseline import. The write path has three defects the sprint fixes (visitor UUID stored under
+localStorage key `"undefined"`, runtime `createIfNotExists` + hardcoded container name, no TTL).
+The sprint adds the read side: `GET /api/manage/traffic` (owner/support), an admin-portal Traffic
+page, a notification→open→submit funnel, PWA-install tracking, real `pushSuccessCount`/
+`pushFailCount` on quiz docs, and de-stubs the Cosmos-answerable groups in `manage/metrics`
+(systemHealth/spending stay stubbed — App Insights wiring remains out of scope). No new paid
+Azure services.
+
 ---
 
 ## Tech stack
@@ -111,6 +125,7 @@ the release-branch order in the sprint plan; both v4.1.0 and v4.3.0's Claude Cod
 - Spike reference repo: `C:\Users\Ryan\quizpulse-pwa-test\` (validated Web Push — reference only, never merged)
 - [PLANNED] v4.0.0/v4.1.0 sprint plan: `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v400_v410.docx`
   — amended by `C:\Users\Ryan\Doc\Quizpulse\DESIGN_REVIEW_v400_v410_addendum.md` (addendum wins on conflict)
+- [PLANNED] v4.4.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (no .docx — the prompt file is the source of truth)
 - Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
   - `graphify-out/graph.json` — queryable JSON graph (697 nodes, 1091 edges)
   - `graphify-out/GRAPH_REPORT.md` — architecture report
@@ -185,6 +200,7 @@ main                          (production — tagged releases only)
     ├── release/v4.1-evidence   ← [PLANNED] cut after v4.0.0 on main; depends on v4.0.0 schema
     ├── release/v4.2-onboarding ← [CURRENT] cut from develop after v4.0.x; see feature branches below
     ├── release/v4.3-generation ← [PLANNED] cut after v4.1.0 on main; depends on v4.1.0
+    ├── release/v4.4-traffic    ← [PLANNED] cut from develop; NO dependencies — buildable in any gap
     └── hotfix/v1.0.1-description  ← from main when needed
 ```
 
@@ -218,6 +234,13 @@ SWA proxy and Functions v4 `request.formData()`), then `feat/v4.3-source-upload`
 folded in) lives in `CC_PROMPTS_v420_v430.md` — build from that file, not the raw
 `QuizPulse_Sprint_Plan_v420_v430.docx`, which carries a supersession notice.
 
+**[PLANNED] v4.4.0 feature branches** (`release/v4.4-traffic`, cut from `develop` — no
+version-order dependency): `feat/v4.4-pageview-hardening` (DO FIRST — fixes the inherited
+pageView write path), `feat/v4.4-traffic-endpoint`, `feat/v4.4-funnel-and-destub`,
+`feat/v4.4-pwa-install-tracking`, `feat/v4.4-admin-traffic-ui`, `feat/v4.4-tests`. Tag
+`v4.4.0-rc1` → tests pass → merge develop → merge main → tag `v4.4.0`. Full prompt:
+`CC_PROMPTS_v440.md`.
+
 ### Version numbering
 
 | Sprint | Version | Rationale |
@@ -232,6 +255,7 @@ folded in) lives in `CC_PROMPTS_v420_v430.md` — build from that file, not the 
 | 8 | v4.1.0 | APST evidence export — per-quiz VIT artefact + annual MyPD aggregate log (PDF) |
 | 9 | v4.2.0 | Guided onboarding & progressive disclosure — profile wizard, nine-key feature-intro engine, topic prefilter |
 | 10 | v4.3.0 | AI quiz generation (mock provider) — document upload, draft review, spaced repeats, teacher-mediated expansion |
+| 11 | v4.4.0 | Traffic monitor — page-view analytics + admin Traffic dashboard, quiz funnel, PWA-install + push-delivery tracking, metrics de-stub |
 
 ### Rules
 
@@ -295,6 +319,13 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
     follow-up expansion from misconceptions. Depends on v4.1.0 shipping first (release order) and
     v4.2.0's profile for topic pre-filtering. No real LLM key required — ships and tests entirely
     against a mock provider. Reviewed 2026-07-11 (CEO + eng + design).
+11. **[PLANNED] v4.4.0 — Traffic monitor.** Hardens the already-live page-view write path
+    (`usePageView` → `POST /api/pageView` → `pageviews` container), adds
+    `GET /api/manage/traffic` + an admin-portal Traffic page (uniques, sessions, top pages,
+    audience/device/browser splits), a notification→open→submit funnel, PWA-install tracking,
+    real push-delivery counts on quiz docs, and de-stubs the Cosmos-answerable `manage/metrics`
+    groups. No dependencies on v4.1–v4.3; no new paid services. Planned 2026-07-15; prompt in
+    `CC_PROMPTS_v440.md`.
 
 ---
 
@@ -338,6 +369,16 @@ attribution on old responses is accepted).
   cross-partition-scanned the transactional container on every Population page load. `GET
   /api/analytics/population` does a point-read per topic against this container instead. See
   `DESIGN_REVIEW_v400_v410_addendum.md` §E1.
+- **`pageviews`** **[CURRENT — pre-Sprint 1, UNMANAGED; formalized in v4.4.0]** (pk `/teacherId` —
+  the field actually holds the anonymous visitor device UUID, the name is historical) —
+  { id, page, teacherId, sessionId, referrer, userAgent, language, timezone, screenWidth,
+  screenHeight, visitedAt }. Written by `api/pageView.js` (anonymous, 60/min/IP, 4 KB cap) on
+  every SPA route change via `src/hooks/usePageView.js`. Came over in the baseline import from
+  the demo repo and self-creates via runtime `createIfNotExists` — the only container not
+  manually provisioned and the only one with no `COSMOS_CONTAINER_*` env var. v4.4.0 fixes both,
+  adds `eventType` (`'view'|'pwa_install'`), sets a 180-day default TTL, and adds the read side.
+  Env (v4.4.0): `COSMOS_CONTAINER_PAGEVIEWS`. Provisioning: `docs/azure/V440_CONTAINERS_SETUP.md`
+  (to be written in the sprint).
 
 ### Field additions to existing documents
 
@@ -350,6 +391,10 @@ attribution on old responses is accepted).
 - ~~[v4.0.0] `topicTag` + `schoolId` on quiz and response~~ — **DONE** (optional teacher dropdown +
   server-resolved schoolId at send time; both copied from quiz onto each response at submit time).
   See Data model above and Architecture decisions below.
+- [PLANNED — v4.4.0] `pushSuccessCount` + `pushFailCount` on quizzes — additive, set server-side
+  at send time by `sendNotificationForQuiz()` (both manual send and `scheduledQuizSend`; the demo
+  branch skips push and writes nothing). Feeds the real `pushDeliveryRate` in `manage/metrics`
+  and the funnel in `manage/traffic`.
 
 ---
 
@@ -717,6 +762,10 @@ nicety. No individually identifiable student data in any export; no server-side 
 | Profile subjects | 6 | v4.2.0 |
 | Profile year levels | 6 (values 7-12) | v4.2.0 |
 | Class shells per onboarding batch | 20 (shares the real-class cap) | v4.2.0 |
+| pageView beacon rate | 60 req/min/IP (already enforced pre-Sprint 1) | v4.4.0 |
+| pageView payload | 4 KB max (already enforced pre-Sprint 1) | v4.4.0 |
+| Traffic API calls/hr/admin | 60 | v4.4.0 |
+| pageviews retention (container TTL) | 180 days | v4.4.0 |
 
 ---
 
@@ -880,6 +929,8 @@ sprint's scope.
 | confidenceResponseCount counter (atomic Cosmos incr patch, api/responses.js + runSimulation.js) | [CURRENT] v4.2.0 code complete |
 | SendQuiz topic dropdown prefilter (profile-matched segment + zero-match fallback) | [CURRENT] v4.2.0 code complete |
 | AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats) | [PLANNED — v4.3.0] Design + eng reviewed 2026-07-11; depends on v4.1.0 |
+| Page-view beacon (usePageView → POST /api/pageView → pageviews container) | [CURRENT — pre-Sprint 1, unmanaged] Live since baseline import; hardened in v4.4.0 (see Known issues) |
+| Traffic monitor (GET /api/manage/traffic, admin Traffic page, funnel, PWA-install + push-delivery tracking, metrics de-stub) | [PLANNED — v4.4.0] Planned 2026-07-15; no dependencies; prompt in CC_PROMPTS_v440.md |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
@@ -964,6 +1015,17 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
       `ISSUER` is now an array accepting both forms; `getCallerScope` reads the `roles[]` array claim.
       Owner role is assigned to the **self-service-signup principal** (the account you actually sign
       in as), and the admin app reg must be added to the CIAM `SignUpSignIn` user flow.
+13. **The page-view beacon has been silently live (and slightly broken) since the baseline
+    import.** `src/hooks/usePageView.js` + `api/pageView.js` came over from the demo repo and
+    write to a `pageviews` container that self-creates via runtime `createIfNotExists` — no env
+    var, no provisioning doc, no TTL. Three defects: (a) the hook calls `getSessionId()` with
+    NO key, so the visitor UUID sits under the literal localStorage key `"undefined"` and does
+    NOT match the `quizpulse_device_id` UUID students use elsewhere — traffic can't be joined to
+    quiz activity; (b) the container grows unbounded; (c) the runtime `createIfNotExists` +
+    hardcoded container name is off-convention (every other container is manually provisioned
+    with a `COSMOS_CONTAINER_*` env var). All three are fixed by v4.4.0 Task 1
+    (`feat/v4.4-pageview-hardening`, see `CC_PROMPTS_v440.md`); until then the data is usable for
+    coarse counts but not funnels.
 
 ---
 
