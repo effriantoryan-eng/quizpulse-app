@@ -35,6 +35,12 @@ export const HUBS = [
       { label: 'Population', path: '/teacher/population' },
     ],
   },
+  {
+    id: 'evidence', label: 'Evidence', icon: 'evidence', path: '/teacher/evidence',
+    tabs: [
+      { label: 'VIT Evidence', path: '/teacher/evidence' },
+    ],
+  },
 ]
 
 function matches(pathname, p) {

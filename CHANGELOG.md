@@ -2,6 +2,57 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.1.0] — APST evidence export (on `release/v4.1-evidence`)
+
+A per-quiz VIT evidence PDF and an annual aggregate MyPD log PDF, turning existing quiz data
+(confidence + correctness) into professional-learning evidence against 18 of 37 APST descriptors.
+Built per `CC_PROMPTS_v410.md` as amended by `CEO_REVIEW_v420_v430_addendum.md` §4 (addendum wins
+on conflict). No breaking changes — the new "Evidence" nav hub is additive and doesn't change any
+existing route.
+
+### New features
+
+#### APST content module
+- `src/data/apstContent.js` (ESM) + `api/shared/apstContent.js` (CommonJS mirror): 18
+  evidenceable APST descriptors, `APST_DEFAULTS`, verbatim VTLM 2.0 alignment text, the two MyPD
+  reflection templates with `[PERSONALISE: ...]` gaps, and AERO citations — verbatim from AITSL/DET
+  source (`QuizPulse_VIT_Export_Research_Brief.docx`), reviewed for accuracy before this tag.
+
+#### Evidence route (`src/pages/teacher/Evidence.jsx`)
+- New top-level "Evidence" hub in `src/teacherNav.js`, route `/teacher/evidence`. Lists sent
+  quizzes with an inline two-screen export flow: Screen 1 (activity details, pre-populated,
+  editable APST descriptor checkboxes), Screen 2 (reflection templates, export blocked with an
+  inline warning while `[PERSONALISE:` remains in either field).
+- "Generate annual log" — an inline date-range picker with client-side domain-coverage preview,
+  downloads the aggregate PDF.
+
+#### PDF generation (`api/evidenceExport.js`, `api/evidenceAnnualLog.js`, `api/shared/pdfEvidence.js`)
+- `POST /api/evidence/export` — per-quiz PDF, 2 pages, reuses `api/analytics.js`'s
+  `loadQuizAnalytics`/`buildQuestionBreakdown` for ownership (404-on-mismatch) and cohort-level
+  correctness/confidence data. Server-side re-validates the personalisation gate (400 if
+  `[PERSONALISE:` remains).
+- `GET /api/evidence/annual-log?from=&to=` — aggregate PDF across the caller's own sent quizzes
+  in range (query-scoped, demo-excluded), server-validates the date range (end > start, ≤365 days).
+- Both endpoints rate-limited 10 req/hr/teacher (new Security limits row).
+- **Fixed during this sprint:** the shared footer renderer could trigger pdfkit auto-pagination
+  (text near the bottom margin wrapping past `page.height`) while a loop was iterating
+  `bufferedPageRange().count` — an infinite loop that hung the export endpoint forever with no
+  error. Fixed with `lineBreak: false` and a cached page count; regression-guarded by
+  `tests/unit/api/pdfEvidence.test.js`.
+
+#### Feature flag
+- `FEATURE_APST_EXPORT` flipped to `true` in `api/shared/features.js` — `apst_intro`/`mypd_intro`
+  (built in v4.2.0) are now eligible and verified to navigate to a working `/teacher/evidence`.
+
+### New endpoints
+- `POST /api/evidence/export` — per-quiz APST/VIT evidence PDF.
+- `GET /api/evidence/annual-log` — annual aggregate MyPD log PDF.
+
+### Tests
+- `tests/unit/api/evidenceHelpers.test.js`, `tests/unit/api/pdfEvidence.test.js`,
+  `tests/integration/api/v4-evidence.test.js` — see `SPRINT_TEST_CHECKLIST.md`'s v4.1.0 section
+  and `tests/reports/v4.1.0-report.html`.
+
 ## [v4.2.0] — Guided onboarding & progressive disclosure (on `release/v4.2-onboarding`)
 
 An optional profile (subjects, year levels, class count, registration status) collected via a
