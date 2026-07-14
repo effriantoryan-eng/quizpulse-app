@@ -75,10 +75,13 @@ element per page render), and a topic-dropdown prefilter on Send. Built per
 convention as v4.0.0's design-review addendum). No breaking changes, no deploy blockers — every
 new field is additive and legacy teacher docs are treated as empty.
 
-**[PLANNED] v4.3.0 (AI Quiz Generation, provider placeholder)** is reviewed and locked (design +
-eng review complete, 2026-07-11) but not yet built — depends on v4.1.0 (APST) shipping first per
-the release-branch order in the sprint plan; both v4.1.0 and v4.3.0's Claude Code prompts live in
-`CC_PROMPTS_v420_v430.md`.
+**v4.3.0 (AI Quiz Generation, provider placeholder) is [CURRENT] — code complete on
+`release/v4.3-generation`, not yet merged to main/deployed.** Document upload (PDF/docx/txt,
+15MB cap) → mock-LLM draft (default provider, no API key required) → teacher review/approve →
+send through the normal SendQuiz flow, plus spaced repeats for ANY quiz and misconception-
+triggered follow-up practice. Built per `CC_PROMPTS_v420_v430.md` as amended by
+`CEO_REVIEW_v420_v430_addendum.md` (addendum wins on conflict). No real LLM key required or used
+in this build — `FEATURE_AI_GENERATION` is flipped true, but `LLM_PROVIDER` defaults to `mock`.
 
 **v4.4.0 (Traffic Monitor) is [CURRENT] — code complete on `release/v4.4-traffic`, not yet merged
 to main/deployed.** Adopted from the demo repo (`github.com/effriantoryan-eng/quizpulse`); prompt
@@ -217,7 +220,7 @@ main                          (production — tagged releases only)
     ├── release/v4.0-analytics  ← [PLANNED] cut after v3.3.0 on main; see feature branches below
     ├── release/v4.1-evidence   ← [CURRENT] cut from develop after v4.0.x; see feature branches below
     ├── release/v4.2-onboarding ← [CURRENT] cut from develop after v4.0.x; see feature branches below
-    ├── release/v4.3-generation ← [PLANNED] cut after v4.1.0 on main; depends on v4.1.0
+    ├── release/v4.3-generation ← [CURRENT] cut from develop; see feature branches below
     ├── release/v4.4-traffic    ← [PLANNED] cut from develop; NO dependencies — buildable in any gap
     └── hotfix/v1.0.1-description  ← from main when needed
 ```
@@ -246,13 +249,21 @@ branch per task per the prompt — not the v4.0.0 single-branch deviation):
 `feat/v4.2-topic-prefilter`, `feat/v4.2-tests`. Tag `v4.2.0-rc1` → tests pass → merge develop →
 merge main → tag `v4.2.0`.
 
-**[PLANNED] v4.3.0 feature branches** (`release/v4.3-generation`, after v4.1.0 merges to main):
-a spike task before `feat/v4.3-source-upload` (validates 15MB multipart upload through both the
-SWA proxy and Functions v4 `request.formData()`), then `feat/v4.3-source-upload`,
-`feat/v4.3-llm-adapter`, `feat/v4.3-draft-endpoints`, `feat/v4.3-review-ui`,
-`feat/v4.3-expansion`, `feat/v4.3-tests`. Full prompt (with all CEO/eng/design review amendments
-folded in) lives in `CC_PROMPTS_v420_v430.md` — build from that file, not the raw
-`QuizPulse_Sprint_Plan_v420_v430.docx`, which carries a supersession notice.
+**v4.3.0 implementation note:** built directly on `release/v4.3-generation` as five staged
+commits (source upload/extraction/chunking; LLM adapter + draft schema + mock provider; draft
+endpoints + approve + expand + send-transition; GenerateQuiz/ReviewDraft UI; misconception
+expansion nudges), each verified end-to-end against a live local func host before the next
+started — same pragmatic single-branch deviation v4.0.0/v4.1.0 used. The 15MB multipart spike
+was verified locally (`request.formData()` handled a real 15MB file without truncation); the SWA
+linked-backend proxy path still needs verification against a live deployment before this ships
+to production — see `docs/azure/V430_CONTAINERS_SETUP.md`. Full prompt (with all CEO/eng/design
+review amendments folded in) lives in `CC_PROMPTS_v420_v430.md` — built from that file, not the
+raw `QuizPulse_Sprint_Plan_v420_v430.docx`, which carries a supersession notice. One scope cut
+from the addendum's full spec: the Results-list-level "Create follow-up practice" nudge (lazy
+evaluation across the 10 most recent closed lineage-bearing quizzes) was not built — the same
+capability exists in the Analytics drill-down (built) and the misconception hero card (built);
+the list-level surface is a secondary entry point to the identical action, deferred to a
+follow-up rather than adding to an already-large sprint.
 
 **v4.4.0 feature branches** (`release/v4.4-traffic`, cut from `develop` — no version-order
 dependency, one branch per task, all merged): `feat/v4.4-pageview-hardening` (fixed the
@@ -335,11 +346,11 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
    `release/v4.2-onboarding`, not yet deployed] Optional teacher profile via a 5-step wizard,
    nine-key server-eligibility feature-intro engine, topic-dropdown prefilter on Send. Reviewed
    2026-07-11 (CEO + eng + design).
-10. **[PLANNED] v4.3.0 — AI quiz generation (provider placeholder).** Document upload → mock-LLM
-    draft quiz → teacher review/approve, spaced-repeat scheduling for any quiz, teacher-mediated
-    follow-up expansion from misconceptions. Depends on v4.1.0 shipping first (release order) and
-    v4.2.0's profile for topic pre-filtering. No real LLM key required — ships and tests entirely
-    against a mock provider. Reviewed 2026-07-11 (CEO + eng + design).
+10. **v4.3.0 — AI quiz generation (provider placeholder).** [CURRENT — code complete on
+    `release/v4.3-generation`, not yet deployed] Document upload → mock-LLM draft quiz → teacher
+    review/approve, spaced-repeat scheduling for any quiz, teacher-mediated follow-up expansion
+    from misconceptions. No real LLM key required — ships and tests entirely against a mock
+    provider. Reviewed 2026-07-11 (CEO + eng + design), implemented 2026-07-15.
 11. **v4.4.0 — Traffic monitor.** [CURRENT — code complete on `release/v4.4-traffic`, not yet
     deployed] Hardened the already-live page-view write path (`usePageView` → `POST /api/pageView`
     → `pageviews` container), added `GET /api/manage/traffic` + an admin-portal Traffic page
@@ -406,6 +417,18 @@ attribution on old responses is accepted).
   `createIfNotExists` — v4.4.0 removed that (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`, matching
   every other container's manual-provisioning convention) and added a 180-day TTL + a dedicated
   RU cap. Env: `COSMOS_CONTAINER_PAGEVIEWS`. Provisioning: `docs/azure/V440_CONTAINERS_SETUP.md`.
+- **`source_materials`** **[CURRENT — v4.3.0]** (pk `/teacherId`, 90-day TTL) — { id, teacherId,
+  kind: 'pdf'|'docx'|'txt', filename, pageCount (pdf only, else null), chunks: [{ index, page?,
+  text }], chunkCount, truncated, createdAt }. Written by `POST /api/generation/sources`. **The
+  original uploaded binary is never persisted** — only extracted text + chunk boundaries, per the
+  sprint's copyright/privacy constraint. Env: `COSMOS_CONTAINER_SOURCE_MATERIALS`. Provisioning:
+  `docs/azure/V430_CONTAINERS_SETUP.md`.
+- **`quiz_drafts`** **[CURRENT — v4.3.0]** (pk `/teacherId`, no TTL) — { id, teacherId, sourceId,
+  sourceKind, chunkPageMap ({chunkIndex: page|null}, snapshotted at creation), unitPlanId,
+  topicTag, range, provider, pagesUsed, questions: [{ text, options, correctIndex, sourceRef,
+  reviewed, topicTag? }], status: 'draft'|'approved', expandedFromQuizId?, createdAt, updatedAt }.
+  Written by `POST /api/generation/drafts` and `POST /api/generation/expand`. Env:
+  `COSMOS_CONTAINER_QUIZ_DRAFTS`. Provisioning: `docs/azure/V430_CONTAINERS_SETUP.md`.
 
 ### Field additions to existing documents
 
@@ -426,6 +449,17 @@ attribution on old responses is accepted).
   `manage/traffic`'s funnel and `manage/metrics`' `pushDeliveryRate` denominators, never coerced
   to 0 (would inflate rates past 100% for any range spanning the v4.4.0 deploy). Feeds the real
   `pushDeliveryRate` in `manage/metrics` and the funnel in `manage/traffic`.
+- ~~[v4.3.0] `generatedBy`, `sourceId`, `sourceRef`, `sourceRefLabel` on questions~~ — **DONE**.
+  Set only on AI-materialised questions (`generatedBy: 'ai'`); `visibility` is locked `'private'`
+  at materialisation and `api/questions.js`'s PUT rejects any attempt to change it. `sourceRef`
+  (chunk indexes) and `sourceRefLabel` (a resolved display string, e.g. "pages 34-36" or "section
+  3") are computed once at approve time from the draft's `chunkPageMap` snapshot — Analytics'
+  drill-down (3s-polled) never needs a source read to show a citation.
+- ~~[v4.3.0] `sourceId`, `draftId`, `parentQuizId` on quizzes~~ — **DONE**. `sourceId`/`draftId`
+  link an approved AI quiz back to its source/draft (lineage — see Architecture decisions below).
+  `parentQuizId` marks a spaced-repeat clone (E3) and points at the quiz it was cloned from;
+  clones are excluded from population-benchmark aggregation and from `introEligibility.js`'s
+  milestone counts (`NOT IS_DEFINED(c.parentQuizId)`) so a send + N repeats can't inflate them.
 
 ---
 
@@ -878,6 +912,94 @@ on demand with no server-side storage.
   `mypd_intro` (already fully built in v4.2.0: copy, eligibility gating, `route: '/teacher/evidence'`)
   are eligible again and verified to navigate to a real, working page.
 
+### AI quiz generation [CURRENT — v4.3.0]
+
+Document upload → mock-LLM draft → teacher review/approve → send through the normal SendQuiz
+flow, plus spaced repeats for any quiz (E3) and misconception-triggered follow-up practice (E1).
+`FEATURE_AI_GENERATION` is `true`; `LLM_PROVIDER` defaults to `mock` — **no real LLM API key is
+required or used anywhere in this build.** See `docs/azure/LLM_PROVIDER_SETUP.md` before ever
+switching to a real provider — it has a required activation checklist (quota semantics, a
+founder-authored smoke run, Key Vault naming).
+
+- **Copyright/privacy posture (hard constraints, not preferences).** The original uploaded
+  document is NEVER persisted — `api/generationSources.js` extracts text + chunk boundaries into
+  `source_materials` and discards the binary. The mock provider (`api/shared/llmProviders/mock.js`)
+  builds questions entirely from single short extracted terms dropped into a fixed template — it
+  never concatenates consecutive source words, so it structurally cannot reproduce an 8-word
+  verbatim source run (tested: `tests/unit/api/llmProviderMock.test.js`). Real providers' system
+  prompt (`api/shared/llmPrompts.js`) instructs "write in your own words" and treats the source
+  text as untrusted, injection-hardened data.
+- **Upload pipeline:** `POST /api/generation/sources` — multipart (`request.formData()`,
+  verified locally against a real 15MB file with no truncation; the SWA linked-backend proxy path
+  still needs live-deploy verification, see `docs/azure/V430_CONTAINERS_SETUP.md`), MIME-sniffed
+  by magic bytes (`api/shared/sniffFileKind.js`; txt falls back to a UTF-8 validity check),
+  extracted via `unpdf` (PDF, NOT `pdf-parse` — unmaintained) and `mammoth` (docx) inside a ~10s
+  timeout box, with named 400 failure paths (scanned/too-short, too-many-pages, unreadable/
+  encrypted). `api/shared/sourceChunker.js` splits into chunks (the universal `sourceRef`
+  addressing unit for every format — PDFs additionally carry a chunk→page map; docx/txt have no
+  real pages, so `sourceRef` is chunk-only there too, per the addendum's "chunk, not page" rule).
+- **LLM adapter (`api/shared/llmAdapter.js`)** is the one entry point every generation/
+  regeneration/expand call goes through: resolves the provider (`mock`/`azureOpenai`/`anthropic`),
+  applies an identical ~60,000-char input cap across all of them (mock included, so behaviour
+  never diverges at activation), does range-first-then-even-sampling chunk selection, and logs one
+  structured `{sourceId, provider, chunkChars, questionCount, durationMs, outcome, rejectReason?}`
+  line via `context.log`/`context.error` per call. A real provider missing its required env vars
+  (`LLM_API_KEY` + `LLM_ENDPOINT` + `LLM_MODEL` for Azure OpenAI; `LLM_API_KEY` for Anthropic)
+  throws `MissingProviderKeyError`, mapped to 503 by the caller.
+- **`api/shared/draftSchema.js`** is the single validator for BOTH raw adapter output (invalid →
+  502, never stored) and teacher edits via `PUT /api/generation/drafts/{id}` (invalid → 400) — one
+  set of rules, two call sites, so validation can never drift between "what the LLM produced" and
+  "what a human edited it into". Includes the hallucination guard: `sourceRef` chunk indexes must
+  be `< chunkCount` for the real source.
+- **Approve/send contract.** Approve materialises N question docs (`generatedBy: 'ai'`,
+  `visibility` locked `'private'`, `sourceRef`/`sourceRefLabel` resolved once from the draft's
+  `chunkPageMap` snapshot) + ONE draft-status quiz (carrying `draftId`/`sourceId` for lineage) —
+  the teacher sends it through the **same** `POST /api/quizzes/{id}/send` transition endpoint
+  every manual quiz now also uses (`SendQuiz.jsx` creates a manual quiz as `status: 'draft'` first,
+  then transitions it — one send path, not two). Both materialisation and clone creation use
+  deterministic ids (`api/shared/materializeAi.js`) + sequential 409-tolerant creates, with the
+  parent/draft marked approved/sent LAST, so a retried request after a partial failure is
+  idempotent by construction (verified: `tests/integration/api/v4.3-drafts.test.js`'s retry test
+  asserts zero duplicate clones).
+- **E3 — spaced repeats for any quiz.** `POST /api/quizzes/{id}/send` accepts an optional
+  `spacedRepeats` array (day offsets, max 5); it computes the anchor (now's timestamp, or
+  `scheduledFor`) before any writes, creates the clones first, then marks the parent sent/
+  scheduled last. Each clone is its own quiz doc — the 1-response-per-student gate resets
+  naturally per clone, which IS the spaced-retrieval behaviour, no special-case code needed.
+  Clones carry `parentQuizId` and are excluded from population-benchmark aggregation
+  (`api/analyticsPopulation.js`'s `aggregateSchoolTopic`) and from `introEligibility.js`'s
+  milestone counts, so a single send with repeats can't inflate community/analytics/population
+  intro eligibility or skew "you vs norm".
+- **E1 — misconception-triggered expansion.** `Analytics.jsx` offers "Create follow-up practice"
+  (hero card) / "Revisit {sourceRefLabel}" (per-question) when a question's incorrect rate ≥40%
+  OR confident-but-incorrect rate ≥25% (two independent constants — CBI ⊆ incorrect made a single
+  "incorrect OR CBI ≥40%" condition collapse to one threshold) AND the quiz has a `sourceId`.
+  `POST /api/generation/expand { quizId, focusQuestionIds }` resolves lineage via the
+  **materialised questions' own `sourceRef`s** — the original draft doc is never required, so
+  draft cleanup can never kill the follow-up loop. Source liveness (the 90-day TTL) is checked
+  only when expand is actually clicked, never gating whether the button renders — an expired
+  source returns a plain "upload it again" message. **Scope cut from the full addendum spec:**
+  the Results-list-level nudge (lazy evaluation across a teacher's 10 most recent closed
+  lineage-bearing quizzes) was not built — the drill-down and hero card already expose the same
+  action; deferred as a follow-up rather than added to an already-large sprint.
+- **Quotas (`api/shared/dailyQuota.js`, one shared helper, per the "never copy-paste rate-limit
+  plumbing" rule)** — uploads and generations counted from `source_materials`/`quiz_drafts`
+  `createdAt` (partition-scoped); regenerations via an atomic Cosmos `incr` PATCH on a date-keyed
+  teacher-doc field (`quotaRegen_{yyyymmdd}`). **Found and fixed during this build:** that PATCH
+  requires an existing teacher document — a caller with no teacher doc yet (a real edge case in
+  test/dev contexts) crashed the whole regenerate-question call with a 500. Fixed to tolerate a
+  missing doc the same non-fatal way `confidenceResponseCount` already does elsewhere.
+- **`GenerateQuiz.jsx`/`ReviewDraft.jsx`.** Two-phase upload → configure screen with staged
+  pending copy ("Reading your document…" → "Writing questions…" → "Nearly there…", ~90s client
+  timeout). ReviewDraft gates Approve server-side on every question reviewed-or-edited (never a
+  client-claimed count) — regenerating a question resets its tick; deleting is disabled at 3
+  questions remaining (the schema minimum). Approving navigates straight into `SendQuiz.jsx` in
+  "quizId mode" with the chosen spaced-repeat schedule carried over via router state.
+- **Bundled debt fixes** (same-file edits, per the addendum): `classAnalytics` gained a rate
+  limit it was missing; `analyticsPopulation.js`'s population-container read no longer swallows
+  non-404 Cosmos errors into a fake empty benchmark page (only a real 404 means "no data yet");
+  `api/questions.js` rejects any attempt to change an AI-generated question's `visibility`.
+
 ---
 
 ## Security limits (enforce server-side)
@@ -933,6 +1055,16 @@ on demand with no server-side storage.
 | pageView payload | 4 KB max (already enforced pre-Sprint 1) | v4.4.0 |
 | Traffic API calls/hr/admin | 60 | v4.4.0 |
 | pageviews retention (container TTL) | 180 days | v4.4.0 |
+| Source upload max size | 15 MB | v4.3.0 |
+| Source upload max pages (PDF) | 200 | v4.3.0 |
+| Stored sources per teacher | 20 | v4.3.0 |
+| Source uploads per teacher/day | 10 | v4.3.0 |
+| Generations (drafts + expands) per teacher/day | 10 | v4.3.0 |
+| Regenerations per teacher/day | 20 | v4.3.0 |
+| Unreviewed (`status='draft'`) drafts per teacher | 50 | v4.3.0 |
+| Questions per draft | 3-15 | v4.3.0 |
+| Spaced-repeat entries per send action | 5 | v4.3.0 |
+| source_materials retention (container TTL) | 90 days | v4.3.0 |
 
 ---
 
@@ -1112,7 +1244,7 @@ dashboard, funnel strip, breakdowns). Live at
 | Feature-intro UI (FeatureIntroCard, PromoSlot one-promo-per-page, ProfileNudge) | [CURRENT] v4.2.0 code complete |
 | confidenceResponseCount counter (atomic Cosmos incr patch, api/responses.js + runSimulation.js) | [CURRENT] v4.2.0 code complete |
 | SendQuiz topic dropdown prefilter (profile-matched segment + zero-match fallback) | [CURRENT] v4.2.0 code complete |
-| AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats) | [PLANNED — v4.3.0] Design + eng reviewed 2026-07-11; depends on v4.1.0 |
+| AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats, expansion nudges) | [CURRENT] v4.3.0 code complete on release/v4.3-generation — not yet deployed |
 | Page-view beacon (usePageView → POST /api/pageView → pageviews container, route allowlist, student privacy stripping) | [CURRENT] v4.4.0 code complete — hardened + formalized |
 | Traffic monitor (GET /api/manage/traffic, admin Traffic page, notification funnel, PWA-install tracking, metrics de-stub) | [CURRENT] v4.4.0 code complete on release/v4.4-traffic — not yet deployed |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
