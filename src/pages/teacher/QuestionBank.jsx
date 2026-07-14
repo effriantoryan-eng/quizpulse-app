@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
+import AiBadge from '../../components/AiBadge'
 
 const TOPIC_COLORS = {
   Science: { bg: '#E1F5EE', color: '#085041' },
@@ -120,6 +121,7 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
         <div style={{ fontSize: '14px', marginBottom: '6px', lineHeight: '1.5' }}>{q.text}</div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color }}>{q.topic}</span>
+          {q.generatedBy === 'ai' && <AiBadge />}
           {q.yearLevel && <span style={{ fontSize: '11px', color: '#888' }}>Year {q.yearLevel}</span>}
           {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: 'var(--primary)' }}>▲ {q.upvoteCount}</span>}
           {q.usageCount > 0 && <span style={{ fontSize: '11px', color: '#aaa' }}>{q.usageCount} uses</span>}

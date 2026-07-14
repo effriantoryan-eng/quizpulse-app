@@ -382,17 +382,21 @@ app.http('sendQuizTransition', {
 
       const resolvedClassIds = Array.isArray(classIds) ? classIds.map(cid => String(cid).trim().slice(0, 100)) : [];
 
-      // Recompute isDemo from the classes actually chosen at send time — a draft-status AI quiz
-      // has no classIds until now.
+      // Recompute isDemo + classSize from the classes actually chosen at send time — a
+      // draft-status AI quiz has no classIds until now. classSize is derived from the real class
+      // docs' studentCount server-side, never trusted from the client (the original POST
+      // /api/quizzes accepted a client-supplied classSize; this endpoint doesn't repeat that).
       let isDemoQuiz = false;
+      let resolvedClassSize = 0;
       if (resolvedClassIds.length > 0) {
         const cParams = resolvedClassIds.map((cid, i) => ({ name: `@c${i}`, value: cid }));
         const cList = cParams.map(p => p.name).join(', ');
         const { resources: cls } = await classesContainer.items.query({
-          query: `SELECT c.id, c.isDemo FROM c WHERE c.id IN (${cList})`,
+          query: `SELECT c.id, c.isDemo, c.studentCount FROM c WHERE c.id IN (${cList})`,
           parameters: cParams,
         }).fetchAll();
         isDemoQuiz = cls.some(c => c.isDemo === true);
+        resolvedClassSize = cls.reduce((sum, c) => sum + (c.studentCount || 0), 0);
       }
 
       // Anchor is computed BEFORE any writes so clones can be created first — the parent is
@@ -436,7 +440,7 @@ app.http('sendQuizTransition', {
           name: quiz.name,
           questionIds: quiz.questionIds,
           classIds: resolvedClassIds,
-          classSize: quiz.classSize || 0,
+          classSize: resolvedClassSize,
           status: 'scheduled',
           sentAt: null,
           closedAt: null,
@@ -462,7 +466,7 @@ app.http('sendQuizTransition', {
       const updatedQuiz = {
         ...quiz,
         classIds: resolvedClassIds,
-        classSize: resolvedClassIds.length > 0 ? (quiz.classSize || 0) : quiz.classSize,
+        classSize: resolvedClassSize,
         durationMinutes: minutes,
         status: newStatus,
         sentAt,
