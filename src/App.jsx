@@ -27,7 +27,7 @@ import TakeQuiz from './pages/student/TakeQuiz'
 import PendingRequests from './pages/teacher/PendingRequests'
 import ClassRoster from './pages/teacher/ClassRoster'
 import ClassSettings from './pages/teacher/ClassSettings'
-import { usePageView } from './hooks/usePageView'
+import { usePageView, usePwaInstallTracking } from './hooks/usePageView'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
 import SWUpdateBanner from './components/SWUpdateBanner'
 import IosInstallBanner from './components/IosInstallBanner'
@@ -87,6 +87,7 @@ const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/onboarding/profile', '/qui
 
 function AppRoutes() {
   usePageView()
+  usePwaInstallTracking()
   useDocumentTitle()
   const { pathname } = useLocation()
   const hideSidebar = FULL_WIDTH_ROUTES.some(p => pathname === p || pathname.startsWith(p + '/'))

@@ -24,14 +24,14 @@ function routedContainer(routes) {
 }
 
 describe('computeEligibleIntros', () => {
-  test('a brand-new teacher (no classes, no quizzes) is only eligible for demo_intro', async () => {
+  test('a brand-new teacher (no classes, no quizzes) is eligible for demo_intro plus the flag-gated APST cards (FEATURE_APST_EXPORT is true as of v4.1.0; ai_generation_intro stays dark)', async () => {
     const result = await computeEligibleIntros({
       teacherId: 't1',
       teacher: {},
       classesContainer: countContainer(0),
       quizzesContainer: countContainer(0),
     });
-    expect(result).toEqual(['demo_intro']);
+    expect(result).toEqual(['demo_intro', 'apst_intro', 'mypd_intro']);
   });
 
   test('demo_intro is NOT suppressed by empty class shells (studentCount 0)', async () => {
@@ -78,15 +78,15 @@ describe('computeEligibleIntros', () => {
     expect(queried).toBe(false);
   });
 
-  test('apst_intro/mypd_intro/ai_generation_intro never appear while their flags are off', async () => {
+  test('ai_generation_intro never appears while its flag is off; apst_intro/mypd_intro do (FEATURE_APST_EXPORT flipped true in v4.1.0)', async () => {
     const result = await computeEligibleIntros({
       teacherId: 't1',
       teacher: {},
-      classesContainer: countContainer(1), // suppress demo_intro to isolate the flag-dark keys
+      classesContainer: countContainer(1), // suppress demo_intro to isolate the flag-gated keys
       quizzesContainer: countContainer(0),
     });
-    expect(result).not.toContain('apst_intro');
-    expect(result).not.toContain('mypd_intro');
+    expect(result).toContain('apst_intro');
+    expect(result).toContain('mypd_intro');
     expect(result).not.toContain('ai_generation_intro');
   });
 

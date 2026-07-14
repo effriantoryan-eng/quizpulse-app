@@ -80,19 +80,24 @@ eng review complete, 2026-07-11) but not yet built — depends on v4.1.0 (APST) 
 the release-branch order in the sprint plan; both v4.1.0 and v4.3.0's Claude Code prompts live in
 `CC_PROMPTS_v420_v430.md`.
 
-**[PLANNED] v4.4.0 (Traffic Monitor)** is planned (2026-07-15, adopted from the demo repo
-`github.com/effriantoryan-eng/quizpulse`) but not yet built — prompt in
-`C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md`. **Zero dependencies on v4.1–v4.3; buildable in
-any gap.** Important context: the traffic WRITE path already exists and is live —
-`src/hooks/usePageView.js` (mounted in App.jsx) has been POSTing every route change to
-`api/pageView.js`, which writes to a self-created `pageviews` Cosmos container, since the
-baseline import. The write path has three defects the sprint fixes (visitor UUID stored under
-localStorage key `"undefined"`, runtime `createIfNotExists` + hardcoded container name, no TTL).
-The sprint adds the read side: `GET /api/manage/traffic` (owner/support), an admin-portal Traffic
-page, a notification→open→submit funnel, PWA-install tracking, real `pushSuccessCount`/
-`pushFailCount` on quiz docs, and de-stubs the Cosmos-answerable groups in `manage/metrics`
-(systemHealth/spending stay stubbed — App Insights wiring remains out of scope). No new paid
-Azure services.
+**v4.4.0 (Traffic Monitor) is [CURRENT] — code complete on `release/v4.4-traffic`, not yet merged
+to main/deployed.** Adopted from the demo repo (`github.com/effriantoryan-eng/quizpulse`); prompt
+in `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (reviewed via `/review` + `/plan-eng-review`,
+10 findings folded in before the build). Zero dependencies on v4.1–v4.3. Hardens the traffic WRITE
+path that was already live (`src/hooks/usePageView.js` → `api/pageView.js` → a self-created
+`pageviews` Cosmos container, since the baseline import) — fixed the visitor-UUID key bug, the
+runtime `createIfNotExists`, and added a route allowlist, a student-privacy field-stripping rule,
+and `quizId` attribution. Adds the read side: `GET /api/manage/traffic` (owner/support, 60 req/hr),
+an admin-portal Traffic page, a notification→open→submit funnel (per-class in-partition roster
+resolution, legacy quizzes excluded from denominators rather than coerced to 0), PWA-install
+tracking from any route, real `pushSuccessCount`/`pushFailCount` on quiz docs (advisory write),
+and de-stubs `usageGrowth`/`engagement` in `manage/metrics` (`systemHealth`/`security`/`spending`
+stay stubbed — App Insights wiring remains out of scope). No new paid Azure services. 345/345
+unit tests pass; integration tests are written (`tests/integration/api/v440-traffic.test.js`) but
+not run in the build session — no live `func start` + test Cosmos available. **Deploy blocker:**
+the `pageviews` container's TTL + dedicated RU cap must be set manually before deploying the
+hardened API (it no longer self-creates the container) — see
+`docs/azure/V440_CONTAINERS_SETUP.md` and Known issues below.
 
 ---
 
@@ -138,7 +143,7 @@ Azure services.
   .docx above's v4.1.0 section, corrected (see that file's "Corrections from the raw .docx"), and
   folded together with `CEO_REVIEW_v420_v430_addendum.md` §4's amendment. Build from this file,
   not the raw .docx. Its APST/VTLM source text: `C:\Users\Ryan\Downloads\QuizPulse_VIT_Export_Research_Brief.docx`.
-- [PLANNED] v4.4.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (no .docx — the prompt file is the source of truth)
+- v4.4.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (no .docx — the prompt file is the source of truth)
 - Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
   - `graphify-out/graph.json` — queryable JSON graph (697 nodes, 1091 edges)
   - `graphify-out/GRAPH_REPORT.md` — architecture report
@@ -249,12 +254,12 @@ SWA proxy and Functions v4 `request.formData()`), then `feat/v4.3-source-upload`
 folded in) lives in `CC_PROMPTS_v420_v430.md` — build from that file, not the raw
 `QuizPulse_Sprint_Plan_v420_v430.docx`, which carries a supersession notice.
 
-**[PLANNED] v4.4.0 feature branches** (`release/v4.4-traffic`, cut from `develop` — no
-version-order dependency): `feat/v4.4-pageview-hardening` (DO FIRST — fixes the inherited
-pageView write path), `feat/v4.4-traffic-endpoint`, `feat/v4.4-funnel-and-destub`,
-`feat/v4.4-pwa-install-tracking`, `feat/v4.4-admin-traffic-ui`, `feat/v4.4-tests`. Tag
-`v4.4.0-rc1` → tests pass → merge develop → merge main → tag `v4.4.0`. Full prompt:
-`CC_PROMPTS_v440.md`.
+**v4.4.0 feature branches** (`release/v4.4-traffic`, cut from `develop` — no version-order
+dependency, one branch per task, all merged): `feat/v4.4-pageview-hardening` (fixed the
+inherited pageView write path), `feat/v4.4-traffic-endpoint`, `feat/v4.4-funnel-and-destub`,
+`feat/v4.4-pwa-install-tracking`, `feat/v4.4-admin-traffic-ui`, `feat/v4.4-tests` — all six
+merged into `release/v4.4-traffic`. Still pending: tag `v4.4.0-rc1` → merge develop → merge
+main → tag `v4.4.0`. Full prompt: `CC_PROMPTS_v440.md`.
 
 ### Version numbering
 
@@ -335,13 +340,13 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
     follow-up expansion from misconceptions. Depends on v4.1.0 shipping first (release order) and
     v4.2.0's profile for topic pre-filtering. No real LLM key required — ships and tests entirely
     against a mock provider. Reviewed 2026-07-11 (CEO + eng + design).
-11. **[PLANNED] v4.4.0 — Traffic monitor.** Hardens the already-live page-view write path
-    (`usePageView` → `POST /api/pageView` → `pageviews` container), adds
-    `GET /api/manage/traffic` + an admin-portal Traffic page (uniques, sessions, top pages,
-    audience/device/browser splits), a notification→open→submit funnel, PWA-install tracking,
-    real push-delivery counts on quiz docs, and de-stubs the Cosmos-answerable `manage/metrics`
-    groups. No dependencies on v4.1–v4.3; no new paid services. Planned 2026-07-15; prompt in
-    `CC_PROMPTS_v440.md`.
+11. **v4.4.0 — Traffic monitor.** [CURRENT — code complete on `release/v4.4-traffic`, not yet
+    deployed] Hardened the already-live page-view write path (`usePageView` → `POST /api/pageView`
+    → `pageviews` container), added `GET /api/manage/traffic` + an admin-portal Traffic page
+    (uniques, sessions, top pages, audience/device/browser splits), a notification→open→submit
+    funnel, PWA-install tracking, real push-delivery counts on quiz docs, and de-stubbed the
+    Cosmos-answerable `manage/metrics` groups. No dependencies on v4.1–v4.3; no new paid services.
+    Reviewed 2026-07-15 (`/review` + `/plan-eng-review`); prompt in `CC_PROMPTS_v440.md`.
 
 ---
 
@@ -385,16 +390,22 @@ attribution on old responses is accepted).
   cross-partition-scanned the transactional container on every Population page load. `GET
   /api/analytics/population` does a point-read per topic against this container instead. See
   `DESIGN_REVIEW_v400_v410_addendum.md` §E1.
-- **`pageviews`** **[CURRENT — pre-Sprint 1, UNMANAGED; formalized in v4.4.0]** (pk `/teacherId` —
-  the field actually holds the anonymous visitor device UUID, the name is historical) —
-  { id, page, teacherId, sessionId, referrer, userAgent, language, timezone, screenWidth,
-  screenHeight, visitedAt }. Written by `api/pageView.js` (anonymous, 60/min/IP, 4 KB cap) on
-  every SPA route change via `src/hooks/usePageView.js`. Came over in the baseline import from
-  the demo repo and self-creates via runtime `createIfNotExists` — the only container not
-  manually provisioned and the only one with no `COSMOS_CONTAINER_*` env var. v4.4.0 fixes both,
-  adds `eventType` (`'view'|'pwa_install'`), sets a 180-day default TTL, and adds the read side.
-  Env (v4.4.0): `COSMOS_CONTAINER_PAGEVIEWS`. Provisioning: `docs/azure/V440_CONTAINERS_SETUP.md`
-  (to be written in the sprint).
+- **`pageviews`** **[CURRENT — formalized in v4.4.0]** (pk `/teacherId` — the field actually
+  holds the anonymous visitor device UUID, the name is historical) —
+  { id, page, teacherId, sessionId, eventType, quizId?, referrer, userAgent, language, timezone,
+  screenWidth, screenHeight, visitedAt }. Written by `api/pageView.js` (anonymous, 60/min/IP,
+  4 KB cap) on every SPA route change via `src/hooks/usePageView.js`. `page` is bucketed through
+  `api/shared/pageViewAllowlist.js` server-side — an unrecognised value is stored as `'other'`,
+  never rejected. `eventType` (`'view'|'pwa_install'`, default `'view'`) added v4.4.0; a legacy
+  doc with no `eventType` field counts as `'view'` in every aggregate (mandatory regression,
+  tested). **Student privacy posture (v4.4.0):** on `/quiz`, `referrer`/`userAgent`/`language`/
+  `timezone`/`screenWidth`/`screenHeight` are always `null` — enforced server-side regardless of
+  what the client sends — and `quizId` (from the `?quizId=` query param) is the one extra field
+  carried, feeding the `manage/traffic` funnel's per-quiz open attribution. Came over in the
+  baseline import from the demo repo; the pre-v4.4.0 code self-created this container via runtime
+  `createIfNotExists` — v4.4.0 removed that (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`, matching
+  every other container's manual-provisioning convention) and added a 180-day TTL + a dedicated
+  RU cap. Env: `COSMOS_CONTAINER_PAGEVIEWS`. Provisioning: `docs/azure/V440_CONTAINERS_SETUP.md`.
 
 ### Field additions to existing documents
 
@@ -407,10 +418,14 @@ attribution on old responses is accepted).
 - ~~[v4.0.0] `topicTag` + `schoolId` on quiz and response~~ — **DONE** (optional teacher dropdown +
   server-resolved schoolId at send time; both copied from quiz onto each response at submit time).
   See Data model above and Architecture decisions below.
-- [PLANNED — v4.4.0] `pushSuccessCount` + `pushFailCount` on quizzes — additive, set server-side
-  at send time by `sendNotificationForQuiz()` (both manual send and `scheduledQuizSend`; the demo
-  branch skips push and writes nothing). Feeds the real `pushDeliveryRate` in `manage/metrics`
-  and the funnel in `manage/traffic`.
+- ~~[v4.4.0] `pushSuccessCount` + `pushFailCount` on quizzes~~ — **DONE** (additive, set
+  server-side at send time by `sendNotificationForQuiz()` — both manual send and
+  `scheduledQuizSend`; the demo branch skips push and writes nothing). The write is advisory
+  (try/catch, same semantics as `confidenceResponseCount`) — a persistence hiccup never fails
+  the send, since the pushes already went out. A legacy quiz with neither field is excluded from
+  `manage/traffic`'s funnel and `manage/metrics`' `pushDeliveryRate` denominators, never coerced
+  to 0 (would inflate rates past 100% for any range spanning the v4.4.0 deploy). Feeds the real
+  `pushDeliveryRate` in `manage/metrics` and the funnel in `manage/traffic`.
 
 ---
 
@@ -715,6 +730,90 @@ design-review addendum).
   combination) suppresses the "Your subjects" optgroup entirely rather than rendering an empty
   one; server-side enum validation in `api/shared/topicTags.js` is unchanged.
 
+### Traffic monitor [CURRENT — v4.4.0]
+
+Built on `release/v4.4-traffic` per `CC_PROMPTS_v440.md`, reviewed via `/review` (5 fixes) and
+`/plan-eng-review` (10 findings folded in before the build — the prompt file already reflects
+every amendment). Zero dependencies on v4.1–v4.3.
+
+- **The write path was inherited, not built from scratch.** `src/hooks/usePageView.js` +
+  `api/pageView.js` came over in the baseline import from the demo repo and had been silently
+  writing to a self-created `pageviews` container since day one. v4.4.0's first task hardens
+  that path (visitor UUID keyed under `quizpulse_device_id`, lazy Cosmos init from
+  `COSMOS_CONTAINER_PAGEVIEWS`, no more runtime `createIfNotExists`) before building anything new
+  on top of it. See the `pageviews` container entry in Data model above.
+- **Student privacy posture (load-bearing design decision, not an afterthought).** Unifying the
+  page-view visitor ID with `quizpulse_device_id` makes a student's browsing telemetry linkable
+  to their quiz identity — that's what makes the funnel below possible, but it also means
+  browser-fingerprint fields (userAgent, screen size, language, timezone, referrer) must never
+  ride along for a route students actually visit. `api/pageView.js` drops those five fields
+  whenever `page === '/quiz'`, enforced server-side regardless of what the client sends (the
+  student-facing route has no auth, so nothing client-side can be trusted to have stripped them).
+  The one field `/quiz` beacons DO carry beyond the general shape is `quizId` (parsed from the
+  `?quizId=` query param — `location.pathname` alone strips it), which is what lets the funnel
+  attribute an open to a specific send rather than "some /quiz visit sometime in the range".
+- **Route allowlist (`api/shared/pageViewAllowlist.js`).** `POST /api/pageView` is
+  `authLevel: 'anonymous'` by design (public beacon, no login) and its only defense against a
+  flood is a spoofable per-IP rate limit (`getClientIp` trusts `x-forwarded-for`, and a caller
+  hitting the Function App directly can set that header to anything). The allowlist doesn't stop
+  a flood — a dedicated RU cap on the `pageviews` container does that (see Data model /
+  `docs/azure/V440_CONTAINERS_SETUP.md`) — it stops a flood from inventing arbitrary page names
+  and exploding `topPages`/audience cardinality: an unrecognised page is stored bucketed as
+  `'other'`, never rejected (the beacon must never break navigation). A unit test walks the real
+  `<Routes>` table in `src/App.jsx` and asserts every declared route is covered, so an added
+  route without a matching allowlist entry fails loudly instead of silently rotting to `'other'`.
+- **`GET /api/manage/traffic?range=today|7d|30d`** (`api/traffic.js`) — owner/support, same
+  404-on-mismatch/rate-limit conventions as `api/metrics.js`. Aggregation math (audience/device/
+  browser classification, daily bucketing, topPages, funnel rate math) is pure and lives in
+  `api/shared/trafficAggregate.js`, unit-testable without Cosmos. **A legacy pageview doc with no
+  `eventType` field counts as a view in every aggregate** — mandatory regression, since all
+  pre-v4.4.0 production data has no `eventType` at all and a strict `eventType === 'view'` filter
+  would silently erase it from the dashboard on day one.
+- **The funnel's roster lookup is per-class, in-partition — never a cross-partition scan.**
+  `api/shared/resolveApprovedDeviceIds.js` mirrors `api/analytics.js`'s existing roster-resolution
+  technique (demo classes read `demoStudents`; real classes query `join_requests` filtered by
+  `classId IN (...)`, which Cosmos routes per-partition since `classId` is that container's
+  partition key). It's a deliberate near-duplicate of `analytics.js`'s query shape rather than a
+  fully shared module, since `analytics.js`'s version also returns per-class breakdown +
+  studentName that the funnel doesn't need — noted as a `ponytail:` comment in the source.
+- **Legacy quizzes are excluded from funnel/metrics denominators, never coerced to 0.** A quiz
+  sent before v4.4.0 has no `pushSuccessCount`/`pushFailCount` at all. Coercing that to 0 would
+  make `openRate`/`pushDeliveryRate` read past 100% for any range spanning the deploy — instead,
+  `api/shared/rangeQuizStats.js` (shared by both `manage/traffic`'s funnel and `manage/metrics`'s
+  de-stub, so "quizzes sent in range, demo-excluded, legacy-excluded" can't drift between the two
+  endpoints) filters those quizzes out of the sums entirely.
+- **`pushSuccessCount`/`pushFailCount` are advisory writes**, same semantics as
+  `confidenceResponseCount` (v4.2.0): `api/sendNotification.js` wraps the persistence upsert in
+  try/catch and `context.warn`s on failure, because by the time it runs the pushes have already
+  gone out to devices — a Cosmos hiccup here must never make the teacher see a failed send when
+  it actually succeeded. This also incidentally hardened the pre-existing `notificationSentAt`
+  write, which previously had no such guard.
+- **PWA-install tracking is app-level, not inside `usePwaInstall`.** `usePwaInstallTracking()`
+  (exported from `usePageView.js`, reusing its `buildPageViewPayload`/`sendPageViewBeacon` so the
+  beacon shape can't drift between the two call sites) registers its own `window.addEventListener
+  ('appinstalled', ...)` once in `AppRoutes`. `usePwaInstall`'s own listener only tracks UI state
+  and only mounts where `InstallButton` renders (Home, JoinClass) — an install triggered from the
+  browser's own UI on any other route would otherwise go uncounted.
+- **`manage/metrics` de-stub is partial, not "App Insights wiring done".** `usageGrowth`
+  (schools/teachers/quizzesPerDay/pushDeliveryRate) and `engagement.completionRate` are now real
+  Cosmos aggregates; `usageGrowth.students` and `engagement.avgResponseRate` stay `null`
+  deliberately (both would require the same expensive-query pattern — a platform-wide distinct
+  device count, or a per-quiz roster resolution across every quiz on the platform — that the
+  funnel's own eng review flagged as a scale risk even scoped to one admin's view). `systemHealth`/
+  `security`/`spending` are untouched, still fully stubbed. The single top-level `stubbed: true`
+  is replaced with **per-group** flags, since a response can no longer be described by one boolean.
+- **Cutover discontinuity, documented not hidden.** Every returning device gets a new visitor ID
+  the day this ships (the pre-v4.4.0 code stored it under the broken literal key `"undefined"`,
+  which never joined to anything) — for roughly the first 30 days, uniques will read artificially
+  high and the funnel artificially low. The admin Traffic page's copy says so explicitly.
+- **Admin Traffic dashboard** (`admin/src/pages/Traffic.jsx`) — range picker, stat tiles, funnel
+  strip, top-pages/daily bar rows, audience/device/browser breakdowns. Inline styles matching
+  `Monitoring.jsx`'s idiom, no chart library (admin portal convention: bare/functional UI only —
+  see `admin/CLAUDE.md`).
+- **Verification gap:** integration tests (`tests/integration/api/v440-traffic.test.js`, 14 cases)
+  and the admin Traffic page's live render were not exercised in the build session — no
+  `func start` + test Cosmos, and no admin CIAM credentials available. See Known issue #14.
+
 ### APST evidence export [CURRENT — v4.1.0]
 
 Depends on v4.0.0's `topicTag` field (exists). New top-level route `/teacher/evidence`, added as
@@ -896,29 +995,46 @@ Hard limit **$100 USD/month**.
 
 ---
 
-## Admin monitoring endpoints [CURRENT — Sprint 5 backend, STUBBED metrics; admin frontend is Sprint 7]
+## Admin monitoring endpoints [CURRENT — Sprint 5 backend + admin frontend; metrics partially de-stubbed v4.4.0]
 
-`GET /api/manage/metrics?range=today|7d|30d` (owner/support, 60 req/hr) and `GET
-/api/manage/logs/export?type=errors|security|usage&from=&to=` (owner/support). Routes use
+`GET /api/manage/metrics?range=today|7d|30d` (owner/support, 60 req/hr), `GET
+/api/manage/traffic?range=today|7d|30d` (owner/support, 60 req/hr — **[CURRENT — v4.4.0]**), and
+`GET /api/manage/logs/export?type=errors|security|usage&from=&to=` (owner/support). Routes use
 `manage/`, not `admin/` — Azure Functions reserves the `admin/` route segment for its own host
 API and refuses to register a conflicting custom route; see Authorization model above.
 
-**Metrics is stubbed, not wired to real data.** There is no `@azure/monitor-query` SDK installed
-and no App Insights App ID/API key configured — `api/metrics.js`'s `buildStubbedMetrics()` returns
-the real response shape with `stubbed: true` and placeholder (`null`) values. Wiring it to real
-Kusto queries against Application Insights is still open work, not yet scheduled to a sprint.
+**Metrics is partially de-stubbed as of v4.4.0.** `api/metrics.js`'s `buildStubbedMetrics()` now
+returns **per-group** `stubbed` flags (there is no single top-level `stubbed` boolean anymore —
+some groups are real, some aren't). `usageGrowth` (schools/teachers/quizzesPerDay/
+pushDeliveryRate) and `engagement.completionRate` are real Cosmos aggregates
+(`stubbed: false`) — `usageGrowth.students` and `engagement.avgResponseRate` stay `null`
+on purpose (see the code comment in `api/metrics.js`: a platform-wide distinct-device count and
+a per-quiz roster-resolution average would each require the exact expensive query pattern the
+`manage/traffic` funnel's eng review flagged). `systemHealth`, `security`, and `spending` remain
+`stubbed: true` — there is still no `@azure/monitor-query` SDK installed and no App Insights App
+ID/API key configured. Wiring those three to real Kusto queries against Application Insights is
+still open work, not yet scheduled to a sprint.
+
+`manage/traffic` (v4.4.0) is a **separate, fully-real** endpoint — page-view analytics, a
+notification→open→submit funnel, and PWA-install counts, all Cosmos-backed with no App Insights
+dependency. See the v4.4.0 status blurb near the top of this file and `CC_PROMPTS_v440.md` for
+the full design.
 
 Logs export is **partially real**: `type=security` streams real JSONL straight from the
 `audit_log` container (capped 50MB). `type=errors`/`type=usage` return `501 Not Implemented`
-rather than fabricated data — same App Insights wiring gap as metrics.
+rather than fabricated data — same App Insights wiring gap as `systemHealth`/`security`/`spending`.
 
-Metric groups (real shape, stubbed values): **System health** (error rate, p95, active instances)
-· **Usage/growth** (schools, teachers, students, quizzes/day, push delivery rate) · **Engagement**
-(avg response rate, time-to-respond, completion rate) · **Security** (rate-limit hits, join
-rejection rate, failed auth) · **Spending** (month cost vs $100 budget, per-service breakdown).
+Metric groups (real shape, mixed real/stubbed values — see above): **System health** (error rate,
+p95, active instances — stubbed) · **Usage/growth** (schools, teachers, students, quizzes/day,
+push delivery rate — real except students) · **Engagement** (avg response rate, time-to-respond,
+completion rate — only completionRate is real) · **Security** (rate-limit hits, join rejection
+rate, failed auth — stubbed) · **Spending** (month cost vs $100 budget, per-service breakdown —
+stubbed).
 
-There is no admin **frontend** for any of this yet — Sprint 7, a separate site, not part of this
-sprint's scope.
+**Admin frontend exists** (`admin/` — see `admin/CLAUDE.md`): `admin/src/pages/Monitoring.jsx`
+(metrics + log export) and `admin/src/pages/Traffic.jsx` (**[CURRENT — v4.4.0]** — page-view
+dashboard, funnel strip, breakdowns). Live at
+`https://ambitious-sand-054490e00.7.azurestaticapps.net` — see Known issue #12.
 
 ---
 
@@ -997,8 +1113,8 @@ sprint's scope.
 | confidenceResponseCount counter (atomic Cosmos incr patch, api/responses.js + runSimulation.js) | [CURRENT] v4.2.0 code complete |
 | SendQuiz topic dropdown prefilter (profile-matched segment + zero-match fallback) | [CURRENT] v4.2.0 code complete |
 | AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats) | [PLANNED — v4.3.0] Design + eng reviewed 2026-07-11; depends on v4.1.0 |
-| Page-view beacon (usePageView → POST /api/pageView → pageviews container) | [CURRENT — pre-Sprint 1, unmanaged] Live since baseline import; hardened in v4.4.0 (see Known issues) |
-| Traffic monitor (GET /api/manage/traffic, admin Traffic page, funnel, PWA-install + push-delivery tracking, metrics de-stub) | [PLANNED — v4.4.0] Planned 2026-07-15; no dependencies; prompt in CC_PROMPTS_v440.md |
+| Page-view beacon (usePageView → POST /api/pageView → pageviews container, route allowlist, student privacy stripping) | [CURRENT] v4.4.0 code complete — hardened + formalized |
+| Traffic monitor (GET /api/manage/traffic, admin Traffic page, notification funnel, PWA-install tracking, metrics de-stub) | [CURRENT] v4.4.0 code complete on release/v4.4-traffic — not yet deployed |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
@@ -1083,17 +1199,23 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
       `ISSUER` is now an array accepting both forms; `getCallerScope` reads the `roles[]` array claim.
       Owner role is assigned to the **self-service-signup principal** (the account you actually sign
       in as), and the admin app reg must be added to the CIAM `SignUpSignIn` user flow.
-13. **The page-view beacon has been silently live (and slightly broken) since the baseline
-    import.** `src/hooks/usePageView.js` + `api/pageView.js` came over from the demo repo and
-    write to a `pageviews` container that self-creates via runtime `createIfNotExists` — no env
-    var, no provisioning doc, no TTL. Three defects: (a) the hook calls `getSessionId()` with
-    NO key, so the visitor UUID sits under the literal localStorage key `"undefined"` and does
-    NOT match the `quizpulse_device_id` UUID students use elsewhere — traffic can't be joined to
-    quiz activity; (b) the container grows unbounded; (c) the runtime `createIfNotExists` +
-    hardcoded container name is off-convention (every other container is manually provisioned
-    with a `COSMOS_CONTAINER_*` env var). All three are fixed by v4.4.0 Task 1
-    (`feat/v4.4-pageview-hardening`, see `CC_PROMPTS_v440.md`); until then the data is usable for
-    coarse counts but not funnels.
+~~13. **The page-view beacon was silently live (and slightly broken) since the baseline
+    import.**~~ **Resolved in v4.4.0.** All three defects fixed on `release/v4.4-traffic`
+    (`feat/v4.4-pageview-hardening`): the visitor UUID now keys under `quizpulse_device_id`
+    (matches join requests/responses/subscriptions, enabling the funnel), the container no
+    longer self-creates at runtime (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`), and TTL/RU-cap
+    provisioning is documented in `docs/azure/V440_CONTAINERS_SETUP.md`. **Portal action still
+    required before deploying:** the container's 180-day TTL and dedicated RU cap must be set
+    manually per that doc — the deploy-blocker note in the v4.4.0 status blurb above.
+14. **v4.4.0 integration tests are written but unrun.** `tests/integration/api/v440-traffic.test.js`
+    (14 cases: pageView write contract, the full traffic-endpoint auth/role/rate-limit/validation
+    matrix incl. the required cross-tenant negative test and a support-role read-access test, and
+    a demo-quiz-doesn't-corrupt-aggregation check) is syntax-verified and gate-skips correctly via
+    `RUN_INTEGRATION`, but was never run against a live `func start` + the `quizpulse-int-test-db`
+    — none were available in the build session. Run them (and the admin Traffic page's live
+    render, which also wasn't exercised — no admin dev-auth bypass exists) before treating v4.4.0
+    as pilot-ready. See CLAUDE.md Testing section for the safe way to point `func start` at the
+    test Cosmos account.
 
 ---
 

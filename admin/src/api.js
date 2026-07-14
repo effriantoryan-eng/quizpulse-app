@@ -61,6 +61,10 @@ export const setTeacherRole = (id, role) =>
 export const getMetrics = (range = 'today') =>
   apiJson(`/manage/metrics?range=${range}`)
 
+// Traffic
+export const getTraffic = (range = 'today') =>
+  apiJson(`/manage/traffic?range=${range}`)
+
 // Logs
 export function buildLogsExportUrl(type, from, to) {
   const params = new URLSearchParams({ type })
