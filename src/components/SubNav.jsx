@@ -3,13 +3,18 @@ import { activeHub, activeTab } from '../teacherNav'
 
 // Horizontal tab strip for the current teacher hub. Rendered once in the app shell;
 // returns null on non-teacher pages and on single-tab hubs (where a strip would be noise).
+// Class-scoped tabs: switching between these keeps the ?classId context instead of
+// dropping to the "pick a class first" empty state.
+const CLASS_SCOPED_TABS = ['/teacher/roster', '/teacher/pending-requests', '/teacher/classes/settings']
+
 export default function SubNav() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const hub = activeHub(pathname)
   if (!hub || hub.tabs.length < 2) return null
 
   const current = activeTab(hub, pathname)
+  const classId = new URLSearchParams(search).get('classId')
 
   return (
     <div role="tablist" aria-label={`${hub.label} sections`} style={{
@@ -24,7 +29,11 @@ export default function SubNav() {
             key={tab.path}
             role="tab"
             aria-selected={active}
-            onClick={() => navigate(tab.path)}
+            onClick={() => navigate(
+              classId && CLASS_SCOPED_TABS.includes(tab.path)
+                ? `${tab.path}?classId=${classId}`
+                : tab.path
+            )}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '10px 14px', fontSize: '14px',
