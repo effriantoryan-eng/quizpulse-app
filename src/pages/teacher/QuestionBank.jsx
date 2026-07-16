@@ -73,6 +73,10 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
           <div>
             <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Topic</label>
             <select value={editForm.topic} onChange={e => setEditForm(f => ({ ...f, topic: e.target.value }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
+              {/* A stored topic outside the preset list (e.g. 'Other' on AI-drafted questions)
+                  must appear as a real option — otherwise the select displays the first preset
+                  while the form state still holds the stored value. */}
+              {!ALLOWED_TOPICS.includes(editForm.topic) && <option key={editForm.topic}>{editForm.topic}</option>}
               {ALLOWED_TOPICS.map(t => <option key={t}>{t}</option>)}
             </select>
           </div>
@@ -85,7 +89,13 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
           </div>
           <div>
             <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Visibility</label>
-            <select value={editForm.visibility || 'private'} onChange={e => setEditForm(f => ({ ...f, visibility: e.target.value }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
+            <select
+              value={editForm.visibility || 'private'}
+              onChange={e => setEditForm(f => ({ ...f, visibility: e.target.value }))}
+              disabled={q.generatedBy === 'ai'}
+              title={q.generatedBy === 'ai' ? 'AI-created questions stay private' : undefined}
+              style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}
+            >
               <option value="private">Private</option>
               <option value="school">School</option>
               <option value="public">Public</option>
@@ -130,7 +140,23 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
       {showActions && (
         <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
           {onVisibilityChange && (
-            <VisibilityPill value={q.visibility || 'private'} onChange={v => onVisibilityChange(q.id, v)} />
+            q.generatedBy === 'ai' ? (
+              // Server locks AI-created questions to 'private' (api/questions.js) — show a
+              // static pill instead of a toggle that can never succeed.
+              <span
+                title="AI-created questions stay private"
+                style={{
+                  padding: '2px 8px', fontSize: '11px', borderRadius: '20px',
+                  border: `1px solid ${VISIBILITY_COLORS.private.border}`,
+                  background: VISIBILITY_COLORS.private.bg, color: VISIBILITY_COLORS.private.color,
+                  fontWeight: '500'
+                }}
+              >
+                🔒 Private
+              </span>
+            ) : (
+              <VisibilityPill value={q.visibility || 'private'} onChange={v => onVisibilityChange(q.id, v)} />
+            )
           )}
           {onStartEdit && (
             <button onClick={e => onStartEdit(q, e)} style={{ padding: '4px 10px', fontSize: '12px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', cursor: 'pointer', color: '#555' }}>Edit</button>
