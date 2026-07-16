@@ -326,7 +326,10 @@ app.http('questionById', {
         if (options.some(o => typeof o !== 'string' || !o.trim())) return respond(400, { error: 'each option must be a non-empty string' }, teacherId);
         if (options.some(o => o.trim().length > 200)) return respond(400, { error: 'each option must be 200 characters or fewer' }, teacherId);
         if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex > 3) return respond(400, { error: 'correctIndex must be an integer between 0 and 3' }, teacherId);
-        if (!ALLOWED_TOPICS.includes(topic)) return respond(400, { error: `topic must be one of: ${ALLOWED_TOPICS.join(', ')}` }, teacherId);
+        // A stored topic outside the enum (e.g. 'Other' on AI-materialised questions,
+        // api/generationDrafts.js) may round-trip unchanged — otherwise every edit or
+        // visibility PUT on such a question 400s before reaching the real checks below.
+        if (!ALLOWED_TOPICS.includes(topic) && topic !== existing.topic) return respond(400, { error: `topic must be one of: ${ALLOWED_TOPICS.join(', ')}` }, teacherId);
         if (yearLevel !== undefined && yearLevel !== null && (typeof yearLevel !== 'number' || !Number.isInteger(yearLevel) || yearLevel < 7 || yearLevel > 12)) {
           return respond(400, { error: 'yearLevel must be an integer between 7 and 12, or omitted' }, teacherId);
         }
