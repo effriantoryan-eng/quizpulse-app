@@ -98,9 +98,11 @@ and de-stubs `usageGrowth`/`engagement` in `manage/metrics` (`systemHealth`/`sec
 stay stubbed — App Insights wiring remains out of scope). No new paid Azure services. 345/345
 unit tests pass; integration tests are written (`tests/integration/api/v440-traffic.test.js`) but
 not run in the build session — no live `func start` + test Cosmos available. **Deploy blocker:**
-the `pageviews` container's TTL + dedicated RU cap must be set manually before deploying the
-hardened API (it no longer self-creates the container) — see
-`docs/azure/V440_CONTAINERS_SETUP.md` and Known issues below.
+the `pageviews` container's 180-day TTL must be set manually before deploying the hardened API
+(it no longer self-creates the container) — see `docs/azure/V440_CONTAINERS_SETUP.md` and Known
+issues below. (That doc originally also called for a dedicated per-container RU cap; corrected
+2026-07-16 — `quizpulse-app-db-av5z18` runs in Serverless capacity mode, which has no
+per-container throughput setting at all, so that instruction was never achievable.)
 
 ---
 
@@ -415,8 +417,10 @@ attribution on old responses is accepted).
   carried, feeding the `manage/traffic` funnel's per-quiz open attribution. Came over in the
   baseline import from the demo repo; the pre-v4.4.0 code self-created this container via runtime
   `createIfNotExists` — v4.4.0 removed that (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`, matching
-  every other container's manual-provisioning convention) and added a 180-day TTL + a dedicated
-  RU cap. Env: `COSMOS_CONTAINER_PAGEVIEWS`. Provisioning: `docs/azure/V440_CONTAINERS_SETUP.md`.
+  every other container's manual-provisioning convention) and added a 180-day TTL. (No
+  per-container RU cap — the account runs in Serverless capacity mode, which doesn't support one;
+  see the correction in `docs/azure/V440_CONTAINERS_SETUP.md`.) Env: `COSMOS_CONTAINER_PAGEVIEWS`.
+  Provisioning: `docs/azure/V440_CONTAINERS_SETUP.md`.
 - **`source_materials`** **[CURRENT — v4.3.0]** (pk `/teacherId`, 90-day TTL) — { id, teacherId,
   kind: 'pdf'|'docx'|'txt', filename, pageCount (pdf only, else null), chunks: [{ index, page?,
   text }], chunkCount, truncated, createdAt }. Written by `POST /api/generation/sources`. **The
@@ -789,10 +793,12 @@ every amendment). Zero dependencies on v4.1–v4.3.
 - **Route allowlist (`api/shared/pageViewAllowlist.js`).** `POST /api/pageView` is
   `authLevel: 'anonymous'` by design (public beacon, no login) and its only defense against a
   flood is a spoofable per-IP rate limit (`getClientIp` trusts `x-forwarded-for`, and a caller
-  hitting the Function App directly can set that header to anything). The allowlist doesn't stop
-  a flood — a dedicated RU cap on the `pageviews` container does that (see Data model /
-  `docs/azure/V440_CONTAINERS_SETUP.md`) — it stops a flood from inventing arbitrary page names
-  and exploding `topPages`/audience cardinality: an unrecognised page is stored bucketed as
+  hitting the Function App directly can set that header to anything). The allowlist does not stop
+  a flood either — there is no per-container RU cap available to do that on this Serverless-mode
+  account (see Data model / `docs/azure/V440_CONTAINERS_SETUP.md`'s correction; the in-memory rate
+  limit and the $100/mo budget alert are the real backstops). The allowlist's job is narrower: it
+  stops a flood from inventing arbitrary page names and exploding `topPages`/audience cardinality
+  — an unrecognised page is stored bucketed as
   `'other'`, never rejected (the beacon must never break navigation). A unit test walks the real
   `<Routes>` table in `src/App.jsx` and asserts every declared route is covered, so an added
   route without a matching allowlist entry fails loudly instead of silently rotting to `'other'`.
@@ -1335,10 +1341,12 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     import.**~~ **Resolved in v4.4.0.** All three defects fixed on `release/v4.4-traffic`
     (`feat/v4.4-pageview-hardening`): the visitor UUID now keys under `quizpulse_device_id`
     (matches join requests/responses/subscriptions, enabling the funnel), the container no
-    longer self-creates at runtime (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`), and TTL/RU-cap
+    longer self-creates at runtime (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`), and TTL
     provisioning is documented in `docs/azure/V440_CONTAINERS_SETUP.md`. **Portal action still
-    required before deploying:** the container's 180-day TTL and dedicated RU cap must be set
-    manually per that doc — the deploy-blocker note in the v4.4.0 status blurb above.
+    required before deploying:** the container's 180-day TTL must be set manually per that doc —
+    the deploy-blocker note in the v4.4.0 status blurb above. (No RU cap step — corrected
+    2026-07-16: `quizpulse-app-db-av5z18` is Serverless capacity mode, which has no per-container
+    throughput setting to configure.)
 14. **v4.4.0 integration tests are written but unrun.** `tests/integration/api/v440-traffic.test.js`
     (14 cases: pageView write contract, the full traffic-endpoint auth/role/rate-limit/validation
     matrix incl. the required cross-tenant negative test and a support-role read-access test, and
