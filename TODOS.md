@@ -195,3 +195,36 @@ All four deferred items below were fixed in a follow-up pass the same day (commi
 - [x] **LOW — Population "You haven't sent a quiz tagged X yet" message shows even when a demo
   quiz with that tag exists** (`src/pages/teacher/Population.jsx`) — fixed: empty state now
   appends "(Practice quizzes sent to a demo class don't count.)".
+
+## /qa session 2026-07-16 (local, dev-auth bypass, test Cosmos DB, branch `main`)
+
+Fixed this session (commits `1a499d5`, `d021b47`, `d76b6c1`, test `1d24c13` — each verified live;
+428/428 unit tests pass):
+
+- [x] **HIGH — AI-drafted questions could never be edited or visibility-toggled** — they're
+  materialised with `topic: 'Other'` (`api/generationDrafts.js`) but the questions PUT validator
+  only accepted the 5-topic enum, so every round-trip 400'd with a misleading topic error before
+  the AI-visibility lock could even run. Server now accepts an *unchanged* out-of-enum topic
+  (`api/questions.js`); Question Bank shows the true stored topic in the edit select, renders a
+  static "Private" pill on AI questions instead of a toggle that can never succeed, and disables
+  the edit form's visibility select for them. Regression test:
+  `tests/unit/api/questions-put.regression-1.test.js`.
+- [x] **MEDIUM — switching to the Requests/Settings tab from a class's Roster dropped the
+  `?classId`** and dead-ended at "Pick a class first", with copy pointing at a "Requests" link
+  that doesn't exist on class cards. `SubNav.jsx` now carries `classId` across the class-scoped
+  tabs; empty-state copy in `PendingRequests.jsx`/`ClassSettings.jsx` describes the real path.
+
+Deferred (low severity):
+
+- [ ] **LOW — Question Bank failure feedback uses `alert()`** (`changeVisibility`,
+  `deleteQuestion` in `src/pages/teacher/QuestionBank.jsx`) while `saveEdit` uses an inline
+  error div — replace the alerts with the same inline pattern for consistency (and testability:
+  automation harnesses auto-dismiss dialogs, which masked this feedback during QA).
+- [ ] **LOW — "1 students" pluralization on the SendQuiz class cards**
+  (`src/pages/teacher/SendQuiz.jsx` — the class-picker card subtitle). The Classes page
+  pluralizes correctly; SendQuiz doesn't.
+
+Not bugs / environment notes: `/api/vapid-public-key` 503s locally (VAPID keys aren't in
+local.settings.json — push isn't locally testable, expected). Browser-pane screenshots timed out
+all session and injected clicks intermittently didn't land (tooling flake on this machine —
+verified app handlers fine via programmatic dispatch; page reads/console/network all worked).
