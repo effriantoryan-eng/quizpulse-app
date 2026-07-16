@@ -10,14 +10,17 @@ of scope). Discovery: the write path (`usePageView` → `POST /api/pageView` →
 container) has been live since the baseline import — the sprint hardens it and builds the read
 side (admin Traffic page, funnel, PWA-install + push-delivery tracking, metrics de-stub).
 
-- [ ] **Build sprint v4.4.0** from `CC_PROMPTS_v440.md` (branch `release/v4.4-traffic`, 6 tasks).
-- [ ] **LOW (pre-sprint quick fix, optional)** — `src/hooks/usePageView.js:26` calls
+- [x] **Build sprint v4.4.0** from `CC_PROMPTS_v440.md` (branch `release/v4.4-traffic`, 6 tasks).
+  Done — merged to main and tagged `v4.4.0` 2026-07-15. Deploy (container TTL/RU cap + API
+  publish) still pending, see `docs/azure/V440_CONTAINERS_SETUP.md`.
+- [x] **LOW (pre-sprint quick fix, optional)** — `src/hooks/usePageView.js:26` calls
   `getSessionId()` with no key → visitor UUID stored under the literal localStorage key
   `"undefined"`, and doesn't match `quizpulse_device_id`, so pageviews can't join to quiz
-  activity. One-line fix (`getSessionId('quizpulse_device_id')`) is v4.4.0 Task 1, but every day
-  it waits is a day of funnel-unusable data.
-- [ ] **LOW (cost hygiene, portal-only, can do anytime)** — the `pageviews` container has no TTL
+  activity. Fixed as part of v4.4.0 Task 1 (`feat/v4.4-pageview-hardening`).
+- [x] **LOW (cost hygiene, portal-only, can do anytime)** — the `pageviews` container has no TTL
   and grows unbounded; set default TTL 180 days in the portal (no code change needed).
+  Documented in `docs/azure/V440_CONTAINERS_SETUP.md`; the portal step itself is still pending
+  (part of the v4.4.0 deploy checklist, not yet executed against production).
 
 ## Deferred from eng review — v4.4.0 plan (from /plan-eng-review 2026-07-15)
 
