@@ -10,7 +10,7 @@ live analytics. No link sharing required — delivery is push-first.
 Sign in with your Microsoft or Google account. New teachers complete a one-time onboarding to
 associate a school before accessing the dashboard.
 
-**Current version:** v3.0.1 (beta)
+**Current version:** v4.5.0 (beta)
 
 ---
 
@@ -36,8 +36,16 @@ associate a school before accessing the dashboard.
 | Security foundation — `assertScope`, `requireRole`, role tiers, audit log | ✅ |
 | Institution onboarding + teacher invites | ✅ |
 | School validate + merge (step-up re-auth gated) | ✅ |
-| Admin monitoring endpoints (metrics stubbed; security log export live) | ✅ |
+| Admin monitoring endpoints (metrics partially de-stubbed; security log export live) | ✅ |
 | Azure $100/month spending controls + disable runbook | ✅ |
+| Confidence layer — per-question confidence + misconception analytics | ✅ |
+| Demo class — try the send → analytics loop with simulated students | ✅ |
+| Comprehensive analytics — class drill-down, four-cell confidence+correctness chart, population benchmarking | ✅ |
+| APST evidence export — per-quiz VIT PDF + annual MyPD aggregate log | ✅ |
+| Guided onboarding — profile wizard + progressive feature-intro disclosure | ✅ |
+| AI quiz generation (mock provider) — document upload → draft → review → send, spaced repeats | ✅ |
+| Traffic monitor — page-view analytics, admin dashboard, notification funnel, PWA-install tracking | ✅ |
+| Student class home — persistent post-approval page, auto-subscribe, teacher share-link | ✅ |
 
 ---
 
@@ -49,7 +57,7 @@ associate a school before accessing the dashboard.
 | Hosting | Azure Static Web Apps — Standard tier (East Asia) |
 | Backend | Azure Functions — Node.js v4, HTTP-triggered, serverless |
 | Database | Azure Cosmos DB (NoSQL, serverless) |
-| Auth | Microsoft Entra External ID (CIAM) — Microsoft + Google providers |
+| Auth | Microsoft Entra External ID (CIAM) — Microsoft, Google, Apple ID providers |
 | Secrets | Azure Key Vault — managed identity references |
 | Logging | Azure Application Insights |
 | Push | Web Push API + VAPID (service worker, no native SDK) |
@@ -104,7 +112,7 @@ func azure functionapp publish quizpulse-app-api-av5z18
 ## Running tests
 
 ```powershell
-# Unit tests (no stack required) — 137/137 passing
+# Unit tests (no stack required) — 430/430 passing
 npx jest --config jest.config.cjs tests/unit/
 
 # Integration tests (requires func start + Azurite + Cosmos emulator)
@@ -129,4 +137,14 @@ npx playwright test
 | v2.1.0 | Security foundation, institution/admin/monitoring endpoints | ✅ shipped |
 | v3.0.0 | Community bank, SWA Standard tier, APIM, Apple ID, analytics depth | ✅ shipped |
 | v3.0.1 | Sign-in fixes (CSP + mobile), de-jargon copy, encouragement, mockups | ✅ shipped |
-| Sprint 7 | Admin frontend (separate site) | planned |
+| v3.1.0 | Admin portal — separate site, CIAM audience separation, monitoring dashboard | ✅ shipped |
+| v3.2.0 | Confidence layer — per-question confidence + misconception analytics | ✅ shipped |
+| v3.2.1 | Sign-up flow (CIAM self-service create-account) | ✅ shipped |
+| v3.2.2 | Roster-approval regression fix, public landing split, PWA install button | ✅ shipped |
+| v3.3.0 | Demo class — simulated students for the send → analytics loop | ✅ shipped |
+| v4.0.0 | Comprehensive analytics — class drill-down, four-cell chart, population benchmarking | ✅ shipped |
+| v4.1.0 | APST evidence export — per-quiz VIT PDF + annual MyPD log | ✅ shipped |
+| v4.2.0 | Guided onboarding — profile wizard, progressive feature-intro disclosure | ✅ shipped |
+| v4.3.0 | AI quiz generation (mock provider) — upload → draft → review → send | ✅ shipped |
+| v4.4.0 | Traffic monitor — page-view analytics, admin dashboard, notification funnel | ✅ shipped |
+| v4.5.0 | Student class home — post-approval access, auto-subscribe, teacher share-link | ✅ shipped |
