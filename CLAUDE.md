@@ -83,8 +83,8 @@ triggered follow-up practice. Built per `CC_PROMPTS_v420_v430.md` as amended by
 `CEO_REVIEW_v420_v430_addendum.md` (addendum wins on conflict). No real LLM key required or used
 in this build — `FEATURE_AI_GENERATION` is flipped true, but `LLM_PROVIDER` defaults to `mock`.
 
-**v4.5.0 (Student Class Home & Post-Approval Access) is [CURRENT] — code complete, not yet
-deployed.** Fixes the student dead-end after approval: a persistent `/student/class` page
+**v4.5.0 (Student Class Home & Post-Approval Access) is [CURRENT] — deployed.** Fixes the
+student dead-end after approval: a persistent `/student/class` page
 (open/closed/answered quiz cards, warm empty state, Refresh button, no polling), a "Go to my
 class" CTA on the approved screen, auto-subscribe to push right there (no GUID paste, never
 throws — denied/unsupported are soft states), localStorage-based returning-device recognition
@@ -97,8 +97,10 @@ GUID-paste page) is retired; `/student/class` is wired into both the pageView al
 container, no breaking changes. Built per
 `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v450.md` (CEO/Eng/Design reviewed 2026-07-23).
 Built directly on `main` in one session rather than the release-branch-per-task flow the plan
-describes — same pragmatic single-session deviation v4.0–v4.4 used; not yet tagged/merged per
-the branch convention.
+describes — same pragmatic single-session deviation v4.0–v4.4 used. Tagged `v4.5.0-rc1` →
+merged into `develop` (which had drifted 10 commits behind `main`) → tagged `v4.5.0` on `main`.
+Frontend deployed via SWA GitHub Actions; API deployed via `func azure functionapp publish`
+from Node 22.
 
 **v4.4.0 (Traffic Monitor) is [CURRENT] — code complete on `release/v4.4-traffic`, not yet merged
 to main/deployed.** Adopted from the demo repo (`github.com/effriantoryan-eng/quizpulse`); prompt
@@ -1272,7 +1274,7 @@ dashboard, funnel strip, breakdowns). Live at
 | AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats, expansion nudges) | [CURRENT] v4.3.0 code complete on release/v4.3-generation — not yet deployed |
 | Page-view beacon (usePageView → POST /api/pageView → pageviews container, route allowlist, student privacy stripping) | [CURRENT] v4.4.0 code complete — hardened + formalized |
 | Traffic monitor (GET /api/manage/traffic, admin Traffic page, notification funnel, PWA-install tracking, metrics de-stub) | [CURRENT] v4.4.0 code complete on release/v4.4-traffic — not yet deployed |
-| Student class home (/student/class, GET /api/student/quizzes, approved-screen CTA, auto-subscribe, returning-device recognition, teacher share-link) | [CURRENT] v4.5.0 code complete — not yet deployed |
+| Student class home (/student/class, GET /api/student/quizzes, approved-screen CTA, auto-subscribe, returning-device recognition, teacher share-link) | [CURRENT] v4.5.0 deployed |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---

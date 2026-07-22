@@ -2,6 +2,35 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.5.0] — Student class home & post-approval access
+
+Fixes the student dead-end after approval — the only path into a quiz used to be a live push
+notification, which fails silently on any device without push configured. Deployed (frontend via
+SWA GitHub Actions, API via `func azure functionapp publish` from Node 22). Built per
+`QuizPulse_Sprint_Plan_v450.md` (CEO/Eng/Design reviewed 2026-07-23). No breaking changes, no new
+Cosmos container.
+
+### New features
+- Persistent `/student/class` page — open/closed/answered quiz cards, warm empty state, a manual
+  Refresh button (no polling), one section per known class.
+- New `GET /api/student/quizzes?deviceId=&classId=` — anonymous, in-partition via the new shared
+  `api/shared/getApprovedJoinRequest.js` helper (403 uniform when not approved, metadata only,
+  demo-excluded, capped at 50, 30 req/min/IP).
+- Approved-screen CTA ("Go to my class") on `JoinClass.jsx`, replacing dead "You're in!" text.
+- Auto-subscribe to push right on the approved screen — no GUID paste, guarded to never throw
+  (`src/pushSubscribe.js`); denied permission / no `PushManager` (iOS uninstalled) are soft states.
+- Returning-device recognition: `/join` offers "Continue to my class" via localStorage
+  (`src/studentClasses.js`) instead of forcing the join form again.
+- Teacher-facing copyable `/quiz?quizId=` share link on `SendQuiz.jsx` — manual escape hatch for a
+  flaky push.
+
+### Retired
+- `/student/subscribe` (the GUID-paste push page) — replaced by the auto-subscribe flow above.
+
+### Other
+- `/student/class` added to `api/shared/pageViewAllowlist.js` and to the `/quiz`
+  student-fingerprint-stripping rule in `api/pageView.js`.
+
 ## [v4.3.0] — AI quiz generation, provider placeholder (on `release/v4.3-generation`)
 
 Document upload (PDF/docx/txt, 15MB) → mock-LLM draft → teacher review/approve → send through the
