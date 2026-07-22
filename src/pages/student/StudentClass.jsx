@@ -70,10 +70,15 @@ function ClassSection({ cls, navigate }) {
     setQuizzes(null)
     try {
       const res = await fetch(`${API_BASE}/student/quizzes?deviceId=${encodeURIComponent(getDeviceId())}&classId=${encodeURIComponent(cls.classId)}`)
-      if (!res.ok) throw new Error('load failed')
+      if (!res.ok) {
+        // 403 = not approved / class removed. That's permanent — retrying just 403s again,
+        // so show a distinct message with no Retry loop. Everything else is transient.
+        setError(res.status === 403 ? 'unavailable' : 'transient')
+        return
+      }
       setQuizzes(await res.json())
     } catch {
-      setError(true)
+      setError('transient')
     }
   }, [cls.classId])
 
@@ -98,13 +103,22 @@ function ClassSection({ cls, navigate }) {
         <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Loading…</div>
       )}
 
-      {error && (
+      {error === 'transient' && (
         <div style={{ maxWidth: 480, textAlign: 'center', padding: '24px' }}>
           <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️</div>
           <p style={{ color: '#555', fontSize: '14px', marginBottom: '12px' }}>Couldn't load — try again</p>
           <button onClick={load} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
             Retry
           </button>
+        </div>
+      )}
+
+      {error === 'unavailable' && (
+        <div style={{ maxWidth: 480, textAlign: 'center', padding: '24px' }}>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔒</div>
+          <p style={{ color: '#555', fontSize: '14px' }}>
+            You're no longer in this class. Ask your teacher if this seems wrong, or join a class again.
+          </p>
         </div>
       )}
 
