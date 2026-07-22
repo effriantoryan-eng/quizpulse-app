@@ -33,7 +33,7 @@ import { usePageView, usePwaInstallTracking } from './hooks/usePageView'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
 import SWUpdateBanner from './components/SWUpdateBanner'
 import IosInstallBanner from './components/IosInstallBanner'
-import Subscribe from './pages/student/Subscribe'
+import StudentClass from './pages/student/StudentClass'
 
 // Used only for the /onboarding route: confirms sign-in but doesn't check onboarding state
 // (otherwise the gate would redirect before the teacher can complete onboarding).
@@ -85,7 +85,7 @@ function RequireTeacher({ children }) {
 }
 
 // Public, full-bleed routes (student-facing + auth) render without the teacher sidebar.
-const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/onboarding/profile', '/quiz', '/join', '/student/subscribe']
+const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/onboarding/profile', '/quiz', '/join', '/student/class']
 
 function AppRoutes() {
   usePageView()
@@ -117,7 +117,7 @@ function AppRoutes() {
       <Route path="/admin/log" element={<RequireTeacher><AdminLog /></RequireTeacher>} />
       <Route path="/join" element={<JoinClass />} />
       <Route path="/quiz" element={<TakeQuiz />} />
-      <Route path="/student/subscribe" element={<Subscribe />} />
+      <Route path="/student/class" element={<StudentClass />} />
       <Route path="/teacher/pending-requests" element={<RequireTeacher><PendingRequests /></RequireTeacher>} />
       <Route path="/teacher/roster" element={<RequireTeacher><ClassRoster /></RequireTeacher>} />
       <Route path="/teacher/classes/settings" element={<RequireTeacher><ClassSettings /></RequireTeacher>} />

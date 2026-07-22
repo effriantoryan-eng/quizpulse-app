@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
+import { getApprovedClasses, addApprovedClass } from '../../studentClasses'
+import { autoSubscribe } from '../../pushSubscribe'
 
 const STUDENT_NAME_MAX = 80
 
@@ -15,6 +18,7 @@ function getOrCreateDeviceId() {
 }
 
 function JoinClass() {
+  const navigate = useNavigate()
   const [joinCode, setJoinCode] = useState('')
   const [studentName, setStudentName] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -26,9 +30,12 @@ function JoinClass() {
   const [classId, setClassId] = useState(null)
   const [className, setClassName] = useState(null)
   const [status, setStatus] = useState(null) // 'pending' | 'approved' | 'rejected' | 'queued'
+  const [subscribeState, setSubscribeState] = useState(null) // null | 'priming' | 'denied' | 'unsupported' | 'subscribed' | 'error'
+  const [showJoinForm, setShowJoinForm] = useState(false)
 
   const pollRef = useRef(null)
   const deviceId = getOrCreateDeviceId()
+  const knownClasses = getApprovedClasses()
 
   useEffect(() => {
     if (!submitted || !requestId || !classId) return
@@ -50,6 +57,42 @@ function JoinClass() {
 
     return () => clearInterval(pollRef.current)
   }, [submitted, requestId, classId, status, deviceId])
+
+  // Fires once the student is approved: persists the class locally (fixes the dead-end — this
+  // is what lets /student/class and /join's "Continue to my class" shortcut recognise the
+  // device later) and enrols push. autoSubscribe is guarded to never throw; a denied/unsupported
+  // outcome is a normal, expected state here, not an error banner.
+  useEffect(() => {
+    if (status !== 'approved' || !classId) return
+    addApprovedClass(classId, className)
+    setSubscribeState('priming')
+    autoSubscribe(classId, deviceId).then(setSubscribeState)
+  }, [status, classId, className, deviceId])
+
+  // Returning device with a known approved class — skip the join form by default.
+  if (!submitted && knownClasses.length > 0 && !showJoinForm) {
+    return (
+      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '28px', marginBottom: '16px' }}>👋</div>
+        <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Welcome back</h2>
+        <p style={{ color: '#555', fontSize: '14px', marginBottom: '20px' }}>
+          You're already in {knownClasses.length === 1 ? knownClasses[0].className || 'your class' : `${knownClasses.length} classes`}.
+        </p>
+        <button
+          onClick={() => navigate('/student/class')}
+          style={{ width: '100%', padding: '12px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '15px', fontWeight: '500', cursor: 'pointer', marginBottom: '10px' }}
+        >
+          Continue to my class
+        </button>
+        <button
+          onClick={() => setShowJoinForm(true)}
+          style={{ width: '100%', padding: '10px', background: 'none', color: 'var(--primary)', border: 'none', fontSize: '13px', cursor: 'pointer' }}
+        >
+          Join a different class
+        </button>
+      </div>
+    )
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -96,9 +139,22 @@ function JoinClass() {
         {status === 'approved' && (
           <>
             <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>You're in!</h2>
-            <p style={{ color: '#555', fontSize: '14px' }}>
-              Your teacher has approved your request to join <strong>{className}</strong>.
-              You'll receive quiz notifications here when your teacher sends one.
+            <p style={{ color: '#555', fontSize: '14px', marginBottom: '20px' }}>
+              You've joined <strong>{className}</strong>.
+            </p>
+            {subscribeState === 'priming' && (
+              <p style={{ color: '#888', fontSize: '13px', marginBottom: '12px' }}>
+                Turning on notifications so you don't miss a check-in — your browser may ask to confirm.
+              </p>
+            )}
+            <button
+              onClick={() => navigate('/student/class')}
+              style={{ width: '100%', padding: '12px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '15px', fontWeight: '500', cursor: 'pointer', marginBottom: '10px' }}
+            >
+              Go to my class
+            </button>
+            <p style={{ color: '#aaa', fontSize: '12px' }}>
+              We'll notify you when your teacher sends a check-in.
             </p>
           </>
         )}

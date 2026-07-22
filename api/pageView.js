@@ -49,7 +49,7 @@ function buildPageViewDoc(body) {
   // since the student-facing route has no auth and nothing here can be trusted to have
   // stripped them client-side. quizId is the one extra field /quiz beacons DO carry, since
   // it's what makes the traffic funnel (v4.4.0 Task 3) attribute opens to a specific send.
-  const isStudentRoute = classifiedPage === '/quiz';
+  const isStudentRoute = classifiedPage === '/quiz' || classifiedPage === '/student/class';
 
   const doc = {
     page:         classifiedPage,

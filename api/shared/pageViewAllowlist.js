@@ -22,7 +22,7 @@ const ALLOWED_PREFIXES = [
   '/admin/log',
   '/join',
   '/quiz',
-  '/student/subscribe',
+  '/student/class',
   '/teacher/pending-requests',
   '/teacher/roster',
 ];

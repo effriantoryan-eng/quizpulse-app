@@ -6,6 +6,45 @@ import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
 import matchTopics from '../../data/topicPrefilter'
 
+// Copyable manual escape hatch for a flaky push — a teacher can paste this into a group chat
+// or a slide when a student's notification doesn't arrive.
+function ShareLink({ quizId }) {
+  const [copied, setCopied] = useState(false)
+  const link = `${window.location.origin}/quiz?quizId=${quizId}`
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard permission denied — the link is still visible/selectable in the input
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <div style={{ fontSize: '12px', color: '#3a7a65', marginBottom: '6px' }}>
+        Or share this link directly — for a student whose notification doesn't arrive:
+      </div>
+      <div style={{ display: 'flex', gap: '6px' }}>
+        <input
+          readOnly
+          value={link}
+          onClick={(e) => e.target.select()}
+          style={{ flex: 1, padding: '8px 10px', fontSize: '12px', border: '1px solid #1a7a5e', borderRadius: '8px', background: 'white', color: '#085041' }}
+        />
+        <button
+          onClick={copy}
+          style={{ padding: '8px 14px', background: '#085041', color: 'white', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function SendQuiz() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -253,6 +292,9 @@ function SendQuiz() {
             </div>
           )}
           {sentResult.clonesCreated === 0 && <div style={{ marginBottom: '20px' }} />}
+          {!sentResult.scheduled && !sentResult.demo && (
+            <ShareLink quizId={sentResult.quizId} />
+          )}
           <button
             onClick={() => navigate(`/teacher/analytics/${sentResult.quizId}`)}
             style={{ width: '100%', padding: '11px', background: '#085041', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}

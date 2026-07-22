@@ -83,6 +83,23 @@ triggered follow-up practice. Built per `CC_PROMPTS_v420_v430.md` as amended by
 `CEO_REVIEW_v420_v430_addendum.md` (addendum wins on conflict). No real LLM key required or used
 in this build — `FEATURE_AI_GENERATION` is flipped true, but `LLM_PROVIDER` defaults to `mock`.
 
+**v4.5.0 (Student Class Home & Post-Approval Access) is [CURRENT] — code complete, not yet
+deployed.** Fixes the student dead-end after approval: a persistent `/student/class` page
+(open/closed/answered quiz cards, warm empty state, Refresh button, no polling), a "Go to my
+class" CTA on the approved screen, auto-subscribe to push right there (no GUID paste, never
+throws — denied/unsupported are soft states), localStorage-based returning-device recognition
+("Continue to my class" on `/join`), and a teacher-facing copyable `/quiz?quizId=` share link on
+Send (manual escape hatch for a flaky push). New endpoint `GET /api/student/quizzes` (anonymous,
+in-partition via the new shared `api/shared/getApprovedJoinRequest.js` helper — 403 uniform on
+an unapproved device, metadata only, demo-excluded, capped at 50). `/student/subscribe` (the
+GUID-paste page) is retired; `/student/class` is wired into both the pageView allowlist and the
+`/quiz` privacy-stripping rule (same student-fingerprint-stripping posture). No new Cosmos
+container, no breaking changes. Built per
+`C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v450.md` (CEO/Eng/Design reviewed 2026-07-23).
+Built directly on `main` in one session rather than the release-branch-per-task flow the plan
+describes — same pragmatic single-session deviation v4.0–v4.4 used; not yet tagged/merged per
+the branch convention.
+
 **v4.4.0 (Traffic Monitor) is [CURRENT] — code complete on `release/v4.4-traffic`, not yet merged
 to main/deployed.** Adopted from the demo repo (`github.com/effriantoryan-eng/quizpulse`); prompt
 in `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (reviewed via `/review` + `/plan-eng-review`,
@@ -1071,6 +1088,8 @@ founder-authored smoke run, Key Vault naming).
 | Questions per draft | 3-15 | v4.3.0 |
 | Spaced-repeat entries per send action | 5 | v4.3.0 |
 | source_materials retention (container TTL) | 90 days | v4.3.0 |
+| student/quizzes rate | 30 req/min/IP | v4.5.0 |
+| Quizzes returned per student/quizzes call | 50 | v4.5.0 |
 
 ---
 
@@ -1253,6 +1272,7 @@ dashboard, funnel strip, breakdowns). Live at
 | AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats, expansion nudges) | [CURRENT] v4.3.0 code complete on release/v4.3-generation — not yet deployed |
 | Page-view beacon (usePageView → POST /api/pageView → pageviews container, route allowlist, student privacy stripping) | [CURRENT] v4.4.0 code complete — hardened + formalized |
 | Traffic monitor (GET /api/manage/traffic, admin Traffic page, notification funnel, PWA-install tracking, metrics de-stub) | [CURRENT] v4.4.0 code complete on release/v4.4-traffic — not yet deployed |
+| Student class home (/student/class, GET /api/student/quizzes, approved-screen CTA, auto-subscribe, returning-device recognition, teacher share-link) | [CURRENT] v4.5.0 code complete — not yet deployed |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
