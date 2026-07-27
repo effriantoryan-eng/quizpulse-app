@@ -7,6 +7,10 @@ module.exports = {
     '<rootDir>/tests/unit/**/*.test.js',
     '<rootDir>/tests/integration/**/*.test.js',
   ],
+  // No-ops for unit runs; for integration runs, loads api/local.settings.json's Values into
+  // process.env so minted dev-bypass JWTs' aud claims match what the func host resolves. See
+  // tests/setup/loadLocalSettingsEnv.js.
+  setupFiles: ['<rootDir>/tests/setup/loadLocalSettingsEnv.js'],
   testTimeout: 15000,
   reporters: [
     'default',
