@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
-import { getApprovedClasses, addApprovedClass } from '../../studentClasses'
+import { getApprovedClasses, addApprovedClass, getPendingClasses, addPendingClass, removePendingClass, reconcileApprovals } from '../../studentClasses'
 import { autoSubscribe } from '../../pushSubscribe'
 
 const STUDENT_NAME_MAX = 80
@@ -32,10 +32,41 @@ function JoinClass() {
   const [status, setStatus] = useState(null) // 'pending' | 'approved' | 'rejected' | 'queued'
   const [subscribeState, setSubscribeState] = useState(null) // null | 'priming' | 'denied' | 'unsupported' | 'subscribed' | 'error'
   const [showJoinForm, setShowJoinForm] = useState(false)
+  // Only block first paint if there's actually a pending record to reconcile — a brand-new
+  // student sees the join form instantly, no loading flash.
+  const [reconciling, setReconciling] = useState(() => getPendingClasses().length > 0)
 
   const pollRef = useRef(null)
   const deviceId = getOrCreateDeviceId()
   const knownClasses = getApprovedClasses()
+
+  // On load, reconcile any request the teacher decided while this device's tab was closed. This is
+  // the fix for the dead-end: without it, an approved student who didn't keep the original tab open
+  // has no client-side path back into the class.
+  useEffect(() => {
+    if (getPendingClasses().length === 0) return
+    let cancelled = false
+    ;(async () => {
+      const { newlyApproved } = await reconcileApprovals(deviceId, API_BASE)
+      if (cancelled) return
+      // Enrol push for anyone who just got in here — the surface where a student who missed the
+      // live approval finally gets subscribed. autoSubscribe never throws.
+      newlyApproved.forEach(cid => autoSubscribe(cid, deviceId).catch(() => {}))
+      // Still waiting? Restore the "Request sent" screen and let the existing poll resume, so the
+      // student doesn't re-submit into a duplicate request.
+      const stillPending = getPendingClasses()
+      if (stillPending.length > 0 && !submitted) {
+        const p = stillPending[stillPending.length - 1]
+        setClassId(p.classId)
+        setClassName(p.className)
+        setRequestId(p.requestId)
+        setStatus(p.status || 'pending') // 'queued' must not be shown as "Request sent"
+        setSubmitted(true)
+      }
+      setReconciling(false)
+    })()
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!submitted || !requestId || !classId) return
@@ -65,9 +96,18 @@ function JoinClass() {
   useEffect(() => {
     if (status !== 'approved' || !classId) return
     addApprovedClass(classId, className)
+    removePendingClass(classId)
     setSubscribeState('priming')
     autoSubscribe(classId, deviceId).then(setSubscribeState)
   }, [status, classId, className, deviceId])
+
+  if (reconciling) {
+    return (
+      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>
+        Checking for updates…
+      </div>
+    )
+  }
 
   // Returning device with a known approved class — skip the join form by default.
   if (!submitted && knownClasses.length > 0 && !showJoinForm) {
@@ -122,11 +162,28 @@ function JoinClass() {
       setClassName(data.className)
       setStatus(data.status)
       setSubmitted(true)
+      // Remember the attempt so a closed-tab reload can reconcile it (see the mount effect above).
+      if (data.status !== 'rejected') addPendingClass(data.classId, data.className, data.id, data.status)
     } catch {
       setError('Could not connect to the server. Please try again.')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Escape hatch off the pending/queued wait screen: drop the shown request and return to the
+  // form. Without this, a resumed pending screen (or a bogus/misdirected request) traps the
+  // student with no way to join a different class short of clearing browser storage.
+  function leaveWait() {
+    if (classId) removePendingClass(classId)
+    setSubmitted(false)
+    setStatus(null)
+    setRequestId(null)
+    setClassId(null)
+    setClassName(null)
+    setJoinCode('')
+    setStudentName('')
+    setError(null)
   }
 
   if (submitted) {
@@ -183,6 +240,12 @@ function JoinClass() {
               You'll be added automatically when a spot opens up.
             </p>
             <p style={{ color: '#aaa', fontSize: '12px' }}>Checking for updates automatically…</p>
+            <button
+              onClick={leaveWait}
+              style={{ marginTop: '16px', background: 'none', color: 'var(--primary)', border: 'none', fontSize: '13px', cursor: 'pointer' }}
+            >
+              Join a different class
+            </button>
           </>
         )}
 
@@ -194,6 +257,12 @@ function JoinClass() {
               This page checks automatically every few seconds.
             </p>
             <p style={{ color: '#aaa', fontSize: '12px' }}>Checking for updates automatically…</p>
+            <button
+              onClick={leaveWait}
+              style={{ marginTop: '16px', background: 'none', color: 'var(--primary)', border: 'none', fontSize: '13px', cursor: 'pointer' }}
+            >
+              Join a different class
+            </button>
           </>
         )}
       </div>

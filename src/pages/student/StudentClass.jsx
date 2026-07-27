@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
-import { getApprovedClasses } from '../../studentClasses'
+import { getApprovedClasses, getPendingClasses, reconcileApprovals } from '../../studentClasses'
 
 const DEVICE_ID_KEY = 'quizpulse_device_id'
 const submittedKey = (quizId) => `quizpulse_submitted_${quizId}`
@@ -140,7 +140,36 @@ function ClassSection({ cls, navigate }) {
 
 function StudentClass() {
   const navigate = useNavigate()
-  const classes = getApprovedClasses()
+  const [classes, setClasses] = useState(getApprovedClasses())
+  // Only reconcile-block if we have nothing to show yet but a pending attempt to check — an
+  // already-approved device renders immediately, as before.
+  const [reconciling, setReconciling] = useState(
+    () => getApprovedClasses().length === 0 && getPendingClasses().length > 0
+  )
+
+  // Reconcile whenever there's a pending attempt — not only when nothing is shown yet — so a
+  // second class approved while the student was already in one still surfaces here. The render
+  // only *blocks* on the empty case (the `reconciling` flag); an already-approved list stays
+  // visible and gets any new class appended when reconcile resolves.
+  useEffect(() => {
+    if (getPendingClasses().length === 0) return
+    let cancelled = false
+    ;(async () => {
+      const { approved } = await reconcileApprovals(getDeviceId(), API_BASE)
+      if (cancelled) return
+      setClasses(approved)
+      setReconciling(false)
+    })()
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (reconciling) {
+    return (
+      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>
+        Checking…
+      </div>
+    )
+  }
 
   if (classes.length === 0) {
     return (
