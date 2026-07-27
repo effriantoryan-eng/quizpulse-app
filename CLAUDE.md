@@ -19,7 +19,10 @@ workers, the Web Push API, and a web app manifest to behave like a native app wi
 shell or App Store. Capacitor/App Store packaging is a possible future step only if a school
 explicitly requires store presence — nothing in the current plan depends on it.
 
-**[CURRENT] state of the app — v4.0.0 (Comprehensive Analytics), on top of v3.3.0 / Sprint 6 (v3.0.0 — MAJOR).**
+**[CURRENT] state of the app — v4.5.0 (Student Class Home) deployed on `main`; v4.0.0–v4.4.0 are
+all merged, tagged, and deployed live in production (git + live Function App function list
+verified 2026-07-27 — see the per-version blurbs below), on top of v3.3.0 / Sprint 6 (v3.0.0 —
+MAJOR).**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -47,25 +50,25 @@ benchmarking (`/teacher/population`, a Results sub-tab) against a pre-aggregated
 Built per the amended plan — `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v400_v410.docx` as
 overridden by `C:\Users\Ryan\Doc\Quizpulse\DESIGN_REVIEW_v400_v410_addendum.md` — NOT the raw
 .docx (which had a duplicate endpoint, an IDOR, and a schema that didn't match the real data
-model; see the Architecture decisions entry below). **Deploy blocker:** the new
-`population_benchmark` Cosmos container must be manually provisioned and seeded before this
-feature works in a deployed environment — see `docs/azure/POPULATION_BENCHMARK_SETUP.md` and
-Known issues below.
+model; see the Architecture decisions entry below). Merged, tagged `v4.0.0`, and deployed —
+`population_benchmark` is provisioned and seeded in production (12 topic rollups, confirmed via
+`az cosmosdb sql container show` 2026-07-27); see `docs/azure/POPULATION_BENCHMARK_SETUP.md` for
+the provisioning steps taken.
 
-**v4.1.0 (APST Evidence Export) is [CURRENT] — code complete on `release/v4.1-evidence`, not yet
-merged to main/deployed.** A per-quiz VIT evidence PDF (`/teacher/evidence`, a two-screen inline
-export flow) and an annual aggregate MyPD log PDF, built server-side with pdfkit. Descriptor
-text, VTLM 2.0 wording, and reflection templates are verbatim from AITSL/DET source
-(`src/data/apstContent.js` + its server-side mirror `api/shared/apstContent.js`). Built per
-`C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v410.md` (generated from
+**v4.1.0 (APST Evidence Export) is [CURRENT] — merged, tagged `v4.1.0`, and deployed live in
+production** (`evidenceExport`/`evidenceAnnualLog` confirmed on the live Function App via
+`az functionapp function list`, 2026-07-27). A per-quiz VIT evidence PDF (`/teacher/evidence`, a
+two-screen inline export flow) and an annual aggregate MyPD log PDF, built server-side with
+pdfkit. Descriptor text, VTLM 2.0 wording, and reflection templates are verbatim from AITSL/DET
+source (`src/data/apstContent.js` + its server-side mirror `api/shared/apstContent.js`). Built
+per `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v410.md` (generated from
 `QuizPulse_Sprint_Plan_v400_v410.docx`'s v4.1.0 section, corrected — see that file's "Corrections
 from the raw .docx" section — and folded together with `CEO_REVIEW_v420_v430_addendum.md` §4's
-amendment). `FEATURE_APST_EXPORT` flipped to `true` as part of this sprint. No breaking changes,
-no deploy blockers — the API deploy just needs the new `pdfkit` dependency installed from Node
-20/22 before publishing (see Deploy below).
+amendment). `FEATURE_APST_EXPORT` flipped to `true` as part of this sprint. No breaking changes.
 
-**v4.2.0 (Guided Onboarding & Progressive Disclosure) is [CURRENT] — code complete on
-`release/v4.2-onboarding`, not yet merged to main/deployed.** An optional teacher profile
+**v4.2.0 (Guided Onboarding & Progressive Disclosure) is [CURRENT] — merged, tagged `v4.2.0`,
+and deployed live in production** (`updateProfile`/`classesCreateShells` confirmed on the live
+Function App, 2026-07-27). An optional teacher profile
 (subjects, year levels, class count, registration status) collected via a 5-step onboarding
 wizard, a nine-key server-eligibility "progressive disclosure" engine that surfaces one
 feature-intro card at a time as a teacher hits real milestones (never more than one promotional
@@ -75,13 +78,18 @@ element per page render), and a topic-dropdown prefilter on Send. Built per
 convention as v4.0.0's design-review addendum). No breaking changes, no deploy blockers — every
 new field is additive and legacy teacher docs are treated as empty.
 
-**v4.3.0 (AI Quiz Generation, provider placeholder) is [CURRENT] — code complete on
-`release/v4.3-generation`, not yet merged to main/deployed.** Document upload (PDF/docx/txt,
-15MB cap) → mock-LLM draft (default provider, no API key required) → teacher review/approve →
-send through the normal SendQuiz flow, plus spaced repeats for ANY quiz and misconception-
-triggered follow-up practice. Built per `CC_PROMPTS_v420_v430.md` as amended by
+**v4.3.0 (AI Quiz Generation, provider placeholder) is [CURRENT] — merged, tagged `v4.3.0`, and
+deployed live in production** (`generationSources`/`generationDrafts`/`generationDraftApprove`/
+`generationExpand`/etc. confirmed on the live Function App, 2026-07-27). Document upload
+(PDF/docx/txt, 15MB cap) → mock-LLM draft (default provider, no API key required) → teacher
+review/approve → send through the normal SendQuiz flow, plus spaced repeats for ANY quiz and
+misconception-triggered follow-up practice. Built per `CC_PROMPTS_v420_v430.md` as amended by
 `CEO_REVIEW_v420_v430_addendum.md` (addendum wins on conflict). No real LLM key required or used
 in this build — `FEATURE_AI_GENERATION` is flipped true, but `LLM_PROVIDER` defaults to `mock`.
+**Live-deploy verification done** (v4.6.0 step-zero E1 dogfood, 2026-07-27): 3 real worksheets
+(.txt/.docx/.pdf) extracted and drafted successfully against production, and a ~14.5MB upload
+confirmed the SWA linked-backend proxy path passes multipart uploads through without truncation
+or timeout — this had previously only been verified locally.
 
 **v4.5.0 (Student Class Home & Post-Approval Access) is [CURRENT] — deployed.** Fixes the
 student dead-end after approval: a persistent `/student/class` page
@@ -102,9 +110,10 @@ merged into `develop` (which had drifted 10 commits behind `main`) → tagged `v
 Frontend deployed via SWA GitHub Actions; API deployed via `func azure functionapp publish`
 from Node 22.
 
-**v4.4.0 (Traffic Monitor) is [CURRENT] — code complete on `release/v4.4-traffic`, not yet merged
-to main/deployed.** Adopted from the demo repo (`github.com/effriantoryan-eng/quizpulse`); prompt
-in `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (reviewed via `/review` + `/plan-eng-review`,
+**v4.4.0 (Traffic Monitor) is [CURRENT] — merged, tagged `v4.4.0`, and deployed live in
+production** (`manageTraffic`/`pageView` confirmed on the live Function App, 2026-07-27).
+Adopted from the demo repo (`github.com/effriantoryan-eng/quizpulse`); prompt in
+`C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (reviewed via `/review` + `/plan-eng-review`,
 10 findings folded in before the build). Zero dependencies on v4.1–v4.3. Hardens the traffic WRITE
 path that was already live (`src/hooks/usePageView.js` → `api/pageView.js` → a self-created
 `pageviews` Cosmos container, since the baseline import) — fixed the visitor-UUID key bug, the
@@ -115,13 +124,14 @@ resolution, legacy quizzes excluded from denominators rather than coerced to 0),
 tracking from any route, real `pushSuccessCount`/`pushFailCount` on quiz docs (advisory write),
 and de-stubs `usageGrowth`/`engagement` in `manage/metrics` (`systemHealth`/`security`/`spending`
 stay stubbed — App Insights wiring remains out of scope). No new paid Azure services. 345/345
-unit tests pass; integration tests are written (`tests/integration/api/v440-traffic.test.js`) but
-not run in the build session — no live `func start` + test Cosmos available. **Deploy blocker:**
-the `pageviews` container's 180-day TTL must be set manually before deploying the hardened API
-(it no longer self-creates the container) — see `docs/azure/V440_CONTAINERS_SETUP.md` and Known
-issues below. (That doc originally also called for a dedicated per-container RU cap; corrected
-2026-07-16 — `quizpulse-app-db-av5z18` runs in Serverless capacity mode, which has no
-per-container throughput setting at all, so that instruction was never achievable.)
+unit tests pass; the 14 integration tests (`tests/integration/api/v440-traffic.test.js`) were run
+2026-07-27 against `quizpulse-int-test-db` — **14/14 pass** (Known issue #14 resolved below).
+The `pageviews` container's 180-day TTL is set on both production and the test Cosmos account
+(confirmed via `az cosmosdb sql container show`, 2026-07-27 — see
+`docs/azure/V440_CONTAINERS_SETUP.md`). (That doc originally also called for a dedicated
+per-container RU cap; corrected 2026-07-16 — `quizpulse-app-db-av5z18` runs in Serverless
+capacity mode, which has no per-container throughput setting at all, so that instruction was
+never achievable.)
 
 ---
 
@@ -238,11 +248,11 @@ main                          (production — tagged releases only)
     │   ├── feat/s1-azure-spending-controls (merged)
     │   └── feat/s1-tests                (merged)
     ├── release/v1.1-sprint2  ← next sprint
-    ├── release/v4.0-analytics  ← [PLANNED] cut after v3.3.0 on main; see feature branches below
-    ├── release/v4.1-evidence   ← [CURRENT] cut from develop after v4.0.x; see feature branches below
-    ├── release/v4.2-onboarding ← [CURRENT] cut from develop after v4.0.x; see feature branches below
-    ├── release/v4.3-generation ← [CURRENT] cut from develop; see feature branches below
-    ├── release/v4.4-traffic    ← [PLANNED] cut from develop; NO dependencies — buildable in any gap
+    ├── release/v4.0-analytics  ← [MERGED] tagged v4.0.0, deployed; see feature branches below
+    ├── release/v4.1-evidence   ← [MERGED] tagged v4.1.0, deployed; see feature branches below
+    ├── release/v4.2-onboarding ← [MERGED] tagged v4.2.0, deployed; see feature branches below
+    ├── release/v4.3-generation ← [MERGED] tagged v4.3.0, deployed; see feature branches below
+    ├── release/v4.4-traffic    ← [MERGED] tagged v4.4.0, deployed; NO dependencies on v4.1-v4.3
     └── hotfix/v1.0.1-description  ← from main when needed
 ```
 
@@ -276,8 +286,8 @@ endpoints + approve + expand + send-transition; GenerateQuiz/ReviewDraft UI; mis
 expansion nudges), each verified end-to-end against a live local func host before the next
 started — same pragmatic single-branch deviation v4.0.0/v4.1.0 used. The 15MB multipart spike
 was verified locally (`request.formData()` handled a real 15MB file without truncation); the SWA
-linked-backend proxy path still needs verification against a live deployment before this ships
-to production — see `docs/azure/V430_CONTAINERS_SETUP.md`. Full prompt (with all CEO/eng/design
+linked-backend proxy path was verified live in production 2026-07-27 (v4.6.0 step-zero E1
+dogfood — see `docs/azure/V460_STEP_ZERO_RUNBOOK.md` B1). Full prompt (with all CEO/eng/design
 review amendments folded in) lives in `CC_PROMPTS_v420_v430.md` — built from that file, not the
 raw `QuizPulse_Sprint_Plan_v420_v430.docx`, which carries a supersession notice. One scope cut
 from the addendum's full spec: the Results-list-level "Create follow-up practice" nudge (lazy
@@ -290,8 +300,8 @@ follow-up rather than adding to an already-large sprint.
 dependency, one branch per task, all merged): `feat/v4.4-pageview-hardening` (fixed the
 inherited pageView write path), `feat/v4.4-traffic-endpoint`, `feat/v4.4-funnel-and-destub`,
 `feat/v4.4-pwa-install-tracking`, `feat/v4.4-admin-traffic-ui`, `feat/v4.4-tests` — all six
-merged into `release/v4.4-traffic`. Still pending: tag `v4.4.0-rc1` → merge develop → merge
-main → tag `v4.4.0`. Full prompt: `CC_PROMPTS_v440.md`.
+merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` → merged to `main`
+→ tagged `v4.4.0` — done, deployed. Full prompt: `CC_PROMPTS_v440.md`.
 
 ### Version numbering
 
@@ -356,24 +366,23 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
    admin frontend (Sprint 7, separate site).
 6. **v3.0.0 — Community bank & hardening.** Cross-school question sharing, SWA Standard tier,
    API Management, Apple ID auth, analytics depth.
-7. **v4.0.0 — Comprehensive analytics.** [CURRENT — code complete, deploy steps pending] Class
+7. **v4.0.0 — Comprehensive analytics.** [CURRENT — merged, tagged, deployed] Class
    drill-down, four-cell confidence+correctness chart, population benchmarking against a seeded
    synthetic dataset. Reviewed 2026-07-03 (design + eng), implemented same day.
-8. **v4.1.0 — APST evidence export.** [CURRENT — code complete on `release/v4.1-evidence`, not
-   yet deployed] Per-quiz VIT evidence PDF + annual MyPD aggregate log, editable reflection
-   prompts, pre-populated APST/VTLM 2.0 fields. Reviewed 2026-07-03 (design + eng), implemented
-   2026-07-15.
-9. **v4.2.0 — Guided onboarding & progressive disclosure.** [CURRENT — code complete on
-   `release/v4.2-onboarding`, not yet deployed] Optional teacher profile via a 5-step wizard,
-   nine-key server-eligibility feature-intro engine, topic-dropdown prefilter on Send. Reviewed
-   2026-07-11 (CEO + eng + design).
-10. **v4.3.0 — AI quiz generation (provider placeholder).** [CURRENT — code complete on
-    `release/v4.3-generation`, not yet deployed] Document upload → mock-LLM draft quiz → teacher
-    review/approve, spaced-repeat scheduling for any quiz, teacher-mediated follow-up expansion
-    from misconceptions. No real LLM key required — ships and tests entirely against a mock
+8. **v4.1.0 — APST evidence export.** [CURRENT — merged, tagged `v4.1.0`, deployed] Per-quiz
+   VIT evidence PDF + annual MyPD aggregate log, editable reflection prompts, pre-populated
+   APST/VTLM 2.0 fields. Reviewed 2026-07-03 (design + eng), implemented 2026-07-15.
+9. **v4.2.0 — Guided onboarding & progressive disclosure.** [CURRENT — merged, tagged
+   `v4.2.0`, deployed] Optional teacher profile via a 5-step wizard, nine-key server-eligibility
+   feature-intro engine, topic-dropdown prefilter on Send. Reviewed 2026-07-11 (CEO + eng +
+   design).
+10. **v4.3.0 — AI quiz generation (provider placeholder).** [CURRENT — merged, tagged
+    `v4.3.0`, deployed] Document upload → mock-LLM draft quiz → teacher review/approve,
+    spaced-repeat scheduling for any quiz, teacher-mediated follow-up expansion from
+    misconceptions. No real LLM key required — ships and tests entirely against a mock
     provider. Reviewed 2026-07-11 (CEO + eng + design), implemented 2026-07-15.
-11. **v4.4.0 — Traffic monitor.** [CURRENT — code complete on `release/v4.4-traffic`, not yet
-    deployed] Hardened the already-live page-view write path (`usePageView` → `POST /api/pageView`
+11. **v4.4.0 — Traffic monitor.** [CURRENT — merged, tagged `v4.4.0`, deployed] Hardened the
+    already-live page-view write path (`usePageView` → `POST /api/pageView`
     → `pageviews` container), added `GET /api/manage/traffic` + an admin-portal Traffic page
     (uniques, sessions, top pages, audience/device/browser splits), a notification→open→submit
     funnel, PWA-install tracking, real push-delivery counts on quiz docs, and de-stubbed the
@@ -1261,19 +1270,19 @@ dashboard, funnel strip, breakdowns). Live at
 | Demo class UI (Classes "Try with a demo class" + Demo pill, SendQuiz demo note, Analytics "Demo data" pill, mockups) | [CURRENT] v3.3.0 complete |
 | Demo class isolation (api/shared/excludeDemo.js; metrics/schoolsList/logsExport exclude demo from cross-teacher reporting) | [CURRENT] v3.3.0 complete |
 | Comprehensive analytics — class drill-down, four-cell confidence+correctness chart, misconception hero card | [CURRENT] v4.0.0 code complete — reviewed + built 2026-07-03 |
-| Population benchmarking (/teacher/population, population_benchmark container, api/analyticsPopulation.js) | [CURRENT] v4.0.0 code complete — container provisioning + seed run still pending, see Known issues |
+| Population benchmarking (/teacher/population, population_benchmark container, api/analyticsPopulation.js) | [CURRENT] v4.0.0 deployed — container provisioned + seeded, confirmed live 2026-07-27 |
 | Topic tag on quiz (optional, 12 presets, api/shared/topicTags.js, feeds population benchmarking) | [CURRENT] v4.0.0 code complete |
 | Pre-release review fixes (CSV formula-injection guard, per-class response rates, server-set sentAt, option bars kept beside four-cell) | [CURRENT] v4.0.0 — /review 2026-07-06, 215/215 tests pass |
-| APST evidence export (/teacher/evidence, per-quiz PDF + annual MyPD log, pdfkit) | [CURRENT] v4.1.0 code complete on release/v4.1-evidence — not yet deployed |
-| Onboarding profile wizard (5-step, PUT /api/me/profile, ProfileWizardSteps, /onboarding/profile) | [CURRENT] v4.2.0 code complete on release/v4.2-onboarding — not yet deployed |
+| APST evidence export (/teacher/evidence, per-quiz PDF + annual MyPD log, pdfkit) | [CURRENT] v4.1.0 deployed |
+| Onboarding profile wizard (5-step, PUT /api/me/profile, ProfileWizardSteps, /onboarding/profile) | [CURRENT] v4.2.0 deployed |
 | Class shells (POST /api/classes/shells, api/shared/createClass.js) | [CURRENT] v4.2.0 code complete |
 | Progressive disclosure engine (introEligibility.js, 9 feature-intro keys, PUT /api/me/feature-intros) | [CURRENT] v4.2.0 code complete |
 | Feature-intro UI (FeatureIntroCard, PromoSlot one-promo-per-page, ProfileNudge) | [CURRENT] v4.2.0 code complete |
 | confidenceResponseCount counter (atomic Cosmos incr patch, api/responses.js + runSimulation.js) | [CURRENT] v4.2.0 code complete |
 | SendQuiz topic dropdown prefilter (profile-matched segment + zero-match fallback) | [CURRENT] v4.2.0 code complete |
-| AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats, expansion nudges) | [CURRENT] v4.3.0 code complete on release/v4.3-generation — not yet deployed |
-| Page-view beacon (usePageView → POST /api/pageView → pageviews container, route allowlist, student privacy stripping) | [CURRENT] v4.4.0 code complete — hardened + formalized |
-| Traffic monitor (GET /api/manage/traffic, admin Traffic page, notification funnel, PWA-install tracking, metrics de-stub) | [CURRENT] v4.4.0 code complete on release/v4.4-traffic — not yet deployed |
+| AI quiz generation (mock provider, /teacher/generate, ReviewDraft, spaced repeats, expansion nudges) | [CURRENT] v4.3.0 deployed — live-verified 2026-07-27 (E1 dogfood) |
+| Page-view beacon (usePageView → POST /api/pageView → pageviews container, route allowlist, student privacy stripping) | [CURRENT] v4.4.0 deployed — hardened + formalized |
+| Traffic monitor (GET /api/manage/traffic, admin Traffic page, notification funnel, PWA-install tracking, metrics de-stub) | [CURRENT] v4.4.0 deployed — 14/14 integration tests pass |
 | Student class home (/student/class, GET /api/student/quizzes, approved-screen CTA, auto-subscribe, returning-device recognition, teacher share-link) | [CURRENT] v4.5.0 deployed |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
@@ -1364,19 +1373,27 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     (`feat/v4.4-pageview-hardening`): the visitor UUID now keys under `quizpulse_device_id`
     (matches join requests/responses/subscriptions, enabling the funnel), the container no
     longer self-creates at runtime (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`), and TTL
-    provisioning is documented in `docs/azure/V440_CONTAINERS_SETUP.md`. **Portal action still
-    required before deploying:** the container's 180-day TTL must be set manually per that doc —
-    the deploy-blocker note in the v4.4.0 status blurb above. (No RU cap step — corrected
-    2026-07-16: `quizpulse-app-db-av5z18` is Serverless capacity mode, which has no per-container
-    throughput setting to configure.)
-14. **v4.4.0 integration tests are written but unrun.** `tests/integration/api/v440-traffic.test.js`
-    (14 cases: pageView write contract, the full traffic-endpoint auth/role/rate-limit/validation
-    matrix incl. the required cross-tenant negative test and a support-role read-access test, and
-    a demo-quiz-doesn't-corrupt-aggregation check) is syntax-verified and gate-skips correctly via
-    `RUN_INTEGRATION`, but was never run against a live `func start` + the `quizpulse-int-test-db`
-    — none were available in the build session. Run them (and the admin Traffic page's live
-    render, which also wasn't exercised — no admin dev-auth bypass exists) before treating v4.4.0
-    as pilot-ready. See CLAUDE.md Testing section for the safe way to point `func start` at the
+    provisioning is documented in `docs/azure/V440_CONTAINERS_SETUP.md`. **TTL confirmed set on
+    both production and the test Cosmos account** (`az cosmosdb sql container show`, 2026-07-27 —
+    test-db's was found genuinely missing and set that day; see
+    `docs/azure/V460_STEP_ZERO_RUNBOOK.md` B2). (No RU cap step — corrected 2026-07-16:
+    `quizpulse-app-db-av5z18` is Serverless capacity mode, which has no per-container throughput
+    setting to configure.)
+~~14. **v4.4.0 integration tests are written but unrun.**~~ **Resolved 2026-07-27.**
+    `tests/integration/api/v440-traffic.test.js` (14 cases: pageView write contract, the full
+    traffic-endpoint auth/role/rate-limit/validation matrix incl. the required cross-tenant
+    negative test and a support-role read-access test, and a demo-quiz-doesn't-corrupt-aggregation
+    check) was run against `func start` + `quizpulse-int-test-db` — **14/14 pass**. Found and fixed
+    a real test-harness bug along the way (not an app bug): `jest.config.cjs` had no `setupFiles`,
+    so neither `npm run test:integration` nor a direct `npx jest` call ever loaded
+    `api/local.settings.json`'s `Values` into the jest process's env — every admin-audience test
+    minted a token with a placeholder `aud` that never matched the `func` host's real
+    `ADMIN_AUTH_CLIENT_ID`, so every one 401'd before its role-gate logic ever ran. Fixed with
+    `tests/setup/loadLocalSettingsEnv.js`, wired into `jest.config.cjs`'s new `setupFiles` —
+    `npm run test:integration` now works out of the box with no manual env exports. Full
+    diagnosis: `docs/azure/V460_STEP_ZERO_RUNBOOK.md` B2. The admin Traffic page's live render
+    still wasn't exercised — no admin dev-auth bypass exists. See CLAUDE.md Testing section for
+    the safe way to point `func start` at the
     test Cosmos account.
 
 ---

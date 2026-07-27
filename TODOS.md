@@ -1,4 +1,54 @@
 
+## E1 dogfood findings — v4.6.0 step zero (2026-07-27)
+
+- [ ] **Mock provider distractor quality: plural/case-variant and stopword leakage (P3, S).**
+  **What:** `api/shared/llmProviders/mock.js`'s `extractKeyTerms`/term-pool logic occasionally
+  produces two options that are trivially the same term (e.g. "Plant" and "plants" as separate
+  distractors on one question), and occasionally lets a generic connector word slip through as
+  a distractor (e.g. "around") rather than a real topic term. **Why:** weakens a draft question
+  as an "editable starting point" — a student could reasonably infer two distractors are the
+  same thing, or spot the non-topic word as an obvious wrong answer, defeating the point of
+  having 3 real distractors. **Context:** observed live during the step-zero E1 dogfood
+  (2026-07-27) against 3 real worksheets on production — did not block the go/no-go verdict
+  (E1 shipped in scope regardless; teachers review/edit every AI-drafted question before
+  approving, so this is a quality nit, not a correctness bug). Fix would extend the `STOPWORDS`
+  set and/or dedupe term-pool entries by a normalized (lowercased, singularized) form before
+  building the option set. **Depends on:** none — isolated to `mock.js`.
+
+## Deferred from CEO review — v4.6.0 First-Run Activation (from /plan-ceo-review 2026-07-27)
+
+Full decision record: `~/.gstack/projects/effriantoryan-eng-quizpulse-app/ceo-plans/2026-07-27-v460-first-run-activation.md`
+(assessment: `C:\Users\Ryan\Doc\Quizpulse\UX_FRICTION_ASSESSMENT_2026-07.md`). All four items
+below were explicitly deferred during the review's opt-in ceremony / outside-voice pass — they
+are recorded decisions, not open questions.
+
+- [ ] **Subject-matched starter question packs (post-v4.6.0, P3, S).**
+  **What:** 4 more curated 5-question packs (Science/Maths/English/Humanities) keyed off the
+  profile `subjects` enum, extending the single generic pack v4.6.0 ships. **Why:** makes the
+  first-run demo quiz feel personal. **Context:** trimmed in D10 — question content is cosmetic
+  to the demo aha (responses are simulated), and packs aren't year-matched anyway. Build only if
+  pilot teachers actually comment on the starter content. Same curation bar as apstContent.js.
+- [ ] **Admin Activation panel on the Traffic page (post-pilot, P3, M).**
+  **What:** move the v4.6.0 hand-run activation-funnel script (signups → demo send → first real
+  send, median time-to-first-send) into `GET /api/manage/traffic` + an Activation panel in
+  `admin/src/pages/Traffic.jsx`. **Why:** dashboard convenience once there are enough teachers
+  that a hand-run script is annoying. **Context:** trimmed in D10 for n<10 pilot scale; the
+  v4.4.0 eng review already rejected this aggregate pattern for `manage/metrics` at platform
+  scope. The funnel deliberately counts demo sends — sanctioned exception documented in
+  CLAUDE.md's demo-isolation section when v4.6.0 lands.
+- [ ] **Attributed per-teacher "analytics view" funnel stage (post-pilot, P3, M).**
+  **What:** an authed server-side event write so "reached analytics" can be attributed to a
+  teacher cohort. **Why:** the route-level pageview proxy is directional only — `pageviews`'
+  visitor ID is the anonymous device UUID, never the teacher oid, and adding identity to the
+  anonymous beacon was rejected (spoofable). **Context:** D11 restructured v4.6.0's metrics so
+  nothing depends on this; build only if the pilot readout needs true cohort percentages.
+- [ ] **Tier 3 job-oriented IA rework (post-pilot, P3, L).**
+  **What:** nav reframed around jobs ("Send a quiz" primary action, merged Build/Send/History
+  lifecycle surface, Question Bank demoted into the build flow, taxonomy unification per F6).
+  **Why:** the assessment's F1 (noun-based IA) is real but is a pre-pilot bet without evidence.
+  **Context:** deferred in D1; v4.6.0's E6 quick-start card is the cheap probe — pilot
+  navigation data decides whether the full rework is justified.
+
 ## /plan session 2026-07-15 — v4.4.0 Traffic Monitor planned
 
 Adopted the demo repo's (`github.com/effriantoryan-eng/quizpulse`) traffic-monitor feature as
