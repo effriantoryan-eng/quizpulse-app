@@ -10,6 +10,7 @@ const {
   runSimulation,
   generateSimulatedResponses,
   pickAnswer,
+  pickDistractor,
   pickConfidence,
   pickResponseTimeMs,
 } = require('../../../api/shared/runSimulation');
@@ -110,6 +111,54 @@ describe('generateSimulatedResponses', () => {
       const delta = new Date(d.completedAt).getTime() - new Date(quiz.sentAt).getTime();
       expect(delta).toBeGreaterThanOrEqual(20000);
       expect(delta).toBeLessThanOrEqual(40000);
+    }
+  });
+});
+
+describe('v4.6.0 misconception concentration (eng D12/CEO D12)', () => {
+  test('wrong answers concentrate on ONE shared distractor per question (~80%), not spread uniformly', () => {
+    const correctIndex = 0;
+    const optionCount = 4;
+    const distractorIndex = pickDistractor(correctIndex, optionCount);
+    let wrong = 0;
+    let onDistractor = 0;
+    for (let i = 0; i < SAMPLES; i++) {
+      const idx = pickAnswer(correctIndex, optionCount, distractorIndex);
+      if (idx !== correctIndex) {
+        wrong++;
+        if (idx === distractorIndex) onDistractor++;
+      }
+    }
+    // Expected ~0.867: 80% land directly on the distractor, and the remaining 20% fall back to a
+    // uniform pick among the 3 non-correct options (1/3 of which is the distractor again).
+    const concentrationRate = onDistractor / wrong;
+    expect(concentrationRate).toBeGreaterThanOrEqual(0.82);
+    expect(concentrationRate).toBeLessThanOrEqual(0.91);
+  });
+
+  test('picking the shared distractor skews confidence toward "sure"/"pretty_sure" vs a plain guess', () => {
+    let sureOrPrettyMisconception = 0;
+    let sureOrPrettyDefault = 0;
+    for (let i = 0; i < SAMPLES; i++) {
+      if (pickConfidence(true) !== 'guessing') sureOrPrettyMisconception++;
+      if (pickConfidence(false) !== 'guessing') sureOrPrettyDefault++;
+    }
+    expect(sureOrPrettyMisconception / SAMPLES).toBeGreaterThan(sureOrPrettyDefault / SAMPLES);
+  });
+
+  test('generateSimulatedResponses concentrates each question\'s wrong picks on one distractor', () => {
+    const quiz = { id: 'q1', sentAt: '2026-06-22T00:00:00.000Z' };
+    const demoStudents = selectDemoStudents();
+    const questions = [{ id: 'qa', options: ['a', 'b', 'c', 'd'], correctIndex: 0 }];
+    const docs = generateSimulatedResponses({ quiz, demoStudents, questions });
+    const wrongPicks = docs.map(d => d.answers[0].selectedIndex).filter(idx => idx !== 0);
+    // 24 students isn't enough to assert an exact rate, but with 80% concentration and a mostly-
+    // correct-answer bias, any wrong picks that do occur should mostly land on a single index.
+    if (wrongPicks.length >= 3) {
+      const counts = {};
+      wrongPicks.forEach(idx => { counts[idx] = (counts[idx] || 0) + 1; });
+      const maxCount = Math.max(...Object.values(counts));
+      expect(maxCount / wrongPicks.length).toBeGreaterThanOrEqual(0.5);
     }
   });
 });

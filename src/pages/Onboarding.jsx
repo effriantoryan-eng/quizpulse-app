@@ -93,7 +93,7 @@ function Onboarding() {
           </form>
         </>
       ) : (
-        <ProfileWizardSteps startStepNumber={2} onDone={() => navigate('/teacher/create', { replace: true })} />
+        <ProfileWizardSteps startStepNumber={2} onDone={() => navigate('/teacher/first-run', { replace: true })} />
       )}
     </div>
   )

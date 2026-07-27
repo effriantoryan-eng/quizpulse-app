@@ -60,8 +60,18 @@ async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount
   if (demoClass) {
     const simResult = await runSimulation(quiz, demoClass, context);
     if (simResult.error) return simResult;
-    quiz.notificationSentAt = new Date().toISOString();
-    await quizzesContainer.items.upsert(quiz);
+    // Patch, not upsert: runSimulation() just patched confidenceResponseCount directly in Cosmos
+    // (it never touches this in-memory `quiz` object). Upserting the stale in-memory `quiz` here
+    // would silently overwrite that patch back to undefined — found live during v4.6.0 first-run
+    // testing (the Getting Started checklist's results-seen step never ticked because of it).
+    // Same non-destructive, best-effort-on-failure semantics as that patch.
+    const notificationSentAt = new Date().toISOString();
+    try {
+      await quizzesContainer.item(quiz.id, quiz.teacherId).patch([{ op: 'set', path: '/notificationSentAt', value: notificationSentAt }]);
+      quiz.notificationSentAt = notificationSentAt;
+    } catch (err) {
+      context.warn(`failed to persist notificationSentAt for demo quiz ${quiz.id} (non-fatal): ${err?.message}`);
+    }
     context.log(`Demo quiz ${quiz.id} simulated ${simResult.simulated}/${simResult.total} response(s) (push skipped)`);
     return { sent: 0, total: simResult.total, simulated: simResult.simulated };
   }

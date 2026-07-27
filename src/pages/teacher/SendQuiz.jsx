@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
@@ -48,15 +48,21 @@ function ShareLink({ quizId }) {
 function SendQuiz() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [hintVisible, dismissHint, showHint] = useHint('send')
-  // v4.3.0 quizId mode: an approved AI draft is already a real quiz doc (status 'draft') —
-  // load it instead of building a new one from questionIds, and skip question-picking.
+  // v4.3.0 quizId mode: an approved AI draft (or, since v4.6.0, a manually built quiz saved via
+  // BuildQuiz's "Save & go to send") is already a real quiz doc (status 'draft') — load it
+  // instead of building a new one from questionIds, and skip question-picking. The id is read
+  // from the URL (?quizId=), not just router state, so a refresh or a shared link doesn't lose
+  // the in-progress quiz — router state (ReviewDraft's approve->send bridge) is kept as a
+  // fallback for the one existing caller that doesn't pass it via URL yet.
   const {
     quizName: quizNameFromState = '',
     questionIds: questionIdsFromState = [],
-    quizId: incomingQuizId = null,
+    quizId: quizIdFromState = null,
     spacedRepeats: incomingSpacedRepeats = null,
   } = location.state || {}
+  const incomingQuizId = quizIdFromState || searchParams.get('quizId')
   const [loadedQuiz, setLoadedQuiz] = useState(null)
   const [loadingQuiz, setLoadingQuiz] = useState(!!incomingQuizId)
   const quizName = incomingQuizId ? (loadedQuiz?.name || '') : quizNameFromState

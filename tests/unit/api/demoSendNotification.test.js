@@ -36,6 +36,18 @@ jest.mock('@azure/cosmos', () => {
         return { resource: doc };
       },
     },
+    item: (id) => ({
+      patch: async (ops) => {
+        const doc = mockStore[name].find((d) => d.id === id);
+        if (!doc) { const e = new Error('not found'); e.code = 404; throw e; }
+        for (const { op, path, value } of ops) {
+          const field = path.replace(/^\//, '');
+          if (op === 'incr') doc[field] = (doc[field] || 0) + value;
+          else if (op === 'set') doc[field] = value;
+        }
+        return { resource: doc };
+      },
+    }),
   });
   return {
     CosmosClient: jest.fn().mockImplementation(() => ({
@@ -86,6 +98,11 @@ describe('sendNotificationForQuiz — demo class branch', () => {
     expect(store.responses).toHaveLength(24);
     expect(store.responses.every(r => r.isDemo === true && r.simulated === true)).toBe(true);
     expect(quiz.notificationSentAt).toBeDefined();
+    // Regression guard: runSimulation's confidenceResponseCount patch must survive this call —
+    // previously a full upsert() of the stale in-memory `quiz` here silently clobbered it back
+    // to undefined right after runSimulation set it.
+    const persisted = store.quizzes.find((q) => q.id === 'q-demo');
+    expect(persisted.confidenceResponseCount).toBe(24);
   });
 
   test('non-demo quiz still pushes to subscribers (control)', async () => {

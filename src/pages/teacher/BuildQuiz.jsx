@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import FeatureIntroCard, { hasShownIntroThisSession } from '../../components/FeatureIntroCard'
+import StarterSeedCta from '../../components/StarterSeedCta'
 import API_BASE from '../../api'
 
 const TOPIC_COLORS = {
@@ -25,6 +26,34 @@ function BuildQuiz() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [communityIntro, setCommunityIntro] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const [saveError, setSaveError] = useState(null)
+
+  // v4.6.0 Task 5 — persist the quiz as a real status:'draft' doc and hand off by quizId (URL,
+  // survives a refresh) instead of router state (in-memory, lost on refresh/detour). SendQuiz
+  // already knows how to resume from a quizId — this reuses that same v4.3 "quizId mode" path
+  // rather than adding a second load mechanism.
+  async function saveAndGoToSend() {
+    setSavingDraft(true)
+    setSaveError(null)
+    try {
+      const res = await fetch(`${API_BASE}/quizzes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: quizName.trim(), questionIds: selected.map((q) => q.id) }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setSaveError(data.error || 'Could not save this quiz — please try again.')
+        return
+      }
+      navigate(`/teacher/send?quizId=${data.id}`)
+    } catch {
+      setSaveError('Could not connect to the server. Please try again.')
+    } finally {
+      setSavingDraft(false)
+    }
+  }
 
   useEffect(() => {
     if (hasShownIntroThisSession()) return
@@ -149,6 +178,9 @@ function BuildQuiz() {
             {selected.length === 0 && (
               <div style={{ fontSize: '13px', color: '#aaa', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px' }}>
                 No questions added yet
+                {allQuestions.length === 0 && (
+                  <StarterSeedCta onSeeded={(seeded) => { setAllQuestions(seeded); setSelected(seeded) }} />
+                )}
               </div>
             )}
 
@@ -218,12 +250,13 @@ function BuildQuiz() {
           </div>
 
           <button
-            disabled={selected.length === 0 || !quizName.trim()}
-            style={{ width: '100%', marginTop: '16px', padding: '12px', background: selected.length === 0 || !quizName.trim() ? '#ccc' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: selected.length === 0 || !quizName.trim() ? 'not-allowed' : 'pointer' }}
-            onClick={() => navigate('/teacher/send', { state: { quizName, questionIds: selected.map(q => q.id), questions: selected } })}
+            disabled={selected.length === 0 || !quizName.trim() || savingDraft}
+            style={{ width: '100%', marginTop: '16px', padding: '12px', background: selected.length === 0 || !quizName.trim() || savingDraft ? '#ccc' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: selected.length === 0 || !quizName.trim() || savingDraft ? 'not-allowed' : 'pointer' }}
+            onClick={saveAndGoToSend}
           >
-            Save & go to send →
+            {savingDraft ? 'Saving…' : 'Save & go to send →'}
           </button>
+          {saveError && <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '8px' }}>{saveError}</p>}
         </div>
       </div>
     </div>

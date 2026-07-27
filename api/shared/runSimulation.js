@@ -18,15 +18,12 @@ function uniformInt(min, max) {
   return Math.floor(min + Math.random() * (max - min));
 }
 
-// Picks an answer index for one question: the correct option with probability 0.65, otherwise a
-// uniformly random INCORRECT option. Models a class that mostly knows the material but not perfectly.
-function pickAnswer(correctIndex, optionCount) {
+// A uniformly random INCORRECT option (excluding the correct one when it's valid). Used both as
+// the per-question "shared distractor" pick and as pickAnswer's fallback when no distractor is
+// supplied — kept as its own function so both call sites can't drift.
+function pickDistractor(correctIndex, optionCount) {
   if (!Number.isInteger(optionCount) || optionCount <= 1) return 0;
   const hasValidCorrect = Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < optionCount;
-  if (hasValidCorrect && Math.random() < CORRECT_PROBABILITY) {
-    return correctIndex;
-  }
-  // Random incorrect option (excluding the correct one when it's valid).
   let idx = Math.floor(Math.random() * optionCount);
   if (hasValidCorrect) {
     while (idx === correctIndex) idx = Math.floor(Math.random() * optionCount);
@@ -34,9 +31,37 @@ function pickAnswer(correctIndex, optionCount) {
   return idx;
 }
 
-// Weighted confidence: "sure" 0.40, "pretty_sure" 0.40, "guessing" 0.20.
-function pickConfidence() {
+// v4.6.0 (eng D12/CEO D12) — wrong answers concentrate on ONE shared distractor per question
+// (80% of the time) rather than spreading uniformly across every incorrect option, so the
+// four-cell chart, the misconception hero card, and the per-option answer bars all point at the
+// same wrong answer instead of telling three different stories. `distractorIndex` is chosen once
+// per question by the caller (generateSimulatedResponses), not per student.
+const DISTRACTOR_CONCENTRATION = 0.8;
+function pickAnswer(correctIndex, optionCount, distractorIndex) {
+  if (!Number.isInteger(optionCount) || optionCount <= 1) return 0;
+  const hasValidCorrect = Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < optionCount;
+  if (hasValidCorrect && Math.random() < CORRECT_PROBABILITY) {
+    return correctIndex;
+  }
+  const hasValidDistractor = Number.isInteger(distractorIndex) && distractorIndex >= 0
+    && distractorIndex < optionCount && distractorIndex !== correctIndex;
+  if (hasValidDistractor && Math.random() < DISTRACTOR_CONCENTRATION) {
+    return distractorIndex;
+  }
+  return pickDistractor(correctIndex, optionCount);
+}
+
+// Weighted confidence: "sure" 0.40, "pretty_sure" 0.40, "guessing" 0.20 by default. When
+// `isMisconceptionPick` is true (the student picked the question's shared wrong distractor), skew
+// confident (0.55/0.35/0.10) — a genuine misconception is held with confidence, which is what
+// makes it show up as "confidently wrong" rather than a random guess.
+function pickConfidence(isMisconceptionPick = false) {
   const r = Math.random();
+  if (isMisconceptionPick) {
+    if (r < 0.55) return 'sure';
+    if (r < 0.90) return 'pretty_sure';
+    return 'guessing';
+  }
   if (r < 0.40) return 'sure';
   if (r < 0.80) return 'pretty_sure';
   return 'guessing';
@@ -51,13 +76,21 @@ function pickResponseTimeMs() {
 // Pure generator — builds one response doc per demo student. No DB access, exported for testing.
 function generateSimulatedResponses({ quiz, demoStudents, questions }) {
   const sentAtMs = quiz.sentAt ? new Date(quiz.sentAt).getTime() : Date.now();
+  // One shared distractor chosen per question (not per student) — see pickAnswer above.
+  const distractorByQuestion = new Map(questions.map((q) => {
+    const optionCount = Array.isArray(q.options) ? q.options.length : 4;
+    return [q.id, pickDistractor(q.correctIndex, optionCount)];
+  }));
   return demoStudents.map((student) => {
     const answers = questions.map((q) => {
       const optionCount = Array.isArray(q.options) ? q.options.length : 4;
+      const distractorIndex = distractorByQuestion.get(q.id);
+      const selectedIndex = pickAnswer(q.correctIndex, optionCount, distractorIndex);
+      const isMisconceptionPick = selectedIndex !== q.correctIndex && selectedIndex === distractorIndex;
       return {
         questionId: q.id,
-        selectedIndex: pickAnswer(q.correctIndex, optionCount),
-        confidence: pickConfidence(),
+        selectedIndex,
+        confidence: pickConfidence(isMisconceptionPick),
         responseTimeMs: pickResponseTimeMs(),
       };
     });
@@ -152,7 +185,9 @@ module.exports = {
   runSimulation,
   generateSimulatedResponses,
   pickAnswer,
+  pickDistractor,
   pickConfidence,
   pickResponseTimeMs,
   CORRECT_PROBABILITY,
+  DISTRACTOR_CONCENTRATION,
 };

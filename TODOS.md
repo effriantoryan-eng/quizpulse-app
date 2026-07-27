@@ -1,4 +1,55 @@
 
+## /code coding session — v4.6.0 Tasks 1-8 complete, live-verified (2026-07-27)
+
+Built, unit-tested, AND live-verified Tasks 1-8 of `CC_PROMPTS_v460.md` directly on `main` (no
+release branch yet). 459/459 unit tests pass, clean `npm run build`. Full onboarding → finale →
+ready-made lane → payoff screen → Home walked live against production Cosmos via
+`dev-teacher-001` (local `func start`, no console errors). CLAUDE.md updated throughout (v4.6.0
+blurb rewritten to reflect completion, feature status, Known issue #15, roadmap #13). `graphify
+update .` re-run after the new frontend files landed (1286 nodes, 2084 edges).
+
+- [x] **Task 1 — `POST /api/onboarding/first-run`** (`api/onboardingFirstRun.js`,
+  `api/shared/firstRun.js`). Code-reviewed pre-live-test and fixed 3 findings: hardcoded
+  `classSize` → now derived from the resolved demo class's real roster; dead-code removal of
+  `nextFirstRunStep`; `FIRST_RUN_DEMO_STUDENT_COUNT` duplicate constant removed in favor of
+  `api/shared/demoNames.js`'s `DEMO_STUDENT_COUNT`. **Found live (not caught by unit mocks):**
+  `getOrCreateQuiz` returned `undefined` for a brand-new quiz because Cosmos's `item().read()`
+  doesn't throw on a missing item in this SDK setup — fixed to check `resource` truthiness.
+- [x] **Task 2 — starter pack** (`api/shared/starterPack.js`, `api/questionsStarterSeed.js`).
+- [x] **Task 3 — Getting Started checklist state** (`api/shared/gettingStarted.js`), wired into
+  `GET /api/me` + `PUT /api/me/feature-intros` (new `skip-step` event). Design corrected before
+  live testing: `computeGettingStarted` no longer short-circuits `steps: null` on `releasedAt`
+  (only on `dismissedAt`) — the collapsed strip needs a live "N of 5" count.
+- [x] **Task 4 — first-run finale UI + checklist rendering** (`src/pages/FirstRunFinale.jsx`,
+  `src/components/GettingStartedChecklist.jsx`), route `/teacher/first-run`. Live-verified.
+- [x] **Task 5 — Tier 2 unbreakable flow**: BuildQuiz "Save & go to send" now persists a real
+  draft quiz doc and hands off by `?quizId=` URL (survives refresh); PendingRequests auto-selects
+  or offers an in-place picker instead of bouncing to Classes.
+- [x] **Task 6 — starter-seed empty-state CTA** (`src/components/StarterSeedCta.jsx`) in
+  BuildQuiz/QuestionBank empty states.
+- [x] **Task 7 — demo simulation misconception bias** (`api/shared/runSimulation.js`).
+  Live-confirmed: 28% misconception concentration on the payoff screen.
+- [x] **Task 8 — activation funnel script** (`api/scripts/activationFunnel.js`).
+- [x] **Real production bug found and fixed via live testing, unrelated to v4.6.0's own new
+  code but blocking it:** `api/sendNotification.js`'s demo branch has silently clobbered
+  `confidenceResponseCount` on EVERY demo-quiz send since v4.2.0 — `runSimulation()` patches that
+  field directly in Cosmos, then the demo branch upserted the stale in-memory `quiz` object right
+  after, wiping the patch back to undefined. Never noticed because Analytics counts responses
+  directly, not via this counter — but it silently broke `analytics_intro`/`misconception_intro`
+  eligibility for demo-only usage and would have broken the new `results-seen` checklist step.
+  Fixed to patch `notificationSentAt` instead of upserting; regression-guarded in
+  `tests/unit/api/demoSendNotification.test.js`. **Worth a closer look**: check whether any
+  historical demo quizzes in production have a permanently-missing `confidenceResponseCount` as a
+  result — not fixed retroactively, only prevented going forward.
+- [ ] **rc1 ship gates still outstanding:** run `tests/integration/api/v460-first-run.test.js` for
+  real against `quizpulse-int-test-db` (written but unrun — CLAUDE.md Known issue #15);
+  starter-pack content review to the `apstContent.js` bar; the skip-path and injected
+  mid-chain-failure-recovery legs of the E2E walk (only the fast/happy path was live-tested).
+- [ ] **v4.6.1 (Tasks 9-11 — projector join screen, first-result annotation, Home quick-start
+  card).** Entirely untouched.
+- [ ] **v4.6.1 (Tasks 9-11 — projector join screen, first-result annotation, Home quick-start
+  card).** Entirely untouched.
+
 ## E1 dogfood findings — v4.6.0 step zero (2026-07-27)
 
 - [ ] **Mock provider distractor quality: plural/case-variant and stopword leakage (P3, S).**
@@ -34,8 +85,10 @@ are recorded decisions, not open questions.
   `admin/src/pages/Traffic.jsx`. **Why:** dashboard convenience once there are enough teachers
   that a hand-run script is annoying. **Context:** trimmed in D10 for n<10 pilot scale; the
   v4.4.0 eng review already rejected this aggregate pattern for `manage/metrics` at platform
-  scope. The funnel deliberately counts demo sends — sanctioned exception documented in
-  CLAUDE.md's demo-isolation section when v4.6.0 lands.
+  scope. The funnel deliberately counts demo sends — sanctioned exception now documented in
+  CLAUDE.md's demo-isolation section (`api/scripts/activationFunnel.js` shipped as the hand-run
+  script in this session's v4.6.0 backend work; this bullet is only about the future admin-panel
+  move, which is still deferred).
 - [ ] **Attributed per-teacher "analytics view" funnel stage (post-pilot, P3, M).**
   **What:** an authed server-side event write so "reached analytics" can be attributed to a
   teacher cohort. **Why:** the route-level pageview proxy is directional only — `pageviews`'

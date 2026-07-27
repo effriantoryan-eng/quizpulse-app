@@ -3,27 +3,12 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
+import { FOUR_CELL, MISCONCEPTION_BG, MISCONCEPTION_BORDER } from '../../data/fourCell'
 
 const OPTION_COLORS = ['#E6F1FB', 'var(--surface2)', '#FAEEDA', '#FBEAF0']
 const OPTION_BORDER = ['#185FA5', 'var(--primary)', '#633806', '#4B1528']
 const CORRECT_BG = '#EAF3DE'
 const CORRECT_BORDER = '#3B6D11'
-
-// Misconception accent — one color for the signal everywhere it appears (per-question four-cell
-// "incorrect, confident" segment and the promoted hero card). Deliberately NOT purple (would
-// collide with the demo-pill purple below) and NOT the same amber used elsewhere — a dedicated,
-// distinct accent per DESIGN_REVIEW_v400_v410_addendum.md §D5.
-const MISCONCEPTION_BG = '#FBEDE8'
-const MISCONCEPTION_BORDER = '#B5482E'
-
-// Four-cell chart (v4.0.0) — correctness x confidence, always shown with visible counts/labels
-// (never color- or hover-only, per §D4). incorrectConfident reuses the misconception accent.
-const FOUR_CELL = [
-  { key: 'correctConfident', label: 'Correct, confident', bg: '#DCEFC8', border: '#3B6D11' },
-  { key: 'correctUnsure', label: 'Correct, unsure', bg: '#EEF6E4', border: '#6B9A44' },
-  { key: 'incorrectConfident', label: 'Misconception', bg: MISCONCEPTION_BG, border: MISCONCEPTION_BORDER },
-  { key: 'incorrectUnsure', label: 'Incorrect, unsure', bg: '#FDF3E3', border: '#B8860B' },
-]
 
 const POLL_INTERVAL_MS = 3000
 

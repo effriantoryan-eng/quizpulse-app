@@ -6,6 +6,7 @@ const ALLOWED_PREFIXES = [
   '/demo',
   '/login',
   '/onboarding',
+  '/teacher/first-run',
   '/teacher/home',
   '/teacher/classes',
   '/teacher/create',

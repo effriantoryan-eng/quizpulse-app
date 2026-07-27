@@ -5,7 +5,7 @@ const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
 const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
-const { selectDemoStudents } = require('./shared/demoNames');
+const { selectDemoStudents, DEMO_STUDENT_COUNT } = require('./shared/demoNames');
 const { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, generateJoinCode, createRealClass } = require('./shared/createClass');
 const crypto = require('crypto');
 
@@ -17,7 +17,8 @@ const database = client.database(process.env.COSMOS_DATABASE);
 const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
 
 const DEMO_CLASSES_PER_TEACHER = 1;  // v3.3.0 — at most one simulated demo class per teacher
-const DEMO_STUDENT_COUNT = 24;       // v3.3.0 — demo students generated per demo class
+// DEMO_STUDENT_COUNT is imported from shared/demoNames.js (v4.6.0) so classes.js and firstRun.js
+// can't disagree on the roster size.
 
 // GET /api/classes — list all classes for the authenticated teacher, oldest first.
 app.http('classesGet', {

@@ -35,7 +35,7 @@ function sortRequests(requests) {
 }
 
 function PendingRequests() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const classId = searchParams.get('classId')
 
   const [requests, setRequests] = useState([])
@@ -44,6 +44,53 @@ function PendingRequests() {
   const [selected, setSelected] = useState(new Set())
   const [actionInProgress, setActionInProgress] = useState(false)
   const [actionError, setActionError] = useState(null)
+
+  // v4.6.0 Task 5 — when there's no ?classId=, resolve it instead of bouncing the teacher to
+  // Classes: auto-select if exactly one class has pending requests, else offer an in-place
+  // picker among the classes that do. null = still resolving, [] = resolved (possibly empty).
+  const [candidateClasses, setCandidateClasses] = useState(null)
+
+  useEffect(() => {
+    if (classId) return
+    let cancelled = false
+    async function resolveCandidates() {
+      try {
+        const res = await fetch(`${API_BASE}/classes`)
+        const classes = await res.json()
+        const real = (Array.isArray(classes) ? classes : []).filter((c) => !c.isDemo)
+        const withCounts = await Promise.all(real.map(async (c) => {
+          try {
+            const r = await fetch(`${API_BASE}/join-requests?classId=${encodeURIComponent(c.id)}`)
+            if (!r.ok) return { id: c.id, name: c.name, pendingCount: null } // count unknown (e.g. rate-limited)
+            const reqs = await r.json()
+            const pendingCount = Array.isArray(reqs)
+              ? reqs.filter((x) => x.status === 'pending' || x.status === 'queued').length
+              : null
+            return { id: c.id, name: c.name, pendingCount }
+          } catch {
+            return { id: c.id, name: c.name, pendingCount: null } // fetch failed — don't claim 0
+          }
+        }))
+        if (cancelled) return
+        // Fail open: a class whose count couldn't be loaded (pendingCount null) still appears in
+        // the picker, so a rate-limited/failed count can never hide a class that actually has
+        // students waiting. Only classes confirmed to have zero pending are dropped.
+        const candidates = withCounts.filter((c) => c.pendingCount === null || c.pendingCount > 0)
+        setCandidateClasses(candidates)
+        // Auto-select only when exactly one class is CONFIRMED to have pending requests and no
+        // count failed — otherwise show the picker so an unknown count can't cause a wrong jump.
+        const noneFailed = withCounts.every((c) => c.pendingCount !== null)
+        const confirmedPending = withCounts.filter((c) => c.pendingCount > 0)
+        if (noneFailed && confirmedPending.length === 1) {
+          setSearchParams({ classId: confirmedPending[0].id }, { replace: true })
+        }
+      } catch {
+        if (!cancelled) setCandidateClasses([])
+      }
+    }
+    resolveCandidates()
+    return () => { cancelled = true }
+  }, [classId, setSearchParams])
 
   useEffect(() => {
     if (classId) fetchRequests()
@@ -147,7 +194,42 @@ function PendingRequests() {
   }
 
   if (!classId) {
-    return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#555', fontSize: '14px' }}>Pick a class first — open <Link to="/teacher/classes">Classes</Link>, choose Roster on the class you want, then switch to this tab.</div>
+    if (candidateClasses === null) {
+      return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading…</div>
+    }
+    if (candidateClasses.length === 0) {
+      return (
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#555', fontSize: '14px' }}>
+          No classes have pending join requests right now. See <Link to="/teacher/classes">Classes</Link> for rosters.
+        </div>
+      )
+    }
+    // More than one class has pending requests — pick one in place, rather than bouncing to
+    // Classes and asking the teacher to find their own way back here.
+    return (
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: '18px' }}>Which class?</h2>
+        <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#888' }}>
+          More than one class has students waiting to join.
+        </p>
+        {candidateClasses.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setSearchParams({ classId: c.id })}
+            style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%',
+              textAlign: 'left', cursor: 'pointer', padding: '14px 16px', marginBottom: '8px',
+              background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '10px',
+            }}
+          >
+            <span style={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</span>
+            <span style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 600 }}>
+              {c.pendingCount === null ? 'Open →' : `${c.pendingCount} waiting →`}
+            </span>
+          </button>
+        ))}
+      </div>
+    )
   }
   if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading requests…</div>
   if (error) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#c0392b', fontSize: '14px' }}>Failed to load requests: {error}</div>

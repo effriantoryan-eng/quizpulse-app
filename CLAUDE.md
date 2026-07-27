@@ -22,7 +22,9 @@ explicitly requires store presence — nothing in the current plan depends on it
 **[CURRENT] state of the app — v4.5.0 (Student Class Home) deployed on `main`; v4.0.0–v4.4.0 are
 all merged, tagged, and deployed live in production (git + live Function App function list
 verified 2026-07-27 — see the per-version blurbs below), on top of v3.3.0 / Sprint 6 (v3.0.0 —
-MAJOR).**
+MAJOR). v4.6.0 (First-Run Activation) is IN PROGRESS on `main` — Tasks 1-8 code-complete and
+live-verified end-to-end, only v4.6.1 (Tasks 9-11) and the rc1 ship gate remain; see its blurb
+below for exact status.**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -132,6 +134,115 @@ The `pageviews` container's 180-day TTL is set on both production and the test C
 per-container RU cap; corrected 2026-07-16 — `quizpulse-app-db-av5z18` runs in Serverless
 capacity mode, which has no per-container throughput setting at all, so that instruction was
 never achievable.)
+
+**v4.6.0 (First-Run Activation) is [IN PROGRESS] on `main` — Tasks 1/2/3/4/5/6/7/8 code-complete;
+Task 4's flow is live-verified end-to-end against production Cosmos (dev-teacher-001, 2026-07-27).
+Only v4.6.1 (Tasks 9-11) and the rc1 ship gates remain.**
+Built per `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v460.md` (step zero fully closed 2026-07-27 —
+see `docs/azure/V460_STEP_ZERO_RUNBOOK.md`). `FEATURE_FIRST_RUN` is `true` in
+`api/shared/features.js` and IS now live — `Onboarding.jsx` hands off to the finale
+(`/teacher/first-run`) after step 1 completes.
+**Live E2E walk (2026-07-27, dev-teacher-001 against production Cosmos via local `func start`):**
+full onboarding → finale → "Use a ready-made quiz" → staged loader → payoff screen (28%
+misconception concentration, matching Task 7's bias) → Home, all with zero console errors. This
+run also caught and fixed two real bugs before they could ship (see below) — treat this as
+partial rc1 evidence, not the full gate (skip-path/mid-chain-failure-recovery still unwalked).
+Done so far:
+- **Task 1 — `POST /api/onboarding/first-run`** (`api/onboardingFirstRun.js` +
+  `api/shared/firstRun.js`): server-orchestrates demo class → starter questions → draft quiz →
+  send → simulate in one call. Idempotent by construction (materializeAi.js's deterministic-id +
+  409-tolerant pattern) — every get-or-create step re-derives state from a live read rather than
+  trusting a caller-supplied snapshot, so a retried call after a partial failure creates zero
+  duplicates. `classSize` on the created quiz tracks the resolved demo class's REAL roster
+  (`cls.demoStudents.length`), not a hardcoded constant — matters if a pre-existing manually-made
+  demo class is reused instead of creating a fresh one.
+- **Task 2 — starter pack** (`api/shared/starterPack.js`, `api/questionsStarterSeed.js`): 5
+  human-written, curriculum-neutral study-skills questions, `origin: 'starter'` on the question
+  doc (mirrors the `generatedBy: 'ai'` provenance-marker convention). **Not yet content-reviewed
+  to the `apstContent.js` verbatim-accuracy bar** — required before rc1 per the sprint's ship
+  gates.
+- **Task 3 — Getting Started checklist state** (`api/shared/gettingStarted.js`): 5 steps
+  (practice-quiz-sent, results-seen, real-class-created, join-code-shared, first-real-send)
+  computed from LIVE Cosmos counts on every call — never stored tick-state, so e.g. deleting the
+  one real class un-ticks `real-class-created` automatically. `join-code-shared` is proxied by
+  `classes.studentCount > 0` on a real class (teacher-partitioned), the same technique
+  `demo_intro` already uses, rather than a cross-partition `join_requests` query. Release
+  (demo-send-complete = BOTH practice-quiz-sent AND results-seen — never first-real-send, per
+  eng D9) is persisted ONE-WAY under a synthetic `getting_started` key (added to
+  `FEATURE_INTRO_KEYS`, deliberately excluded from `introEligibility.js`'s `CANDIDATE_KEYS` since
+  it's its own UI component, not a promo card) so later `GET /api/me` calls short-circuit before
+  any Cosmos read. `PUT /api/me/feature-intros` gained a `skip-step` event (getting_started only)
+  for the per-step skipped marker. **No UI reads any of this yet** (Task 4).
+- **Task 7 — demo simulation misconception bias** (`api/shared/runSimulation.js`): wrong answers
+  now concentrate ~87% on one shared distractor per question (chosen once per question, not per
+  student) with confidence correlated to it, so the four-cell chart/hero card/option bars tell
+  one coherent story instead of a uniform spread. `pickAnswer`/`pickConfidence` stay
+  backward-compatible (distractor/misconception args are optional) for any other caller.
+- **Task 8 — activation funnel script** (`api/scripts/activationFunnel.js`): standalone,
+  founder-run only (`populationSeed.js` convention — never HTTP). Two-bucket `isDemo` split
+  (signups, demo sends, first real sends, median signup→real-send time) — deliberately does NOT
+  reuse `api/shared/rangeQuizStats.js`, which excludes demo entirely. This is a **sanctioned
+  exception** to the demo-isolation rule (see that section below), same category as
+  `misconception_intro`.
+- **Task 4 — first-run finale UI + checklist rendering** (`src/pages/FirstRunFinale.jsx`,
+  `src/components/GettingStartedChecklist.jsx`). Route `/teacher/first-run`, added to
+  `FULL_WIDTH_ROUTES` and `api/shared/pageViewAllowlist.js`. Two lanes (ready-made quiz / upload a
+  worksheet), mobile collapses the upload lane to a one-line "do that later" text (<1024px, the
+  dominant breakpoint convention). Staged loader reuses the v4.3 `useStagedPending` idiom (new
+  copy: "Setting up your practice class…" → "Sending to 24 students…" → "Reading their
+  answers…"). Payoff screen leads with the misconception hero card, an aggregated four-cell chart
+  below it — first-run-variant only, `/teacher/analytics` keeps its normal order. The checklist
+  (`GettingStartedChecklist`) owns `PromoSlot`'s spot on Home until released/dismissed, then
+  demotes to a collapsed bottom strip ("Getting started: N of 5 ▸"); no ✨ emoji anywhere (AI-slop
+  rule) — numbered circles for not-done steps, a plain ✓ for done. Wizard step 4 (class shells
+  checkbox) removed from `ProfileWizardSteps.jsx` per eng D9; `POST /api/classes/shells` stays
+  live for any other caller, just unused by onboarding now.
+  - **Design correction made while building this** (before any live testing): `computeGettingStarted`
+    originally short-circuited (`steps: null`) on `releasedAt` too, matching the literal task
+    wording — but the collapsed strip needs a live "N of 5" count, which a null-steps
+    short-circuit can't provide. Fixed to only short-circuit on `dismissedAt` (a true terminal
+    state); `released` now stays `true` once observed, but `steps` keeps recomputing live so the
+    strip's count stays current (e.g. `first-real-send` often ticks days after release).
+- **Task 5 — Tier 2 unbreakable flow.** `BuildQuiz.jsx`'s "Save & go to send" now
+  `POST /api/quizzes` (status `draft`) and navigates to `/teacher/send?quizId=`, instead of
+  passing questions via router state (lost on refresh) — `SendQuiz.jsx` reads `quizId` from the
+  URL first, falling back to router state only for `ReviewDraft.jsx`'s existing approve→send
+  bridge (left untouched, out of this task's scope). `PendingRequests.jsx` with no `?classId=` now
+  auto-selects when exactly one class has pending requests, or renders an in-place picker among
+  the classes that do (resolved via `GET /api/classes` + a per-class `GET /api/join-requests`
+  count — no new endpoint), instead of bouncing to Classes.
+- **Task 6 — starter-seed empty-state CTA** (`src/components/StarterSeedCta.jsx`): "Add 5
+  starter questions" in `BuildQuiz.jsx`'s (bank-empty case only, not just zero-selected) and
+  `QuestionBank.jsx`'s empty states, calling Task 2's endpoint.
+- **Cross-tenant + retry-idempotency tests**: `tests/unit/api/firstRun.test.js`,
+  `tests/unit/api/gettingStarted.test.js`, `tests/unit/api/activationFunnel.test.js` (offline,
+  fake containers) plus `tests/integration/api/v460-first-run.test.js` (real Cosmos wiring,
+  gated behind `RUN_INTEGRATION=true` — **written but not yet run against the test Cosmos
+  account**, unlike v4.4.0's which were confirmed 14/14). Run these before the rc1 gate.
+
+**Two real bugs found and fixed via the live E2E walk (2026-07-27), neither caught by the offline
+unit suite because the fakes didn't reproduce the exact failure shape:**
+1. **`api/shared/firstRun.js`'s `getOrCreateQuiz` returned `undefined` for a brand-new quiz.**
+   Cosmos's `item().read()` does NOT throw on a missing item in this SDK setup — it resolves with
+   `resource: undefined` (the same reason `getTeacher()` elsewhere defensively does
+   `resource || null` rather than relying on a catch block). The existence check returned that
+   undefined instead of falling through to create. Fixed: check `resource` truthiness, keep the
+   `err.code !== 404` catch as a secondary guard for whichever behavior a given call exhibits.
+2. **`api/sendNotification.js`'s demo branch has silently clobbered `confidenceResponseCount` on
+   every demo-quiz send since v4.2.0.** After `runSimulation()` patches that field directly in
+   Cosmos, the demo branch did `quiz.notificationSentAt = ...; await quizzesContainer.items.upsert(quiz)`
+   — upserting the STALE in-memory `quiz` object (which never saw the patch) overwrote the field
+   back to undefined immediately after it was set. Nobody noticed because Analytics counts
+   responses directly, not via this counter — but it silently broke `introEligibility.js`'s
+   `analytics_intro`/`misconception_intro` milestones for demo-only usage, and would have broken
+   this sprint's `results-seen` checklist step. Fixed: patch `notificationSentAt` too, instead of
+   upserting the whole stale object. Regression-guarded in
+   `tests/unit/api/demoSendNotification.test.js`.
+
+Not yet built: `graphify update .` after this note, starter-pack content review, and all of
+v4.6.1 (Tasks 9-11 — projector join screen, first-result annotation, Home quick-start card). The
+rc1 gate itself (skip-path walk, injected mid-chain failure recovery, the integration test run)
+is still open — see Known issues below.
 
 ---
 
@@ -253,6 +364,8 @@ main                          (production — tagged releases only)
     ├── release/v4.2-onboarding ← [MERGED] tagged v4.2.0, deployed; see feature branches below
     ├── release/v4.3-generation ← [MERGED] tagged v4.3.0, deployed; see feature branches below
     ├── release/v4.4-traffic    ← [MERGED] tagged v4.4.0, deployed; NO dependencies on v4.1-v4.3
+    ├── (v4.5.0 built directly on main, no release branch — see its implementation note below)
+    ├── (v4.6.0 IN PROGRESS directly on main, no release branch yet — backend only so far)
     └── hotfix/v1.0.1-description  ← from main when needed
 ```
 
@@ -318,6 +431,8 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 9 | v4.2.0 | Guided onboarding & progressive disclosure — profile wizard, nine-key feature-intro engine, topic prefilter |
 | 10 | v4.3.0 | AI quiz generation (mock provider) — document upload, draft review, spaced repeats, teacher-mediated expansion |
 | 11 | v4.4.0 | Traffic monitor — page-view analytics + admin Traffic dashboard, quiz funnel, PWA-install + push-delivery tracking, metrics de-stub |
+| 12 | v4.5.0 | Student class home & post-approval access — persistent `/student/class`, auto-subscribe, returning-device recognition, teacher share link |
+| 13 | v4.6.0 | First-run activation — server-orchestrated demo class/quiz/send/simulate chain, starter question pack, Getting Started checklist, misconception-biased demo simulation, activation funnel script (IN PROGRESS — see blurb above) |
 
 ### Rules
 
@@ -388,6 +503,17 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
     funnel, PWA-install tracking, real push-delivery counts on quiz docs, and de-stubbed the
     Cosmos-answerable `manage/metrics` groups. No dependencies on v4.1–v4.3; no new paid services.
     Reviewed 2026-07-15 (`/review` + `/plan-eng-review`); prompt in `CC_PROMPTS_v440.md`.
+12. **v4.5.0 — Student class home & post-approval access.** [CURRENT — merged, tagged
+    `v4.5.0`, deployed] Persistent `/student/class` page, "Go to my class" CTA, auto-subscribe,
+    returning-device recognition on `/join`, teacher-facing quiz share link. Reviewed 2026-07-23
+    (CEO + eng + design); prompt in `QuizPulse_Sprint_Plan_v450.md`.
+13. **v4.6.0 — First-run activation.** [IN PROGRESS — Tasks 1-8 code-complete, live-verified
+    end-to-end 2026-07-27; only v4.6.1 and the rc1 ship gate remain] Server-orchestrated first-run
+    chain (demo class → starter pack → quiz → send → simulate), a finale UI + Getting Started
+    checklist, a misconception-biased demo simulation, and an activation funnel script. Reviewed
+    via CEO/eng/design plan review 2026-07-27; step zero fully closed same day; prompt in
+    `CC_PROMPTS_v460.md`. See the v4.6.0 blurb near the top of this file for the exact
+    task-by-task status.
 
 ---
 
@@ -395,10 +521,21 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
 
 ### [CURRENT] containers
 
-- `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt }
+- `questions` — { id, teacherId, authorId, visibility, text, options[], correctIndex, topic, createdAt, origin? } —
+  `origin: 'starter'` is **[CURRENT — v4.6.0]**, set only on the 5 generic starter-pack questions
+  seeded via `POST /api/questions/starter-seed` (`api/shared/starterPack.js`) — mirrors the
+  `generatedBy: 'ai'` provenance-marker convention already used for AI-materialised questions.
+  Not currently read by any cross-teacher aggregate (`api/metrics.js` doesn't count questions at
+  all today) — add an exclusion fragment mirroring `excludeDemo.js` if a question-count metric is
+  ever built, so starter-pack seeds don't skew it.
 - `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId?, confidenceResponseCount? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, resolved server-side from the teacher's own record at send time — never client-supplied) are **[CURRENT — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum). `confidenceResponseCount` (int) is **[CURRENT — v4.2.0]**, a denormalised counter incremented via an atomic Cosmos `incr` patch at response-submit time (both `api/responses.js` and `api/shared/runSimulation.js`) — read only by `introEligibility.js`'s `analytics_intro`/`misconception_intro` milestones; a legacy quiz with no field is treated as 0.
 - `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
-- `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt, profile?, featureIntros? } (pk `/id`) — `profile` (`{subjects[], yearLevels[], classCount, registrationStatus}`, all optional/independent) and `featureIntros` (`{[key]: {shownAt?, dismissedAt?}}` for the nine keys in `api/shared/featureIntros.js`) are **[CURRENT — v4.2.0]**, additive; a legacy teacher doc with neither field is treated as `profile:{}`/`featureIntros:{}` everywhere (`GET /api/me`, `introEligibility.js`, the SendQuiz topic prefilter).
+- `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt, profile?, featureIntros? } (pk `/id`) — `profile` (`{subjects[], yearLevels[], classCount, registrationStatus}`, all optional/independent) and `featureIntros` (`{[key]: {shownAt?, dismissedAt?}}` for the nine keys in `api/shared/featureIntros.js`) are **[CURRENT — v4.2.0]**, additive; a legacy teacher doc with neither field is treated as `profile:{}`/`featureIntros:{}` everywhere (`GET /api/me`, `introEligibility.js`, the SendQuiz topic prefilter). **[CURRENT — v4.6.0]** a tenth, synthetic `featureIntros.getting_started` key —
+  `{ releasedAt?, dismissedAt?, skippedSteps?: string[] }` — holds the Getting Started checklist's
+  ONE-WAY release/dismiss moment and per-step skipped markers (`api/shared/gettingStarted.js`).
+  Deliberately excluded from `introEligibility.js`'s `CANDIDATE_KEYS` (it's not a `FeatureIntroCard`,
+  it's the checklist itself) but included in the generic `FEATURE_INTRO_KEYS` validation/short-circuit
+  list.
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
 - `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload).
 - `audit_log` [Sprint 5] (pk `/actorId`) — { id, actorId, actorRole, action, targetType, targetId,
@@ -677,6 +814,14 @@ looking at their own demo data on purpose.**
   Insights / Kusto wiring in `metrics.js`/`logsExport.js` must carry the same exclusion.
 - `analytics.js` (GET /api/analytics) is per-teacher and intentionally demo-aware, not demo-excluded:
   it resolves the demo class's `demoStudents` as the approved roster and returns `isDemo: true`.
+- **Sanctioned exceptions (deliberately demo-INCLUSIVE, not oversights):**
+  `introEligibility.js`'s `misconception_intro` milestone (a demo quiz is that card's designed
+  first touch), `gettingStarted.js`'s `results-seen`/`practice-quiz-sent` steps (same reason —
+  the practice quiz IS a demo quiz), and **[v4.6.0]** `api/scripts/activationFunnel.js`, whose
+  whole point is comparing demo-send vs. real-send activation and therefore explicitly does NOT
+  reuse `api/shared/rangeQuizStats.js` (which excludes demo entirely). Any new demo-inclusive
+  logic must be a similarly deliberate, commented exception — never an accidental omission of
+  `EXCLUDE_DEMO_FRAGMENT`.
 
 ### Comprehensive analytics & population benchmarking [CURRENT — v4.0.0]
 
@@ -1101,6 +1246,8 @@ founder-authored smoke run, Key Vault naming).
 | source_materials retention (container TTL) | 90 days | v4.3.0 |
 | student/quizzes rate | 30 req/min/IP | v4.5.0 |
 | Quizzes returned per student/quizzes call | 50 | v4.5.0 |
+| onboarding/first-run rate | 5 req/min/teacher | v4.6.0 |
+| questions/starter-seed rate | 10 req/min/IP | v4.6.0 |
 
 ---
 
@@ -1284,6 +1431,9 @@ dashboard, funnel strip, breakdowns). Live at
 | Page-view beacon (usePageView → POST /api/pageView → pageviews container, route allowlist, student privacy stripping) | [CURRENT] v4.4.0 deployed — hardened + formalized |
 | Traffic monitor (GET /api/manage/traffic, admin Traffic page, notification funnel, PWA-install tracking, metrics de-stub) | [CURRENT] v4.4.0 deployed — 14/14 integration tests pass |
 | Student class home (/student/class, GET /api/student/quizzes, approved-screen CTA, auto-subscribe, returning-device recognition, teacher share-link) | [CURRENT] v4.5.0 deployed |
+| First-run chain (POST /api/onboarding/first-run, starter pack seed, Getting Started checklist state, misconception-biased demo simulation, activation funnel script) | [CURRENT] v4.6.0 code-complete — live-verified end-to-end 2026-07-27 |
+| First-run finale UI, checklist rendering, Tier 2 flow hardening, starter-seed empty-state CTA | [CURRENT] v4.6.0 Tasks 4/5/6 code-complete — live-verified end-to-end 2026-07-27; rc1 ship gate (skip-path/failure-recovery legs, integration test run) still open |
+| Projector join screen, first-result annotation, Home quick-start card | [PLANNED — v4.6.1] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
@@ -1395,6 +1545,19 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     still wasn't exercised — no admin dev-auth bypass exists. See CLAUDE.md Testing section for
     the safe way to point `func start` at the
     test Cosmos account.
+15. **v4.6.0 — Tasks 1-8 code-complete; only v4.6.1 and the rc1 ship gate remain.** Updated
+    2026-07-27: Tasks 4/5/6 (frontend) landed and were live-verified end-to-end against production
+    Cosmos via `dev-teacher-001` (onboarding → finale → ready-made lane → payoff screen → Home,
+    zero console errors) — this also caught and fixed two real bugs (see the v4.6.0 blurb near the
+    top: `getOrCreateQuiz` returning `undefined` on a fresh quiz, and a demo-branch upsert in
+    `api/sendNotification.js` that has silently clobbered `confidenceResponseCount` on every
+    demo-quiz send since v4.2.0). 459/459 unit tests pass. **Still open before rc1:** the
+    integration test (`tests/integration/api/v460-first-run.test.js`) has NOT been run against
+    `quizpulse-int-test-db` (written, unrun — unlike v4.4.0's, confirmed 14/14); the skip-path and
+    injected-mid-chain-failure-recovery legs of the E2E walk are unexercised (only the fast/happy
+    path was live-tested); starter-pack content review; `graphify update .`. Do not tell a future
+    session "v4.6.0 is done" — v4.6.1 (Tasks 9-11) hasn't started, and the rc1 gate itself is
+    still open. Check this file's v4.6.0 blurb near the top for the current task-by-task status.
 
 ---
 

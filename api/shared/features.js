@@ -4,5 +4,8 @@
 // dismissed by introEligibility.js so it can never appear before its sprint ships.
 const FEATURE_APST_EXPORT = true;
 const FEATURE_AI_GENERATION = true;
+// v4.6.0 first-run activation chain (demo class + starter pack + auto-send + auto-simulate) and
+// its finale/checklist UI. Off -> onboarding exits to /teacher/create exactly as before v4.6.0.
+const FEATURE_FIRST_RUN = true;
 
-module.exports = { FEATURE_APST_EXPORT, FEATURE_AI_GENERATION };
+module.exports = { FEATURE_APST_EXPORT, FEATURE_AI_GENERATION, FEATURE_FIRST_RUN };

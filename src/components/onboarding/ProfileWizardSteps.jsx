@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import API_BASE from '../../api'
 
 const SUBJECTS = ['Science', 'Maths', 'English', 'Humanities', 'Other']
@@ -32,21 +32,9 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
   const [subjects, setSubjects] = useState([])
   const [yearLevels, setYearLevels] = useState([])
   const [classCount, setClassCount] = useState('')
-  const [createShells, setCreateShells] = useState(false)
   const [registrationStatus, setRegistrationStatus] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
-  const [hasExistingClasses, setHasExistingClasses] = useState(false)
-
-  // POST /api/classes/shells always 409s once the teacher has any real class — hide the
-  // checkbox in that case rather than letting the teacher check a box that can never succeed
-  // and get silent no-op feedback.
-  useEffect(() => {
-    fetch(`${API_BASE}/classes`)
-      .then((r) => r.json())
-      .then((classes) => setHasExistingClasses(Array.isArray(classes) && classes.some((c) => !c.isDemo)))
-      .catch(() => {})
-  }, [])
 
   const steps = [
     { key: 'subjects', answered: subjects.length > 0 },
@@ -83,13 +71,6 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
           setSaving(false)
           return
         }
-      }
-      if (createShells && classCount !== '' && !hasExistingClasses) {
-        await fetch(`${API_BASE}/classes/shells`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ count: Number(classCount) }),
-        }).catch(() => {}) // best-effort — a partial/failed shell batch is not fatal to onboarding
       }
       onDone()
     } finally {
@@ -160,7 +141,8 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
         <div data-testid="wizard-step-class-count">
           <h2 style={{ fontSize: '18px', marginBottom: '4px' }}>How many classes do you teach?</h2>
           <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '14px' }}>
-            We can set up empty classes for you now so you're ready to go.
+            Helps us tailor what we show you — you'll set up your first real class from the
+            Getting Started checklist in a moment.
           </p>
           <input
             data-testid="wizard-class-count-input"
@@ -172,24 +154,9 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
             placeholder="e.g. 4"
             style={{
               width: '100%', padding: '10px 12px', borderRadius: '8px',
-              border: 'var(--bw) solid var(--border)', fontSize: '14px', boxSizing: 'border-box', marginBottom: '12px',
+              border: 'var(--bw) solid var(--border)', fontSize: '14px', boxSizing: 'border-box',
             }}
           />
-          {hasExistingClasses ? (
-            <p style={{ fontSize: '12px', color: 'var(--muted)' }}>
-              You already have a class set up — head to My Classes to add more.
-            </p>
-          ) : (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-              <input
-                data-testid="wizard-create-shells-checkbox"
-                type="checkbox"
-                checked={createShells}
-                onChange={(e) => setCreateShells(e.target.checked)}
-              />
-              Create these classes for me now
-            </label>
-          )}
         </div>
       )}
 

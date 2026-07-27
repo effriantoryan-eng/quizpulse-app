@@ -11,6 +11,10 @@
 
 const crypto = require('crypto');
 
+// The one canonical demo-class roster size. Imported by classes.js (POST /api/classes demo branch)
+// and shared/firstRun.js so the number can't drift between the two demo-class creation paths.
+const DEMO_STUDENT_COUNT = 24;
+
 const DEMO_NAMES = [
   'Ava Thompson', 'Liam Nguyen', 'Sophia Patel', 'Noah Williams', 'Isabella Garcia',
   'Ethan Chen', 'Mia Johnson', 'Lucas Martin', 'Charlotte Lee', 'Mason Brown',
@@ -34,7 +38,7 @@ const DEMO_NAMES = [
 // (Fisher–Yates) and takes the first 24, assigning each a fresh device UUID so the studentId
 // shape matches real students (quizpulse_device_id UUIDs). Returns
 // [{ studentId, name }, ...] — never the same name twice within one class.
-function selectDemoStudents(count = 24) {
+function selectDemoStudents(count = DEMO_STUDENT_COUNT) {
   const pool = DEMO_NAMES.slice();
   for (let i = pool.length - 1; i > 0; i--) {
     const j = crypto.randomInt(i + 1);
@@ -43,4 +47,4 @@ function selectDemoStudents(count = 24) {
   return pool.slice(0, count).map(name => ({ studentId: crypto.randomUUID(), name }));
 }
 
-module.exports = { DEMO_NAMES, selectDemoStudents };
+module.exports = { DEMO_NAMES, DEMO_STUDENT_COUNT, selectDemoStudents };

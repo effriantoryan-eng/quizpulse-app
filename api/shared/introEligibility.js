@@ -43,9 +43,10 @@ async function computeEligibleIntros({ teacherId, teacher, classesContainer, qui
   const dark = flagDarkKeys();
 
   // Short-circuit: once every key is either dismissed or flag-dark, skip every milestone COUNT —
-  // there's nothing left to become eligible for (profile_nudge isn't a candidate here, so it's
-  // excluded from this check on purpose).
-  const allSettled = FEATURE_INTRO_KEYS.filter((k) => k !== 'profile_nudge').every((k) => isDismissed(k) || dark.has(k));
+  // there's nothing left to become eligible for. profile_nudge isn't a candidate here, and
+  // getting_started (v4.6.0) is a separate UI element with its own short-circuit in
+  // shared/gettingStarted.js — both excluded from this check on purpose.
+  const allSettled = FEATURE_INTRO_KEYS.filter((k) => k !== 'profile_nudge' && k !== 'getting_started').every((k) => isDismissed(k) || dark.has(k));
   if (allSettled) return [];
 
   const eligible = [];

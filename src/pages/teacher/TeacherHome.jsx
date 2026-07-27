@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import PromoSlot from '../../components/PromoSlot'
+import GettingStartedChecklist from '../../components/GettingStartedChecklist'
 
 const POLL_INTERVAL_MS = 8000
 
@@ -30,6 +31,20 @@ export default function TeacherHome() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+  // undefined = loading, null = fetch failed (fail open — just show the normal PromoSlot).
+  const [gettingStarted, setGettingStarted] = useState(undefined)
+  // Captured from the same /api/me call and handed to PromoSlot so it doesn't re-fetch /api/me.
+  // null on fetch failure → PromoSlot falls back to fetching for itself.
+  const [eligibleIntros, setEligibleIntros] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`${API_BASE}/me`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled) { setGettingStarted(d.gettingStarted || null); setEligibleIntros(d.eligibleIntros || []) } })
+      .catch(() => { if (!cancelled) { setGettingStarted(null); setEligibleIntros(null) } })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -63,7 +78,14 @@ export default function TeacherHome() {
         Here's what's happening with your classes.
       </div>
 
-      <PromoSlot />
+      {/* Getting Started owns this slot until released/dismissed (v4.6.0 Task 4) — PromoSlot
+          returns once it steps aside. Wait for the /api/me fetch so we don't flash PromoSlot
+          then swap it out a beat later. */}
+      {gettingStarted !== undefined && (
+        gettingStarted && !gettingStarted.dismissed && !gettingStarted.released
+          ? <GettingStartedChecklist gettingStarted={gettingStarted} variant="full" onChange={setGettingStarted} />
+          : <PromoSlot eligibleIntros={eligibleIntros ?? undefined} />
+      )}
 
       {/* Quick actions */}
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -176,6 +198,12 @@ export default function TeacherHome() {
           </div>
         ))}
       </div>
+
+      {/* Post-release collapsed strip (v4.6.0 Task 4) — the checklist doesn't disappear once
+          released, it demotes here so the promo slot above is free again. */}
+      {gettingStarted && !gettingStarted.dismissed && gettingStarted.released && (
+        <GettingStartedChecklist gettingStarted={gettingStarted} variant="strip" onChange={setGettingStarted} />
+      )}
     </div>
   )
 }

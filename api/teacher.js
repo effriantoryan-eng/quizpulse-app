@@ -6,6 +6,7 @@ const { authenticateTeacher } = require('./auth');
 const { validateProfile, isProfileComplete } = require('./shared/profileSchema');
 const { isValidIntroKey } = require('./shared/featureIntros');
 const { computeEligibleIntros } = require('./shared/introEligibility');
+const { GETTING_STARTED_STEPS, computeGettingStarted } = require('./shared/gettingStarted');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -20,6 +21,37 @@ const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES
 const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes');
 
 const SCHOOL_NAME_MAX = 120; // Security limits table — School name length
+
+// Distinguishes "retries exhausted" (409 — try again) from a plain missing-teacher-doc return
+// (null — 404), so a caller can't conflate the two despite both surfacing from the same helper.
+class FeatureIntroConflictError extends Error {}
+
+// Shared ETag-replace-with-retry for a single featureIntros[key][field] write. A nested-path
+// Cosmos patch (`/featureIntros/{key}/{field}`) requires every ancestor to already exist, which a
+// teacher's first-ever intro interaction won't have — so this always reads the current doc and
+// replaces only the target key's own sub-object, retried up to 3x on a concurrent-write conflict.
+// Used by both PUT /api/me/feature-intros and the getting_started auto-release write below.
+async function setFeatureIntroField(teacherId, key, field, value) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { resource: current, etag } = await teachers.item(teacherId, teacherId).read();
+    if (!current) return null;
+    const featureIntros = { ...(current.featureIntros || {}) };
+    featureIntros[key] = { ...(featureIntros[key] || {}), [field]: value };
+    try {
+      const { resource } = await teachers
+        .item(teacherId, teacherId)
+        .replace({ ...current, featureIntros }, { accessCondition: { type: 'IfMatch', condition: etag } });
+      return resource;
+    } catch (err) {
+      if (err.code === 412 && attempt < 2) continue; // etag mismatch — another write raced us, retry
+      if (err.code === 412) throw new FeatureIntroConflictError('Could not save — please try again.');
+      throw err;
+    }
+  }
+  // Unreachable: the final attempt (2) always either returns, continues out of the loop, or
+  // throws — never falls through. Left as a defensive default in case the retry count changes.
+  return null;
+}
 
 // Reads the teacher document by id (= B2C oid). Returns null if not yet onboarded.
 async function getTeacher(teacherId) {
@@ -67,6 +99,19 @@ app.http('teacherMe', {
       const profile = teacher.profile || {};
       const featureIntros = teacher.featureIntros || {};
       const eligibleIntros = await computeEligibleIntros({ teacherId, teacher, classesContainer, quizzesContainer });
+      const gettingStarted = await computeGettingStarted({ teacherId, teacher, classesContainer, quizzesContainer });
+
+      // Release is persisted ONE-WAY (never un-released) the FIRST time it's observed true — a
+      // marker of when release happened, not a short-circuit (steps are still recomputed live on
+      // every call even after release, since the collapsed strip needs an up-to-date "N of 5").
+      // Guarded on the existing flag so this write fires exactly once, not on every dashboard load.
+      // Advisory/best-effort: a persistence hiccup here just means the marker is missing, never a
+      // failed request — same semantics as confidenceResponseCount.
+      if (gettingStarted.released && !gettingStarted.dismissed && !teacher.featureIntros?.getting_started?.releasedAt) {
+        setFeatureIntroField(teacherId, 'getting_started', 'releasedAt', new Date().toISOString())
+          .catch((err) => context.warn(`getting_started release write failed (non-fatal): ${err.message}`));
+      }
+
       return respond(
         200,
         {
@@ -77,6 +122,7 @@ app.http('teacherMe', {
           profileComplete: isProfileComplete(profile),
           featureIntros,
           eligibleIntros,
+          gettingStarted,
         },
         teacherId
       );
@@ -272,40 +318,58 @@ app.http('updateFeatureIntros', {
       if (!body || typeof body !== 'object' || Array.isArray(body)) {
         return respond(400, { error: 'Request body must be a JSON object' }, teacherId);
       }
-      const { key, event } = body;
+      const { key, event, step } = body;
       if (!isValidIntroKey(key)) {
         return respond(400, { error: 'Unknown feature-intro key' }, teacherId);
       }
+
+      // v4.6.0 — 'skip-step' is only valid for the getting_started checklist (Task 3's "per-step
+      // skipped marker"): it APPENDS to a skippedSteps array rather than setting a single field,
+      // so it needs its own branch instead of the generic shown/dismissed field-set below.
+      if (event === 'skip-step') {
+        if (key !== 'getting_started') {
+          return respond(400, { error: "event 'skip-step' is only valid for key 'getting_started'" }, teacherId);
+        }
+        if (typeof step !== 'string' || !GETTING_STARTED_STEPS.includes(step)) {
+          return respond(400, { error: 'step must be a valid getting-started step key' }, teacherId);
+        }
+        let updated;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const { resource: current, etag } = await teachers.item(teacherId, teacherId).read();
+          if (!current) return respond(404, { error: 'Not found' }, teacherId);
+          const featureIntros = { ...(current.featureIntros || {}) };
+          const existingSkipped = featureIntros.getting_started?.skippedSteps || [];
+          const skippedSteps = existingSkipped.includes(step) ? existingSkipped : [...existingSkipped, step];
+          featureIntros.getting_started = { ...(featureIntros.getting_started || {}), skippedSteps };
+          try {
+            const { resource } = await teachers
+              .item(teacherId, teacherId)
+              .replace({ ...current, featureIntros }, { accessCondition: { type: 'IfMatch', condition: etag } });
+            updated = resource;
+            break;
+          } catch (err) {
+            if (err.code === 412 && attempt < 2) continue;
+            throw err;
+          }
+        }
+        if (!updated) return respond(409, { error: 'Could not save — please try again.' }, teacherId);
+        return respond(200, { key, skippedSteps: updated.featureIntros.getting_started.skippedSteps }, teacherId);
+      }
+
       if (event !== 'shown' && event !== 'dismissed') {
-        return respond(400, { error: "event must be 'shown' or 'dismissed'" }, teacherId);
+        return respond(400, { error: "event must be 'shown', 'dismissed', or (getting_started only) 'skip-step'" }, teacherId);
       }
 
       const field = event === 'shown' ? 'shownAt' : 'dismissedAt';
       const now = new Date().toISOString();
-
-      // A nested-path Cosmos patch (`/featureIntros/{key}/{field}`) requires every ancestor to
-      // already exist, which a teacher's first-ever intro interaction won't have. Instead, only
-      // the target key's own sub-object is touched via an ETag-conditioned replace (retried on a
-      // concurrent write) — that keeps two tabs dismissing DIFFERENT keys from clobbering each
-      // other, the actual race this endpoint has to survive.
       let updated;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const { resource: current, etag } = await teachers.item(teacherId, teacherId).read();
-        if (!current) return respond(404, { error: 'Not found' }, teacherId);
-        const featureIntros = { ...(current.featureIntros || {}) };
-        featureIntros[key] = { ...(featureIntros[key] || {}), [field]: now };
-        try {
-          const { resource } = await teachers
-            .item(teacherId, teacherId)
-            .replace({ ...current, featureIntros }, { accessCondition: { type: 'IfMatch', condition: etag } });
-          updated = resource;
-          break;
-        } catch (err) {
-          if (err.code === 412 && attempt < 2) continue; // etag mismatch — another write raced us, retry
-          throw err;
-        }
+      try {
+        updated = await setFeatureIntroField(teacherId, key, field, now);
+      } catch (err) {
+        if (err instanceof FeatureIntroConflictError) return respond(409, { error: err.message }, teacherId);
+        throw err;
       }
-      if (!updated) return respond(409, { error: 'Could not save — please try again.' }, teacherId);
+      if (!updated) return respond(404, { error: 'Not found' }, teacherId);
 
       return respond(200, { key, [field]: now }, teacherId);
     } catch (err) {

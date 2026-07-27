@@ -4,6 +4,7 @@ import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
 import AiBadge from '../../components/AiBadge'
+import StarterSeedCta from '../../components/StarterSeedCta'
 
 const TOPIC_COLORS = {
   Science: { bg: '#E1F5EE', color: '#085041' },
@@ -466,6 +467,9 @@ function QuestionBank() {
       {activeTab === 'my' && (questions.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px' }}>
           No questions yet. Go to Create Question to add some.
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <StarterSeedCta onSeeded={(seeded) => setQuestions(seeded)} />
+          </div>
         </div>
       ) : (
         <>

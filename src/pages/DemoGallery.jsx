@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import useWindowWidth from '../hooks/useWindowWidth'
 
 // ─── Design tokens ────────────────────────────────────────────────
 const C = {
@@ -14,16 +15,6 @@ const C = {
   text:        'var(--text)',
   sub:         '#666',
   muted:       '#aaa',
-}
-
-function useWindowWidth() {
-  const [width, setWidth] = useState(() => window.innerWidth)
-  useEffect(() => {
-    const handler = () => setWidth(window.innerWidth)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [])
-  return width
 }
 
 function SectionLabel({ role }) {

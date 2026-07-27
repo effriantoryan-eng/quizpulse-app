@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
+import useStagedPending from '../../hooks/useStagedPending'
 
 // Three honest pending stages (§6.5) — no fake progress percentages, just staged reassurance
 // copy so a slow real-provider call (or the mock's dev-only ~2s delay) never reads as frozen.
@@ -11,16 +12,6 @@ const PENDING_STAGES = [
   { afterMs: 45000, text: 'Nearly there — checking each question…' },
 ]
 const PENDING_TIMEOUT_MS = 90000
-
-function useStagedPending(active) {
-  const [stageText, setStageText] = useState(PENDING_STAGES[0].text)
-  useEffect(() => {
-    if (!active) { setStageText(PENDING_STAGES[0].text); return }
-    const timers = PENDING_STAGES.map(s => setTimeout(() => setStageText(s.text), s.afterMs))
-    return () => timers.forEach(clearTimeout)
-  }, [active])
-  return stageText
-}
 
 function GenerateQuiz() {
   const navigate = useNavigate()
@@ -39,7 +30,7 @@ function GenerateQuiz() {
   const [generating, setGenerating] = useState(false)
   const [generateError, setGenerateError] = useState(null)
 
-  const pendingText = useStagedPending(uploading || generating)
+  const pendingText = useStagedPending(uploading || generating, PENDING_STAGES)
 
   async function handleUpload() {
     if (!file || !attested) return
