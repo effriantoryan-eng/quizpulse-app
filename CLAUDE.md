@@ -22,9 +22,11 @@ explicitly requires store presence — nothing in the current plan depends on it
 **[CURRENT] state of the app — v4.5.0 (Student Class Home) deployed on `main`; v4.0.0–v4.4.0 are
 all merged, tagged, and deployed live in production (git + live Function App function list
 verified 2026-07-27 — see the per-version blurbs below), on top of v3.3.0 / Sprint 6 (v3.0.0 —
-MAJOR). v4.6.0 (First-Run Activation) is IN PROGRESS on `main` — Tasks 1-8 code-complete and
-live-verified end-to-end, only v4.6.1 (Tasks 9-11) and the rc1 ship gate remain; see its blurb
-below for exact status.**
+MAJOR). v4.6.0 (First-Run Activation) is IN PROGRESS on `main` — Tasks 1-8 code-complete,
+live-verified end-to-end, and DEPLOYED to production (frontend via SWA GitHub Actions, API via
+`func azure functionapp publish`, both confirmed live 2026-07-28); only v4.6.1 (Tasks 9-11) and
+the rc1 ship gate (integration test run, skip-path/failure-recovery E2E legs, content review)
+remain — not yet tagged `v4.6.0`. See its blurb below for exact status.**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -147,6 +149,15 @@ full onboarding → finale → "Use a ready-made quiz" → staged loader → pay
 misconception concentration, matching Task 7's bias) → Home, all with zero console errors. This
 run also caught and fixed two real bugs before they could ship (see below) — treat this as
 partial rc1 evidence, not the full gate (skip-path/mid-chain-failure-recovery still unwalked).
+**Deployed to production 2026-07-28**: frontend via SWA GitHub Actions (auto, on push to `main`),
+API via `func azure functionapp publish quizpulse-app-api-av5z18` from Node 22 — both confirmed
+live (`onboardingFirstRun`/`questionsStarterSeed` in `az functionapp function list`, both return
+401 unauthenticated rather than 404/503, and the SWA→Function App proxy path round-trips
+correctly). A separate follow-up session ran a read-only audit against production for the
+`sendNotification` clobbering bug below and found exactly one affected record — the
+`dev-teacher-001` test artifact from this session's own live walk, already self-corrected by a
+later re-simulation; the proposed backfill patch was a no-op by the time it ran. No real teacher
+data was ever affected.
 Done so far:
 - **Task 1 — `POST /api/onboarding/first-run`** (`api/onboardingFirstRun.js` +
   `api/shared/firstRun.js`): server-orchestrates demo class → starter questions → draft quiz →
