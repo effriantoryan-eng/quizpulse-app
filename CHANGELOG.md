@@ -2,6 +2,79 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.6.0] — First-run activation (IN PROGRESS — not yet tagged)
+
+A new teacher used to land on Create Question (the middle of the chain) after onboarding, with
+the only zero-dependency path to the product's "aha" (demo class → live analytics) hidden behind
+a button nothing points to. This sprint makes first value automatic: onboarding now hands off to
+a finale that can send a practice quiz to a simulated class and show real misconception analytics
+in seconds, and a Getting Started checklist keeps the teacher oriented afterward. Deployed
+(frontend via SWA GitHub Actions, API via `func azure functionapp publish` from Node 22, both
+confirmed live 2026-07-28) but **not yet tagged `v4.6.0`** — the rc1 ship gate (integration test
+run against the test Cosmos account, skip-path and injected-failure-recovery E2E legs,
+starter-pack content review) is still open, and v4.6.1 (projector join screen, first-result
+annotation, Home quick-start card) hasn't started. Built per `CC_PROMPTS_v460.md`. No breaking
+changes, no new Cosmos container.
+
+### New features
+- **Server-orchestrated first-run chain** — `POST /api/onboarding/first-run`
+  (`api/onboardingFirstRun.js`, `api/shared/firstRun.js`): creates a demo class, seeds 5 starter
+  questions, creates and sends a practice quiz, and simulates 24 student responses, all in one
+  call. Idempotent by construction (deterministic ids, 409-tolerant creates) — a retried call
+  after a partial failure creates zero duplicates.
+- **First-run finale UI** (`src/pages/FirstRunFinale.jsx`, route `/teacher/first-run`) — two
+  lanes ("Use a ready-made quiz" / "Start from your worksheet"), a staged loader, and a payoff
+  screen leading with the misconception hero card and an aggregated four-cell chart. Mobile
+  collapses the upload lane to a one-line text prompt.
+- **Getting Started checklist** (`api/shared/gettingStarted.js`,
+  `src/components/GettingStartedChecklist.jsx`) — 5 steps derived from live Cosmos counts (never
+  stored tick-state), owns the dashboard's promo slot until released (both the practice quiz is
+  sent and its results are seen), then demotes to a collapsed "N of 5" strip.
+- **Generic starter question pack** (`api/shared/starterPack.js`,
+  `POST /api/questions/starter-seed`) — 5 study-skills questions, `origin: 'starter'` on the
+  question doc. Also surfaced as an "Add 5 starter questions" CTA in the BuildQuiz/QuestionBank
+  empty states (`src/components/StarterSeedCta.jsx`).
+- **Misconception-biased demo simulation** (`api/shared/runSimulation.js`) — wrong answers now
+  concentrate ~87% on one shared distractor per question (chosen once per question, not per
+  student) with confidence correlated to it, so the four-cell chart, hero card, and per-option
+  bars tell one coherent story instead of a uniform spread.
+- **Activation funnel script** (`api/scripts/activationFunnel.js`) — standalone, founder-run
+  only. Signups, demo sends, first real sends, median signup→real-send time, explicit two-bucket
+  `isDemo` split.
+- **BuildQuiz draft persistence** — "Save & go to send" now creates a real `status:'draft'` quiz
+  doc and hands off by `?quizId=` URL instead of router state, so a refresh no longer loses the
+  quiz.
+- **PendingRequests classId resolution** — with no `?classId=`, auto-selects when exactly one
+  class has pending requests, or offers an in-place picker among the classes that do, instead of
+  bouncing to Classes.
+
+### Bug fixes
+- `api/sendNotification.js`'s demo branch had silently clobbered `confidenceResponseCount` on
+  every demo-quiz send since v4.2.0 — a full upsert of a stale in-memory `quiz` object overwrote
+  a patch `runSimulation()` had just written directly to Cosmos. Fixed to patch
+  `notificationSentAt` instead of upserting. Verified against production: one affected record (a
+  test artifact from this sprint's own live QA), no real teacher data involved.
+- `getOrCreateQuiz` returned `undefined` for a brand-new quiz — Cosmos's `item().read()` doesn't
+  throw on a missing item in this SDK setup, only `getTeacher()`'s established
+  `resource || null` pattern accounted for that; the new code now checks resource truthiness too.
+- `PendingRequests`' new classId-picker no longer treats a failed/rate-limited per-class count as
+  zero — a class whose count couldn't be loaded still appears in the picker instead of vanishing.
+
+### Other
+- Wizard step 4 (the "create these classes for me" checkbox) removed from
+  `ProfileWizardSteps.jsx` per the sprint's design — `POST /api/classes/shells` stays live for
+  any other caller, just unused by onboarding now.
+- Extracted three modules that were duplicated between the new finale screen and existing pages:
+  `src/data/fourCell.js` (four-cell chart palette, shared with `Analytics.jsx`),
+  `src/hooks/useStagedPending.js` (shared with `GenerateQuiz.jsx`), and
+  `src/hooks/useWindowWidth.js` (shared with `DemoGallery.jsx`).
+- `PromoSlot` now accepts an optional preloaded `eligibleIntros` prop so `TeacherHome` doesn't
+  double-fetch `/api/me` on every load.
+- `/teacher/first-run` added to `FULL_WIDTH_ROUTES` and `api/shared/pageViewAllowlist.js`.
+- `featureIntros.getting_started` is a tenth, synthetic key (alongside the nine v4.2.0
+  feature-intro keys) reusing the same `PUT /api/me/feature-intros` ETag-replace mechanism, with
+  a new `skip-step` event for the checklist's per-step skipped marker.
+
 ## [v4.5.0] — Student class home & post-approval access
 
 Fixes the student dead-end after approval — the only path into a quiz used to be a live push
