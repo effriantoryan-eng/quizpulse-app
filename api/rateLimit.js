@@ -12,6 +12,11 @@ const _store = new Map();
  * @returns {boolean}
  */
 function rateLimit(key, max, windowMs) {
+  // ponytail: Jest integration tests fire many requests from one process/IP and trip this
+  // shared-across-callers limiter on throttle, not on real bugs. Bypass only under
+  // RUN_INTEGRATION=true (the same env var that already gates the integration suite itself —
+  // see CLAUDE.md Testing), so it can never be flipped on in production by accident.
+  if (process.env.RUN_INTEGRATION === 'true') return true;
   const now = Date.now();
   const timestamps = (_store.get(key) || []).filter(t => now - t < windowMs);
   if (timestamps.length >= max) return false;

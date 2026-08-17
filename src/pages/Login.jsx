@@ -182,13 +182,9 @@ function Login() {
         Sign in with Microsoft
       </button>
 
-      <button
-        data-testid="login-google"
-        onClick={() => signIn('google.com')}
-        style={{ ...providerButton, background: 'white', color: 'var(--text)' }}
-      >
-        Sign in with Google
-      </button>
+      {/* ponytail: Google IdP was never configured in the CIAM tenant — button led to a silent
+          dead end. Hidden (same treatment as Apple ID) until docs/azure/B2C_SETUP.md's Google
+          Cloud OAuth + CIAM IdP setup is done. Re-add the button when that's live. */}
 
       <button
         data-testid="login-chooser"

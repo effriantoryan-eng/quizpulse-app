@@ -29,8 +29,13 @@ function todayDateKey() {
   return new Date().toISOString().slice(0, 10).replace(/-/g, '');
 }
 
-async function checkAndIncrRegenQuota(teachersContainer, teacherId, max) {
-  const field = `quotaRegen_${todayDateKey()}`;
+// Generic attempt-based quota: increments BEFORE the caller's paid attempt runs, not after a
+// successful create — a doc-count quota (countCreatedToday) only counts what got PERSISTED, so a
+// provider call that fails (502/503) is invisible to it and a retry loop can burn unlimited paid
+// spend without ever tripping the cap. Same atomic-incr-on-teacher-doc mechanism as the
+// regeneration quota below; `checkAndIncrRegenQuota` is now a thin wrapper over this.
+async function checkAndIncrQuota(teachersContainer, teacherId, fieldPrefix, max) {
+  const field = `${fieldPrefix}_${todayDateKey()}`;
   let teacherDoc = null;
   try {
     const { resource } = await teachersContainer.item(teacherId, teacherId).read();
@@ -53,4 +58,8 @@ async function checkAndIncrRegenQuota(teachersContainer, teacherId, max) {
   return true;
 }
 
-module.exports = { countCreatedToday, checkAndIncrRegenQuota, todayDateKey };
+function checkAndIncrRegenQuota(teachersContainer, teacherId, max) {
+  return checkAndIncrQuota(teachersContainer, teacherId, 'quotaRegen', max);
+}
+
+module.exports = { countCreatedToday, checkAndIncrQuota, checkAndIncrRegenQuota, todayDateKey };

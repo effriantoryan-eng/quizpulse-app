@@ -8,7 +8,7 @@ const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
-const { countCreatedToday, checkAndIncrRegenQuota } = require('./shared/dailyQuota');
+const { checkAndIncrQuota, checkAndIncrRegenQuota } = require('./shared/dailyQuota');
 const { generateDraft, MissingProviderKeyError } = require('./shared/llmAdapter');
 const { InsufficientContentError } = require('./shared/llmProviders/mock');
 const { validateDraftQuestions, validateQuestionShape, MIN_QUESTIONS, MAX_QUESTIONS } = require('./shared/draftSchema');
@@ -107,9 +107,10 @@ app.http('generationDrafts', {
         resolvedRange = { start: rStart, end: rEnd };
       }
 
-      // Quotas
-      const generationsToday = await countCreatedToday(draftsContainer, teacherId);
-      if (generationsToday >= MAX_GENERATIONS_PER_DAY) {
+      // Quota — attempt-based (incremented before the paid provider call, not after a
+      // successful create), so a failing/retried generation still counts against the cap.
+      const withinQuota = await checkAndIncrQuota(teachersContainer, teacherId, 'quotaGen', MAX_GENERATIONS_PER_DAY);
+      if (!withinQuota) {
         return respond(429, { error: "You've reached your daily generation limit. Try again tomorrow." }, teacherId);
       }
       const { resources: draftStatusCount } = await draftsContainer.items.query({
@@ -431,8 +432,8 @@ app.http('generationExpand', {
       const source = await readOwnDoc(sourcesContainer, quiz.sourceId, teacherId);
       if (!source) return respond(400, { error: SOURCE_EXPIRED_MESSAGE }, teacherId);
 
-      const generationsToday = await countCreatedToday(draftsContainer, teacherId);
-      if (generationsToday >= MAX_GENERATIONS_PER_DAY) {
+      const withinQuota = await checkAndIncrQuota(teachersContainer, teacherId, 'quotaGen', MAX_GENERATIONS_PER_DAY);
+      if (!withinQuota) {
         return respond(429, { error: "You've reached your daily generation limit. Try again tomorrow." }, teacherId);
       }
 

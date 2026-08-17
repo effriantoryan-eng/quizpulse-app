@@ -8,36 +8,38 @@
 // the `generatedBy: 'ai'` convention already used for AI-materialised questions.
 const { deterministicId } = require('./materializeAi');
 
+// ponytail: correct-answer index is deliberately varied (2,0,3,1,2) across the pack — an earlier
+// draft had 4 of 5 correct answers sitting at index 1, which a student pattern-matches in one send.
 const STARTER_PACK = [
   {
     text: 'Which of these is the best way to remember something for a test next week?',
     options: [
       'Review it once the night before',
-      'Review it a little bit on several different days',
       'Read it silently one time',
+      'Review it a little bit on several different days',
       'Highlight it in a different colour',
     ],
-    correctIndex: 1,
+    correctIndex: 2,
   },
   {
     text: 'You have 3 tasks due this week. What is the most helpful first step?',
     options: [
+      'List all 3 and note which is due soonest',
       'Start with whichever one is easiest',
       'Do them in the order they were given',
-      'List all 3 and note which is due soonest',
       'Wait until the day before each is due',
     ],
-    correctIndex: 2,
+    correctIndex: 0,
   },
   {
     text: "If you don't understand something a teacher explained, what's usually the best move?",
     options: [
       'Say nothing and hope it makes sense later',
-      'Ask a question about the specific part that is confusing',
       'Copy a classmate\'s answer',
       'Skip that topic entirely',
+      'Ask a question about the specific part that is confusing',
     ],
-    correctIndex: 1,
+    correctIndex: 3,
   },
   {
     text: 'Which habit helps most with staying focused while studying?',
@@ -53,11 +55,11 @@ const STARTER_PACK = [
     text: 'What is a good reason to double-check your work before handing it in?',
     options: [
       'To make it look neater',
-      'To catch small mistakes you can still fix',
       'Because it takes up more time',
+      'To catch small mistakes you can still fix',
       'It is not usually worth doing',
     ],
-    correctIndex: 1,
+    correctIndex: 2,
   },
 ];
 
