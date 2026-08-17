@@ -60,6 +60,22 @@ changes, no new Cosmos container.
 - `PendingRequests`' new classId-picker no longer treats a failed/rate-limited per-class count as
   zero — a class whose count couldn't be loaded still appears in the picker instead of vanishing.
 
+### Fixes (post-deploy, 2026-08-17 — commit `04c8809`)
+- **Generation daily quota is now attempt-based** (`api/shared/dailyQuota.js` `checkAndIncrQuota`,
+  wired into `api/generationDrafts.js`). Previously counted persisted drafts, so a failing/retried
+  provider call (502/503) was invisible to the cap and a retry loop could burn unlimited paid spend.
+  Now increments an atomic date-keyed counter before the provider call. `checkAndIncrRegenQuota`
+  is a thin wrapper over the generalized helper.
+- **Starter-pack correct-answer indices spread across the pack** (`api/shared/starterPack.js`) —
+  4 of 5 answers previously sat at index 1, pattern-matchable in one send; now varied (2,0,3,1,2).
+- **`api/rateLimit.js` bypasses the in-memory limiter under `RUN_INTEGRATION=true`** — fixes the
+  documented flake where rapid sequential integration-test requests from one IP trip the 30 req/min
+  cap (surfacing as `classes.find is not a function`). Gated on the same env var that already gates
+  the integration suite, so it can never flip on in production.
+- **Hid the "Sign in with Google" button** (`src/pages/Login.jsx`) — the Google IdP was never
+  configured in the CIAM tenant, so the button led to a silent dead end (same treatment as Apple ID).
+- Added `api/scripts/findStrayTestDocs.js` (founder-run audit for test-pollution docs in Cosmos).
+
 ### Other
 - Wizard step 4 (the "create these classes for me" checkbox) removed from
   `ProfileWizardSteps.jsx` per the sprint's design — `POST /api/classes/shells` stays live for

@@ -95,9 +95,9 @@
     "semantic_hash": ""
   },
   "api/rateLimit.js": {
-    "mtime": 1781678080.965844,
-    "ast_hash": "b15efb378fd8ca406d66a334874efdb3",
-    "semantic_hash": "b15efb378fd8ca406d66a334874efdb3"
+    "mtime": 1785724994.2629766,
+    "ast_hash": "327ff20391d3583176f70d86ffa29643",
+    "semantic_hash": ""
   },
   "api/responses.js": {
     "mtime": 1783825996.9099662,
@@ -165,8 +165,8 @@
     "semantic_hash": ""
   },
   "api/teacher.js": {
-    "mtime": 1785182447.9638493,
-    "ast_hash": "a0008097a46c060dc3ba852cde62ff38",
+    "mtime": 1785185621.1164465,
+    "ast_hash": "cba707342a70e88f0c8841e6472789ef",
     "semantic_hash": ""
   },
   "api/teacherRole.js": {
@@ -305,8 +305,8 @@
     "semantic_hash": "29c24d1c707b6ac8e43514e877b9f31a"
   },
   "src/pages/DemoGallery.jsx": {
-    "mtime": 1783820409.532128,
-    "ast_hash": "2adbb8d2f2838556ff36f39fc56f5f62",
+    "mtime": 1785185789.1590466,
+    "ast_hash": "dadd54750cddbb734250b478dcf4ead9",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -315,9 +315,9 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1782126817.4378412,
-    "ast_hash": "91e4c0101d5095a1da6b09a900e41e58",
-    "semantic_hash": "91e4c0101d5095a1da6b09a900e41e58"
+    "mtime": 1785724910.475376,
+    "ast_hash": "85d9afa39404e6fe5e8bb6b9b2945952",
+    "semantic_hash": ""
   },
   "src/pages/Onboarding.jsx": {
     "mtime": 1785182643.213276,
@@ -335,8 +335,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/Analytics.jsx": {
-    "mtime": 1784073330.1038465,
-    "ast_hash": "ea8651e25b33393c9eeab6fe2fe8df90",
+    "mtime": 1785185804.2655172,
+    "ast_hash": "382b2c218f87336cd364c1c07ce571f5",
     "semantic_hash": ""
   },
   "src/pages/teacher/BuildQuiz.jsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/PendingRequests.jsx": {
-    "mtime": 1785182936.0579271,
-    "ast_hash": "7631b76cf82db2b507df17847136178d",
+    "mtime": 1785185608.4061482,
+    "ast_hash": "bd62e1301770099b4a8bc7fbd345c0f8",
     "semantic_hash": ""
   },
   "src/pages/teacher/QuestionBank.jsx": {
@@ -680,8 +680,8 @@
     "semantic_hash": ""
   },
   "src/components/PromoSlot.jsx": {
-    "mtime": 1783825996.9224572,
-    "ast_hash": "788a37b7f9186d5edd17407994090b75",
+    "mtime": 1785185654.8782604,
+    "ast_hash": "edfbcdebaf7b163ec95925b472250ae2",
     "semantic_hash": ""
   },
   "src/components/SubNav.jsx": {
@@ -730,8 +730,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/TeacherHome.jsx": {
-    "mtime": 1785182747.4621527,
-    "ast_hash": "8a4853006e005f694f53c536242d3ee2",
+    "mtime": 1785185677.3669226,
+    "ast_hash": "24174811fd3184e0026abf3824616b04",
     "semantic_hash": ""
   },
   "src/teacherNav.js": {
@@ -865,8 +865,8 @@
     "semantic_hash": ""
   },
   "api/generationDrafts.js": {
-    "mtime": 1784073329.9864078,
-    "ast_hash": "d5fb70e00be8279082e8ce63cdcca111",
+    "mtime": 1785724981.6225412,
+    "ast_hash": "023954002192026c7895ca67f2c274f2",
     "semantic_hash": ""
   },
   "api/generationSources.js": {
@@ -875,8 +875,8 @@
     "semantic_hash": ""
   },
   "api/shared/dailyQuota.js": {
-    "mtime": 1784073330.0102034,
-    "ast_hash": "ef9438e6db12ffb300a4100e3b114657",
+    "mtime": 1785724968.481662,
+    "ast_hash": "3a64fe939ef9d4e4848f447f519952f7",
     "semantic_hash": ""
   },
   "api/shared/draftSchema.js": {
@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/GenerateQuiz.jsx": {
-    "mtime": 1784073330.1125274,
-    "ast_hash": "a6ddb136fe73df5dfe9661af2837df2a",
+    "mtime": 1785185757.263516,
+    "ast_hash": "16c9e4bf2d5b77d95ebb832483cb9142",
     "semantic_hash": ""
   },
   "src/pages/teacher/ReviewDraft.jsx": {
@@ -1020,8 +1020,8 @@
     "semantic_hash": ""
   },
   "api/shared/starterPack.js": {
-    "mtime": 1785135611.7671094,
-    "ast_hash": "1bb657ff586574e6b2fbe21442da41c9",
+    "mtime": 1785724918.582759,
+    "ast_hash": "34c87143405fbb4c9eb4ef328f966fac",
     "semantic_hash": ""
   },
   "api/studentQuizzes.js": {
@@ -1095,8 +1095,23 @@
     "semantic_hash": ""
   },
   "src/pages/FirstRunFinale.jsx": {
-    "mtime": 1785182623.0220158,
-    "ast_hash": "ea18dc3275d071bf280b0afa32d27ee0",
+    "mtime": 1785185737.2012525,
+    "ast_hash": "3daa65c42e7fd6db3e4dabadbeaa4657",
+    "semantic_hash": ""
+  },
+  "src/data/fourCell.js": {
+    "mtime": 1785185709.256239,
+    "ast_hash": "5d08dd4e5d6c2a5643b018b0bb592f45",
+    "semantic_hash": ""
+  },
+  "src/hooks/useStagedPending.js": {
+    "mtime": 1785185692.4748802,
+    "ast_hash": "1d45247d71260d66f7c24f12af3f4a1e",
+    "semantic_hash": ""
+  },
+  "src/hooks/useWindowWidth.js": {
+    "mtime": 1785185684.9783995,
+    "ast_hash": "399480628328197a6dd74af373fe1cc6",
     "semantic_hash": ""
   }
 }

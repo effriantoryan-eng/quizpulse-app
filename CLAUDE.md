@@ -250,7 +250,7 @@ unit suite because the fakes didn't reproduce the exact failure shape:**
    upserting the whole stale object. Regression-guarded in
    `tests/unit/api/demoSendNotification.test.js`.
 
-Not yet built: `graphify update .` after this note, starter-pack content review, and all of
+Not yet built: starter-pack content review, and all of
 v4.6.1 (Tasks 9-11 — projector join screen, first-result annotation, Home quick-start card). The
 rc1 gate itself (skip-path walk, injected mid-chain failure recovery, the integration test run)
 is still open — see Known issues below.
@@ -301,7 +301,7 @@ is still open — see Known issues below.
   not the raw .docx. Its APST/VTLM source text: `C:\Users\Ryan\Downloads\QuizPulse_VIT_Export_Research_Brief.docx`.
 - v4.4.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (no .docx — the prompt file is the source of truth)
 - Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
-  - `graphify-out/graph.json` — queryable JSON graph (697 nodes, 1091 edges)
+  - `graphify-out/graph.json` — queryable JSON graph (1288 nodes, 2099 edges, as of 2026-08-17)
   - `graphify-out/GRAPH_REPORT.md` — architecture report
   - `graphify-out/graph.html` — interactive visualization
 
@@ -1566,7 +1566,7 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     integration test (`tests/integration/api/v460-first-run.test.js`) has NOT been run against
     `quizpulse-int-test-db` (written, unrun — unlike v4.4.0's, confirmed 14/14); the skip-path and
     injected-mid-chain-failure-recovery legs of the E2E walk are unexercised (only the fast/happy
-    path was live-tested); starter-pack content review; `graphify update .`. Do not tell a future
+    path was live-tested); starter-pack content review. (`graphify update .` run 2026-08-17.) Do not tell a future
     session "v4.6.0 is done" — v4.6.1 (Tasks 9-11) hasn't started, and the rc1 gate itself is
     still open. Check this file's v4.6.0 blurb near the top for the current task-by-task status.
 
