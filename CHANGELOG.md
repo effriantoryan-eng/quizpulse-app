@@ -2,6 +2,51 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.7.0] — Design overhaul: Modernist (IN PROGRESS — not yet tagged)
+
+A visual overhaul, not a behavior change. Remaps the app's existing 2px-border token system
+(`src/index.css`) to a Modernist palette/type (Archivo, one terracotta-red accent, zero corner
+radius, no drop shadows) — every one of the 600+ existing `var()` call sites restyles for free.
+Plus a read-only Home calendar, a QR join path, and a student completion confidence summary. Built
+per `CC_PROMPTS_v470.md` (design/eng/CEO reviewed 2026-08-17). **Zero new containers, zero new
+security surface, one small endpoint extension.** No breaking changes. Ranks 6-9 from the scoping
+doc (multi-class trend grid, nudge-non-submitters, device-scoped "Your activity", device linking)
+are deferred to v4.8.0.
+
+### New features
+- **Design system remap** (`src/index.css`, `DESIGN.md`) — same token names, Modernist values:
+  Archivo (self-hosted, `public/fonts/archivo-variable.woff2`, no more Google Fonts CDN load),
+  a single terracotta accent (`--primary: #ec3013`), `--radius: 0` everywhere, shadows dropped.
+  New component classes (`.btn`/`.tag`/`.field`/`.input`/`.seg`/`.table`) alongside the existing
+  `.bp-*` set. `staticwebapp.config.json`'s CSP no longer needs `fonts.googleapis.com`/
+  `fonts.gstatic.com`.
+- **Home calendar** (`src/components/home/HomeCalendar.jsx`, `src/data/homeCalendar.js`) —
+  week (default) / month toggle, read-only aggregate over `GET /api/quizzes` (no new endpoint),
+  marks days with a sent or scheduled quiz.
+- **"Also waiting" attention cards** (`src/data/alsoWaiting.js`) — non-submitters, a below-target
+  closed quiz (response-rate proxy — no score-target concept exists in this data model), and a
+  draft-in-progress quiz, derived from data the Home page already fetches. The non-submitter
+  card's "Nudge" button is deferred to v4.8.0 (T3) — this ships count + "Open results" only.
+- **Student "Join this class" QR** (`src/components/ClassJoinQR.jsx`, `src/components/QRCode.jsx`)
+  — a self-contained, offline-capable QR (bundles `qrcode-generator`, no CDN) on the student
+  class-home and the join-approved screen, encoding `/join?code=`. `JoinClass.jsx` now also
+  prefills `?code=` from a scan.
+- **"Coming up" scheduled quizzes** — `GET /api/student/quizzes` now also returns
+  `status='scheduled'` quizzes with a server-computed `state` (`'open'|'closed'|'scheduled'`) and
+  `scheduledFor`, sorted by effective date. Still demo-excluded, still 403-on-unapproved-device,
+  still 50-capped, same rate limit.
+- **Completion confidence self-summary** (`src/data/confidenceTally.js`) — the student's finish
+  screen now shows their own confidence mix from the submission just sent ("7 sure / 4 pretty
+  sure / 1 guessing") plus plain "what happens next" copy. No score, no right/wrong count — reads
+  straight from the local submission payload, no new endpoint.
+
+### Fixes / restyle
+- `src/data/fourCell.js`'s misconception chart colors (hardcoded hex, not `var()`) realigned to
+  the new accent.
+- Hardcoded-hex sweep on the screens this sprint touches (Home, Analytics, student flow) — the
+  other ~339 hardcoded hex occurrences repo-wide are out of scope, noted in `DESIGN.md`.
+- Removed decorative emoji from the student flow and Home screens (house no-emoji rule).
+
 ## [v4.6.0] — First-run activation (IN PROGRESS — not yet tagged)
 
 A new teacher used to land on Create Question (the middle of the chain) after onboarding, with

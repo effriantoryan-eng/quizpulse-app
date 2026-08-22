@@ -7,8 +7,8 @@ import { FOUR_CELL, MISCONCEPTION_BG, MISCONCEPTION_BORDER } from '../../data/fo
 
 const OPTION_COLORS = ['#E6F1FB', 'var(--surface2)', '#FAEEDA', '#FBEAF0']
 const OPTION_BORDER = ['#185FA5', 'var(--primary)', '#633806', '#4B1528']
-const CORRECT_BG = '#EAF3DE'
-const CORRECT_BORDER = '#3B6D11'
+const CORRECT_BG = 'var(--okBg)'
+const CORRECT_BORDER = 'var(--ok)'
 
 const POLL_INTERVAL_MS = 3000
 
@@ -39,20 +39,20 @@ function TimelineChart({ timeline, classSize }) {
   for (let m = 0; m <= maxMinutes; m += tickInterval) xTicks.push(m)
 
   return (
-    <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
-      <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
+    <div style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '16px 20px', marginBottom: '16px' }}>
+      <div className="bp-label" style={{ marginBottom: '10px' }}>
         Response timeline
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
         {/* Y gridlines */}
         {[0, 0.5, 1].map(frac => (
           <line key={frac} x1={PAD_L} y1={ty(maxCount * frac)} x2={W - PAD_R} y2={ty(maxCount * frac)}
-            stroke="#f0f0f0" strokeWidth="1" />
+            stroke="var(--surface2)" strokeWidth="1" />
         ))}
         {/* Y-axis labels */}
-        <text x={PAD_L - 4} y={ty(maxCount) + 4} fontSize="9" fill="#bbb" textAnchor="end">{maxCount}</text>
-        <text x={PAD_L - 4} y={ty(maxCount * 0.5) + 4} fontSize="9" fill="#bbb" textAnchor="end">{Math.round(maxCount * 0.5)}</text>
-        <text x={PAD_L - 4} y={ty(0) + 1} fontSize="9" fill="#bbb" textAnchor="end">0</text>
+        <text x={PAD_L - 4} y={ty(maxCount) + 4} fontSize="9" fill="var(--muted)" textAnchor="end">{maxCount}</text>
+        <text x={PAD_L - 4} y={ty(maxCount * 0.5) + 4} fontSize="9" fill="var(--muted)" textAnchor="end">{Math.round(maxCount * 0.5)}</text>
+        <text x={PAD_L - 4} y={ty(0) + 1} fontSize="9" fill="var(--muted)" textAnchor="end">0</text>
         {/* Area fill */}
         <polygon points={areaPoints} fill="var(--primary)" opacity="0.08" />
         {/* Line */}
@@ -60,13 +60,13 @@ function TimelineChart({ timeline, classSize }) {
         {/* X-axis ticks */}
         {xTicks.map(m => (
           <g key={m}>
-            <line x1={tx(m)} y1={PAD_T + chartH} x2={tx(m)} y2={PAD_T + chartH + 4} stroke="#ddd" strokeWidth="1" />
-            <text x={tx(m)} y={H - 4} fontSize="9" fill="#bbb" textAnchor="middle">{m}m</text>
+            <line x1={tx(m)} y1={PAD_T + chartH} x2={tx(m)} y2={PAD_T + chartH + 4} stroke="var(--surface2)" strokeWidth="1" />
+            <text x={tx(m)} y={H - 4} fontSize="9" fill="var(--muted)" textAnchor="middle">{m}m</text>
           </g>
         ))}
         {/* Axis lines */}
-        <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + chartH} stroke="#e0e0e0" strokeWidth="1" />
-        <line x1={PAD_L} y1={PAD_T + chartH} x2={W - PAD_R} y2={PAD_T + chartH} stroke="#e0e0e0" strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + chartH} stroke="var(--border)" strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD_T + chartH} x2={W - PAD_R} y2={PAD_T + chartH} stroke="var(--border)" strokeWidth="1" />
       </svg>
     </div>
   )
@@ -196,8 +196,8 @@ function Analytics() {
     }
   }
 
-  if (loading) return <div style={{ padding: '24px', color: '#888' }}>Loading analytics...</div>
-  if (error) return <div style={{ padding: '24px', color: '#A32D2D' }}>{error}</div>
+  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading analytics...</div>
+  if (error) return <div style={{ padding: '24px', color: 'var(--danger)' }}>{error}</div>
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px' }}>
@@ -206,7 +206,7 @@ function Analytics() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
         <button
           onClick={() => navigate(classId ? '/teacher/results' : '/teacher/quizzes')}
-          style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', fontSize: '13px', color: '#666' }}
+          style={{ background: 'none', border: 'var(--bw) solid var(--border)', padding: '6px 12px', cursor: 'pointer', fontSize: '13px', color: 'var(--muted)' }}
         >
           ← Back
         </button>
@@ -216,18 +216,18 @@ function Analytics() {
             {isDemo && (
               <span
                 data-testid="analytics-demo-pill"
-                style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
+                style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
               >
                 Demo data
               </span>
             )}
           </div>
-          <div style={{ fontSize: '13px', color: '#888', marginTop: '2px' }}>Quiz ID: {quizId}</div>
+          <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>Quiz ID: {quizId}</div>
         </div>
         <button
           onClick={handleExportCsv}
           disabled={exporting}
-          style={{ background: 'white', border: 'var(--bw) solid var(--primary)', color: 'var(--primary)', borderRadius: '8px', padding: '6px 12px', cursor: exporting ? 'not-allowed' : 'pointer', fontSize: '13px', flexShrink: 0 }}
+          style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--primary)', color: 'var(--primary)', padding: '6px 12px', cursor: exporting ? 'not-allowed' : 'pointer', fontSize: '13px', flexShrink: 0 }}
         >
           {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
@@ -243,7 +243,7 @@ function Analytics() {
       )}
 
       {exportError && (
-        <div style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
+        <div style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
           {exportError}
         </div>
       )}
@@ -251,13 +251,13 @@ function Analytics() {
       {/* Class filter — only when the quiz reached more than one class */}
       {classes.length > 1 && (
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
             Showing
           </label>
           <select
             value={classId}
             onChange={handleClassChange}
-            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', borderRadius: '8px', border: 'var(--bw) solid var(--border)', background: 'white' }}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', background: 'var(--surface)' }}
           >
             <option value="">All classes</option>
             {classes.map(c => (
@@ -269,13 +269,13 @@ function Analytics() {
 
       {/* Summary card */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '28px' }}>
-        <div style={{ background: 'var(--primary)', borderRadius: '12px', padding: '20px', color: 'white', textAlign: 'center' }}>
+        <div style={{ background: 'var(--primary)', padding: '20px', color: 'white', textAlign: 'center' }}>
           <div style={{ fontSize: '36px', fontWeight: '600' }}>
             {classSize ? `${totalResponses} / ${classSize}` : totalResponses}
           </div>
           <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Students responded</div>
         </div>
-        <div style={{ background: '#EAF3DE', borderRadius: '12px', padding: '20px', color: '#3B6D11', textAlign: 'center' }}>
+        <div style={{ background: 'var(--okBg)', padding: '20px', color: 'var(--ok)', textAlign: 'center' }}>
           <div style={{ fontSize: '36px', fontWeight: '600' }}>{questions.length}</div>
           <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Questions in quiz</div>
         </div>
@@ -296,7 +296,7 @@ function Analytics() {
         return (
           <div
             data-testid="misconception-hero"
-            style={{ background: MISCONCEPTION_BG, border: `2px solid ${MISCONCEPTION_BORDER}`, borderRadius: '12px', padding: '18px 20px', marginBottom: '20px' }}
+            style={{ background: MISCONCEPTION_BG, border: `2px solid ${MISCONCEPTION_BORDER}`, padding: '18px 20px', marginBottom: '20px' }}
           >
             <div style={{ fontSize: '12px', color: MISCONCEPTION_BORDER, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: '700' }}>
               Misconception signal
@@ -314,7 +314,7 @@ function Analytics() {
                 data-testid="hero-create-followup"
                 onClick={() => handleExpand(worst.id)}
                 disabled={expandingIds.includes(worst.id)}
-                style={{ padding: '8px 16px', background: MISCONCEPTION_BORDER, color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: expandingIds.includes(worst.id) ? 'not-allowed' : 'pointer', opacity: expandingIds.includes(worst.id) ? 0.6 : 1 }}
+                style={{ padding: '8px 16px', background: MISCONCEPTION_BORDER, color: 'white', border: 'none', fontSize: '13px', fontWeight: '500', cursor: expandingIds.includes(worst.id) ? 'not-allowed' : 'pointer', opacity: expandingIds.includes(worst.id) ? 0.6 : 1 }}
               >
                 {expandingIds.includes(worst.id) ? 'Creating…' : 'Create follow-up practice'}
               </button>
@@ -325,10 +325,10 @@ function Analytics() {
 
       {/* Four-cell legend — shown once, above the first question card, not per-question or hover-only. */}
       {questions.length > 0 && questions.some(q => q.fourCell) && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '14px', padding: '10px 14px', background: '#fafafa', borderRadius: '8px', border: '1px solid #eee' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '14px', padding: '10px 14px', background: 'var(--surface2)', border: '1px solid var(--surface2)' }}>
           {FOUR_CELL.map(cell => (
-            <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#555' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: cell.bg, border: `1.5px solid ${cell.border}`, flexShrink: 0 }} />
+            <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--muted)' }}>
+              <span style={{ width: '10px', height: '10px', background: cell.bg, border: `1.5px solid ${cell.border}`, flexShrink: 0 }} />
               {cell.label}
             </div>
           ))}
@@ -337,7 +337,7 @@ function Analytics() {
 
       {/* Per question breakdown */}
       {questions.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px' }}>
           No questions found for this quiz.
         </div>
       )}
@@ -347,12 +347,12 @@ function Analytics() {
         const total = counts.reduce((a, b) => a + b, 0)
 
         return (
-          <div key={q.id} style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
+          <div key={q.id} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '20px', marginBottom: '16px' }}>
             
-            <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
               Question {qi + 1}
             </div>
-            <div style={{ fontSize: '15px', fontWeight: '500', lineHeight: '1.5', marginBottom: '20px', color: '#1a1a1a' }}>
+            <div style={{ fontSize: '15px', fontWeight: '500', lineHeight: '1.5', marginBottom: '20px', color: 'var(--text)' }}>
               {q.text}
             </div>
 
@@ -362,7 +362,7 @@ function Analytics() {
                 return (
                   <div style={{ marginBottom: '18px' }}>
                     {/* Segmented bar — proportional widths, but meaning never depends on this alone. */}
-                    <div style={{ display: 'flex', height: '14px', borderRadius: '7px', overflow: 'hidden', border: '1px solid #eee', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', height: '14px', overflow: 'hidden', border: '1px solid var(--surface2)', marginBottom: '10px' }}>
                       {FOUR_CELL.map(cell => {
                         const count = q.fourCell[cell.key] || 0
                         const width = fcTotal > 0 ? (count / fcTotal) * 100 : 0
@@ -377,7 +377,7 @@ function Analytics() {
                         const count = q.fourCell[cell.key] || 0
                         const percent = fcTotal > 0 ? Math.round((count / fcTotal) * 100) : 0
                         return (
-                          <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: cell.bg, border: `1px solid ${cell.border}`, borderRadius: '6px' }}>
+                          <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: cell.bg, border: `1px solid ${cell.border}` }}>
                             <span style={{ fontSize: '12px', color: cell.border, flex: 1 }}>{cell.label}</span>
                             <span style={{ fontSize: '13px', fontWeight: '600', color: cell.border }}>{count} ({percent}%)</span>
                           </div>
@@ -395,7 +395,7 @@ function Analytics() {
                   data-testid={`question-create-followup-${qi}`}
                   onClick={() => handleExpand(q.id)}
                   disabled={expandingIds.includes(q.id)}
-                  style={{ padding: '8px 16px', background: MISCONCEPTION_BORDER, color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: expandingIds.includes(q.id) ? 'not-allowed' : 'pointer', opacity: expandingIds.includes(q.id) ? 0.6 : 1 }}
+                  style={{ padding: '8px 16px', background: MISCONCEPTION_BORDER, color: 'white', border: 'none', fontSize: '13px', fontWeight: '500', cursor: expandingIds.includes(q.id) ? 'not-allowed' : 'pointer', opacity: expandingIds.includes(q.id) ? 0.6 : 1 }}
                 >
                   {expandingIds.includes(q.id)
                     ? 'Creating…'
@@ -423,11 +423,11 @@ function Analytics() {
                       }}>
                         {String.fromCharCode(65 + i)}
                       </span>
-                      <span style={{ flex: 1, fontSize: '13px', color: '#333' }}>{opt}</span>
-                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#333', minWidth: '40px', textAlign: 'right' }}>{percent}%</span>
+                      <span style={{ flex: 1, fontSize: '13px', color: 'var(--text)' }}>{opt}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text)', minWidth: '40px', textAlign: 'right' }}>{percent}%</span>
                     </div>
-                    <div style={{ height: '8px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden', marginLeft: '34px' }}>
-                      <div style={{ height: '100%', borderRadius: '4px', width: `${percent}%`, background: isCorrect ? CORRECT_BORDER : OPTION_BORDER[i] }} />
+                    <div style={{ height: '8px', background: 'var(--surface2)', overflow: 'hidden', marginLeft: '34px' }}>
+                      <div style={{ height: '100%', width: `${percent}%`, background: isCorrect ? CORRECT_BORDER : OPTION_BORDER[i] }} />
                     </div>
                   </div>
                 )
@@ -437,18 +437,18 @@ function Analytics() {
       })}
 
       {totalResponses === 0 && questions.length > 0 && (
-        <div style={{ textAlign: 'center', padding: '24px', color: '#aaa', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)', fontSize: '14px', background: 'var(--surface2)' }}>
           No responses yet. Students will appear here as soon as they submit.
         </div>
       )}
 
       {nonResponders.length > 0 && (
-        <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginTop: '8px' }}>
-          <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+        <div style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '20px', marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
             Haven't responded yet ({nonResponders.length})
           </div>
           {nonResponders.map((s, i) => (
-            <div key={i} style={{ fontSize: '13px', color: '#555', padding: '6px 0', borderBottom: i < nonResponders.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+            <div key={i} style={{ fontSize: '13px', color: 'var(--muted)', padding: '6px 0', borderBottom: i < nonResponders.length - 1 ? '1px solid var(--surface2)' : 'none' }}>
               {s.studentName}
             </div>
           ))}

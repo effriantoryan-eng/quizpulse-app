@@ -103,14 +103,14 @@ function GettingStartedChecklist({ gettingStarted, variant, onChange }) {
           aria-expanded={expanded}
           style={{
             width: '100%', textAlign: 'left', padding: '10px 14px',
-            background: '#F1EFFD', border: 'var(--bw) solid var(--border)', borderRadius: '10px',
+            background: '#F1EFFD', border: 'var(--bw) solid var(--border)',
             fontSize: '13px', fontWeight: 600, color: 'var(--primary)', cursor: 'pointer',
           }}
         >
           Getting started: {doneCount} of {steps.length} {expanded ? '▾' : '▸'}
         </button>
         {expanded && (
-          <div style={{ marginTop: '8px', padding: '10px 14px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '10px' }}>
+          <div style={{ marginTop: '8px', padding: '10px 14px', background: 'var(--surface)', border: 'var(--bw) solid var(--border)' }}>
             {steps.map((step, i) => (
               <StepRow key={step.key} step={step} index={i} skipped={skippedSteps.includes(step.key)} onNavigate={navigate} />
             ))}
@@ -121,7 +121,7 @@ function GettingStartedChecklist({ gettingStarted, variant, onChange }) {
   }
 
   return (
-    <div data-testid="getting-started-checklist" style={{ background: '#F1EFFD', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '16px 18px', marginBottom: '16px' }}>
+    <div data-testid="getting-started-checklist" style={{ background: '#F1EFFD', border: 'var(--bw) solid var(--border)', padding: '16px 18px', marginBottom: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
         <div style={{ fontSize: '14px', fontWeight: 600 }}>Getting started</div>
         <button

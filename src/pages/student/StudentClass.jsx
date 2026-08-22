@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
+import ClassJoinQR from '../../components/ClassJoinQR'
 import { getApprovedClasses, getPendingClasses, reconcileApprovals } from '../../studentClasses'
 
 const DEVICE_ID_KEY = 'quizpulse_device_id'
@@ -16,11 +17,19 @@ function getDeviceId() {
   return id
 }
 
+// Friendly "coming up" date — plain language, no jargon, no raw ISO strings shown to students.
+function friendlyDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleDateString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' })
+}
+
 function QuizCard({ quiz, onOpen }) {
-  const closed = quiz.closedAt && new Date(quiz.closedAt).getTime() < Date.now()
+  const scheduled = quiz.state === 'scheduled'
+  const closed = quiz.state === 'closed'
   const answered = !!localStorage.getItem(submittedKey(quiz.id))
 
-  const tappable = !closed && !answered
+  const tappable = !scheduled && !closed && !answered
   return (
     <div
       role={tappable ? 'button' : undefined}
@@ -28,32 +37,25 @@ function QuizCard({ quiz, onOpen }) {
       onClick={tappable ? () => onOpen(quiz.id) : undefined}
       onKeyDown={tappable ? (e) => { if (e.key === 'Enter' || e.key === ' ') onOpen(quiz.id) } : undefined}
       style={{
-        background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px',
+        background: 'var(--surface)', border: 'var(--bw) solid var(--border)',
         padding: '18px', marginBottom: '12px', minHeight: '44px',
         cursor: tappable ? 'pointer' : 'default',
-        opacity: 1, // full-contrast even when closed — meaning never rides on hue alone
+        opacity: 1, // full-contrast even when closed/scheduled — meaning never rides on hue alone
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
         <div>
           <div style={{ fontSize: '15px', fontWeight: '600' }}>{quiz.name}</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-            {quiz.questionCount} question{quiz.questionCount !== 1 ? 's' : ''}
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
+            {scheduled ? friendlyDate(quiz.scheduledFor) : `${quiz.questionCount} question${quiz.questionCount !== 1 ? 's' : ''}`}
           </div>
         </div>
-        {answered && (
-          <span style={{ fontSize: '12px', fontWeight: '600', color: '#085041', background: '#E1F5EE', padding: '4px 10px', borderRadius: '999px' }}>
-            ✅ Answered
-          </span>
-        )}
-        {closed && !answered && (
-          <span style={{ fontSize: '12px', fontWeight: '600', color: '#555', background: '#eee', padding: '4px 10px', borderRadius: '999px' }}>
-            Closed
-          </span>
-        )}
+        {answered && <span className="tag tag-neutral">Answered</span>}
+        {scheduled && <span className="tag tag-accent">Not open yet</span>}
+        {closed && !answered && <span className="tag tag-neutral">Closed</span>}
       </div>
       {tappable && (
-        <div style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '500', marginTop: '10px' }}>
+        <div style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '600', marginTop: '10px' }}>
           Tap to start →
         </div>
       )}
@@ -84,46 +86,43 @@ function ClassSection({ cls, navigate }) {
 
   useEffect(() => { load() }, [load])
 
-  const open = (quizzes || []).filter(q => !q.closedAt || new Date(q.closedAt).getTime() >= Date.now())
-  const closedOrDone = (quizzes || []).filter(q => q.closedAt && new Date(q.closedAt).getTime() < Date.now())
+  const open = (quizzes || []).filter(q => q.state === 'open')
+  const comingUp = (quizzes || []).filter(q => q.state === 'scheduled')
+  const closedOrDone = (quizzes || []).filter(q => q.state === 'closed')
 
-  return (
-    <div style={{ marginBottom: '32px' }}>
+  const list = (
+    <div>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <div style={{ fontSize: '14px', color: '#666' }}>You're in <strong>{cls.className || 'your class'}</strong></div>
+        <div style={{ fontSize: '14px', color: 'var(--muted)' }}>You're in <strong style={{ color: 'var(--text)' }}>{cls.className || 'your class'}</strong></div>
         <button
           onClick={load}
-          style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '13px', fontWeight: '500', cursor: 'pointer', padding: '8px' }}
+          style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', padding: '8px' }}
         >
           Refresh
         </button>
       </div>
 
       {quizzes === null && !error && (
-        <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Loading…</div>
+        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
       )}
 
       {error === 'transient' && (
         <div style={{ maxWidth: 480, textAlign: 'center', padding: '24px' }}>
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️</div>
-          <p style={{ color: '#555', fontSize: '14px', marginBottom: '12px' }}>Couldn't load — try again</p>
-          <button onClick={load} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
-            Retry
-          </button>
+          <p style={{ color: 'var(--text)', fontSize: '14px', marginBottom: '12px' }}>Couldn't load — try again</p>
+          <button onClick={load} className="btn btn-primary">Retry</button>
         </div>
       )}
 
       {error === 'unavailable' && (
         <div style={{ maxWidth: 480, textAlign: 'center', padding: '24px' }}>
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔒</div>
-          <p style={{ color: '#555', fontSize: '14px' }}>
+          <p style={{ color: 'var(--text)', fontSize: '14px' }}>
             You're no longer in this class. Ask your teacher if this seems wrong, or join a class again.
           </p>
         </div>
       )}
 
       {quizzes !== null && !error && quizzes.length === 0 && (
-        <div style={{ padding: '20px', textAlign: 'center', color: '#666', fontSize: '14px', background: '#fafafa', border: 'var(--bw) solid var(--border)', borderRadius: '12px' }}>
+        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)' }}>
           No check-ins right now — you're all caught up. Your teacher will send one when it's time, and you'll get a notification.
         </div>
       )}
@@ -131,9 +130,35 @@ function ClassSection({ cls, navigate }) {
       {open.map(q => (
         <QuizCard key={q.id} quiz={q} onOpen={(id) => navigate(`/quiz?quizId=${id}`)} />
       ))}
-      {closedOrDone.map(q => (
-        <QuizCard key={q.id} quiz={q} onOpen={(id) => navigate(`/quiz?quizId=${id}`)} />
-      ))}
+
+      {comingUp.length > 0 && (
+        <>
+          <div className="bp-label" style={{ marginTop: open.length > 0 ? '20px' : 0 }}>Coming up</div>
+          {comingUp.map(q => (
+            <QuizCard key={q.id} quiz={q} onOpen={(id) => navigate(`/quiz?quizId=${id}`)} />
+          ))}
+        </>
+      )}
+
+      {closedOrDone.length > 0 && (
+        <>
+          <div className="bp-label" style={{ marginTop: (open.length > 0 || comingUp.length > 0) ? '20px' : 0 }}>Answered / closed</div>
+          {closedOrDone.map(q => (
+            <QuizCard key={q.id} quiz={q} onOpen={(id) => navigate(`/quiz?quizId=${id}`)} />
+          ))}
+        </>
+      )}
+    </div>
+  )
+
+  return (
+    <div style={{ marginBottom: '32px' }}>
+      {cls.joinCode ? (
+        <div className="student-class-layout">
+          {list}
+          <ClassJoinQR joinCode={cls.joinCode} className={cls.className} />
+        </div>
+      ) : list}
     </div>
   )
 }
@@ -165,7 +190,7 @@ function StudentClass() {
 
   if (reconciling) {
     return (
-      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>
+      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
         Checking…
       </div>
     )
@@ -174,15 +199,11 @@ function StudentClass() {
   if (classes.length === 0) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>🔍</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>No class found on this device</h2>
-        <p style={{ color: '#555', fontSize: '14px', marginBottom: '20px' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>
           Join a class with the code your teacher gave you.
         </p>
-        <button
-          onClick={() => navigate('/join')}
-          style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
-        >
+        <button onClick={() => navigate('/join')} className="btn btn-primary">
           Join a class
         </button>
       </div>
@@ -190,7 +211,7 @@ function StudentClass() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', padding: '24px' }}>
+    <div style={{ maxWidth: 920, margin: '0 auto', padding: '24px' }}>
       {classes.map(cls => (
         <ClassSection key={cls.classId} cls={cls} navigate={navigate} />
       ))}

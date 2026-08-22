@@ -3,11 +3,12 @@
 // never drift on the misconception accent color or cell labels.
 //
 // Misconception accent — one color for the signal everywhere it appears (per-question four-cell
-// "incorrect, confident" segment and the promoted hero card). Deliberately NOT purple (would
-// collide with the demo-pill purple) and NOT the amber used elsewhere — a dedicated, distinct
-// accent per DESIGN_REVIEW_v400_v410_addendum.md §D5.
-export const MISCONCEPTION_BG = '#FBEDE8'
-export const MISCONCEPTION_BORDER = '#B5482E'
+// "incorrect, confident" segment and the promoted hero card). v4.7.0: aligned to the Modernist
+// remap's --primary/--accent-700 (src/index.css) so the chart matches the reskin instead of
+// keeping the pre-v4.7.0 hot-pink-era terracotta. Hardcoded here (not var()) because this is a JS
+// data module, not CSS — the one place T0's token remap doesn't reach for free (see DESIGN.md).
+export const MISCONCEPTION_BG = '#FFE0D9'
+export const MISCONCEPTION_BORDER = '#AE1800'
 
 // Always shown with visible counts/labels (never color- or hover-only, per §D4).
 // incorrectConfident reuses the misconception accent.

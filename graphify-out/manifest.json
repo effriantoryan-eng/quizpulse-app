@@ -190,8 +190,8 @@
     "semantic_hash": "3aa4b57d7f08181d86bde52a4dcb7f22"
   },
   "package.json": {
-    "mtime": 1783655447.8041022,
-    "ast_hash": "e915dfa77fb7de646bbffd63640b8043",
+    "mtime": 1786948229.5290916,
+    "ast_hash": "49b27544a2ecd212808b5548aaeb8338",
     "semantic_hash": ""
   },
   "public/manifest.json": {
@@ -325,18 +325,18 @@
     "semantic_hash": ""
   },
   "src/pages/student/JoinClass.jsx": {
-    "mtime": 1785113351.3136666,
-    "ast_hash": "7783809a955cf6d0c095b584bd459eeb",
+    "mtime": 1786948903.9369128,
+    "ast_hash": "14da7913bf57b4c99f6908486ae45e77",
     "semantic_hash": ""
   },
   "src/pages/student/TakeQuiz.jsx": {
-    "mtime": 1783820409.532128,
-    "ast_hash": "4ed5de4b58fc83537c8f59ddf68c7f1b",
+    "mtime": 1786948849.1691687,
+    "ast_hash": "6ae0bdb2aa74d2ac5832c01dd126620c",
     "semantic_hash": ""
   },
   "src/pages/teacher/Analytics.jsx": {
-    "mtime": 1785185804.2655172,
-    "ast_hash": "382b2c218f87336cd364c1c07ce571f5",
+    "mtime": 1786949275.9847353,
+    "ast_hash": "ee33460d67ac29704207820922e1e5c3",
     "semantic_hash": ""
   },
   "src/pages/teacher/BuildQuiz.jsx": {
@@ -390,9 +390,9 @@
     "semantic_hash": "ff74b0409843dfcee47116f4d6e95bbc"
   },
   "staticwebapp.config.json": {
-    "mtime": 1782126817.2081249,
-    "ast_hash": "0ef0db1c828db5ca4e6cf9d7fa631054",
-    "semantic_hash": "0ef0db1c828db5ca4e6cf9d7fa631054"
+    "mtime": 1786948460.8547394,
+    "ast_hash": "cb28aa4aa48749b469690370bcb20258",
+    "semantic_hash": ""
   },
   "tests/e2e/auth.spec.js": {
     "mtime": 1781734289.366018,
@@ -730,8 +730,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/TeacherHome.jsx": {
-    "mtime": 1785185677.3669226,
-    "ast_hash": "24174811fd3184e0026abf3824616b04",
+    "mtime": 1786949144.6483223,
+    "ast_hash": "40d762266f107d1bb13d99db6550c83a",
     "semantic_hash": ""
   },
   "src/teacherNav.js": {
@@ -1025,13 +1025,13 @@
     "semantic_hash": ""
   },
   "api/studentQuizzes.js": {
-    "mtime": 1784732976.2647195,
-    "ast_hash": "078f885b8078bea945c3221cd5f2d4a9",
+    "mtime": 1786948530.3611152,
+    "ast_hash": "0bdc8e0cd9637e3ef9b8aeb5741d79ca",
     "semantic_hash": ""
   },
   "src/pages/student/StudentClass.jsx": {
-    "mtime": 1785113360.2428153,
-    "ast_hash": "dd9811bd0901112cc678d1e947c7ab82",
+    "mtime": 1786948734.883104,
+    "ast_hash": "54936b99e9505b37ac0bc3f86fcc6f86",
     "semantic_hash": ""
   },
   "src/pushSubscribe.js": {
@@ -1040,8 +1040,8 @@
     "semantic_hash": ""
   },
   "src/studentClasses.js": {
-    "mtime": 1785113324.6984684,
-    "ast_hash": "bdcb126bf8ad1f3d3cb5667de43e1079",
+    "mtime": 1786948613.1382754,
+    "ast_hash": "874623cc7063f76501b9b0bb67d6b5c0",
     "semantic_hash": ""
   },
   "tests/integration/api/v460-first-run.test.js": {
@@ -1085,8 +1085,8 @@
     "semantic_hash": ""
   },
   "src/components/GettingStartedChecklist.jsx": {
-    "mtime": 1785182709.8378742,
-    "ast_hash": "c79c730b7da137f981f1c64aebb7b494",
+    "mtime": 1786949204.305343,
+    "ast_hash": "c4d1f72e21bcd33995bb006280ef6a73",
     "semantic_hash": ""
   },
   "src/components/StarterSeedCta.jsx": {
@@ -1100,8 +1100,8 @@
     "semantic_hash": ""
   },
   "src/data/fourCell.js": {
-    "mtime": 1785185709.256239,
-    "ast_hash": "5d08dd4e5d6c2a5643b018b0bb592f45",
+    "mtime": 1786948497.1899838,
+    "ast_hash": "0cb478320f3e1246f7261fcc78e462c5",
     "semantic_hash": ""
   },
   "src/hooks/useStagedPending.js": {
@@ -1112,6 +1112,61 @@
   "src/hooks/useWindowWidth.js": {
     "mtime": 1785185684.9783995,
     "ast_hash": "399480628328197a6dd74af373fe1cc6",
+    "semantic_hash": ""
+  },
+  "src/components/ClassJoinQR.jsx": {
+    "mtime": 1786948637.298694,
+    "ast_hash": "4980b7401fc61751c12d49f59a0399b1",
+    "semantic_hash": ""
+  },
+  "src/components/QRCode.jsx": {
+    "mtime": 1786948620.5022638,
+    "ast_hash": "4e03753719f2e61ae18e0011d7b6d87d",
+    "semantic_hash": ""
+  },
+  "src/components/home/HomeCalendar.jsx": {
+    "mtime": 1786948959.9461088,
+    "ast_hash": "7cdca9ec4c4d9cc2ef025822b5aa5ef0",
+    "semantic_hash": ""
+  },
+  "src/data/alsoWaiting.js": {
+    "mtime": 1786949087.4723935,
+    "ast_hash": "f40651ab7b738ab025f333b8c09f6127",
+    "semantic_hash": ""
+  },
+  "src/data/confidenceTally.js": {
+    "mtime": 1786948745.3352904,
+    "ast_hash": "3375cda1b603525977115f04076c09dc",
+    "semantic_hash": ""
+  },
+  "src/data/homeCalendar.js": {
+    "mtime": 1786948948.5329986,
+    "ast_hash": "59a1b8c04cb63fac2b88eae529e2c21a",
+    "semantic_hash": ""
+  },
+  "tests/integration/api/v470-student-quizzes.test.js": {
+    "mtime": 1786948597.930277,
+    "ast_hash": "cdf31ecd3badde1c5da6e2005a5acc76",
+    "semantic_hash": ""
+  },
+  "tests/unit/alsoWaiting.test.js": {
+    "mtime": 1786949099.890224,
+    "ast_hash": "eff6bd99f5073028418c66db9fd5b141",
+    "semantic_hash": ""
+  },
+  "tests/unit/api/studentQuizzesState.test.js": {
+    "mtime": 1786948606.6302702,
+    "ast_hash": "18d3a696c8fbc405679bc4ace81eb087",
+    "semantic_hash": ""
+  },
+  "tests/unit/confidenceTally.test.js": {
+    "mtime": 1786949018.5742712,
+    "ast_hash": "393726643a51629e310d6dbc379f2be9",
+    "semantic_hash": ""
+  },
+  "tests/unit/homeCalendar.test.js": {
+    "mtime": 1786949378.2155151,
+    "ast_hash": "64fd0eb5783f6c2ccd2e290b235b6d38",
     "semantic_hash": ""
   }
 }

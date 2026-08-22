@@ -1,42 +1,85 @@
+/* v4.7.0 — Modernist remap. Same token NAMES as before (the app has 600+ var() call sites
+   across src/) — only the VALUES change, so the whole app restyles for free. See DESIGN.md. */
+
+/* Self-hosted Archivo — one variable-font file backs all four weight instances (this is how
+   Google Fonts itself serves it; a variable font's src can be shared across multiple @font-face
+   blocks, each locking a static weight via font-weight). No CDN request at runtime, so CSP no
+   longer needs fonts.googleapis.com/fonts.gstatic.com. Latin subset only. */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/archivo-variable.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/archivo-variable.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/archivo-variable.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/archivo-variable.woff2') format('woff2');
+}
+
 :root {
-  /* ── Bold Pop theme tokens ──────────────────────────────────────────── */
-  --bg: #fff8ec;
+  /* ── Modernist theme tokens ─────────────────────────────────────────── */
+  --bg: #f3f2f2;
   --surface: #ffffff;
-  --surface2: #fff0d6;
-  --border: #111111;
+  --surface2: #eae9e9;
+  --border: #201e1d;
   --bw: 2px;
-  --text: #141414;
-  --muted: #6b6b6b;
-  --primary: #ff2e63;
+  --text: #201e1d;
+  --muted: #7d7979;
+  --primary: #ec3013;
   --primaryInk: #ffffff;
-  --primarySoft: #ffe14d;
-  --navBg: #111111;
+  --primarySoft: #ffe0d9;
+  --navBg: #201e1d;
   --navText: #ffffff;
-  --navMuted: #9a9a9a;
-  --navActiveBg: #ffd000;
-  --navActiveText: #111111;
-  --navActiveShadow: 3px 3px 0 #ff2e63;
-  --radius: 8px;
-  --radiusSm: 6px;
-  --chipRadius: 999px;
-  --shadow: 4px 4px 0 #111111;
-  --shadowField: 3px 3px 0 #111111;
-  --btnShadow: 4px 4px 0 #111111;
-  --tipBg: #ffe14d;
-  --tipBorder: #111111;
-  --logoGrad: linear-gradient(135deg, #ff2e63, #ff8a00);
-  --badgeBg: #00d4a0;
-  --badgeText: #111111;
+  --navMuted: #9b9797;
+  --navActiveBg: #ec3013;
+  --navActiveText: #ffffff;
+  --navActiveShadow: none;
+  --radius: 0px;
+  --radiusSm: 0px;
+  --chipRadius: 0px;
+  --shadow: none;
+  --shadowField: none;
+  --btnShadow: none;
+  --tipBg: #ffe0d9;
+  --tipBorder: #201e1d;
+  --logoGrad: linear-gradient(135deg, #ec3013, #ae1800);
+  --badgeBg: #ec3013;
+  --badgeText: #ffffff;
 
   /* status accents */
-  --ok: #00875a;
-  --okBg: #d7f5e9;
-  --danger: #c4142e;
-  --dangerBg: #ffe0e4;
+  --ok: #3b6d11;
+  --okBg: #eaf3de;
+  --danger: #ae1800;
+  --dangerBg: #ffe0d9;
 
-  --sans: 'Space Grotesk', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: 'Space Grotesk', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Archivo', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Archivo', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+
+  /* Modernist accent ramp — used by the .tag component classes below. */
+  --accent-100: #fff2ef;
+  --accent-700: #ae1800;
+  --accent-800: #7c1405;
+  --neutral-100: #f8f4f4;
+  --neutral-800: #444141;
 
   font: 16px/1.5 var(--sans);
   letter-spacing: 0;
@@ -512,4 +555,120 @@ code {
   color: var(--primaryInk);
   font-weight: 700;
   box-shadow: var(--shadow);
+}
+
+/* ── v4.7.0 Modernist component classes ──────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: var(--bw) solid var(--border);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+}
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: var(--primaryInk); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-700); }
+.btn-secondary { background: var(--surface); color: var(--text); }
+.btn-secondary:hover:not(:disabled) { background: var(--surface2); }
+.btn-block { width: 100%; justify-content: flex-start; text-align: left; }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: var(--chipRadius);
+}
+.tag-accent { background: var(--accent-100); color: var(--accent-800); }
+.tag-neutral { background: var(--neutral-100); color: var(--neutral-800); }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field > label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--radius);
+  box-sizing: border-box;
+}
+.input:focus-visible { outline: 2px solid var(--primary); outline-offset: 0; }
+
+.seg {
+  display: inline-flex;
+  overflow: hidden;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--radius);
+}
+.seg-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-family: var(--heading);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  border: none;
+}
+.seg-opt + .seg-opt { border-left: var(--bw) solid var(--border); }
+.seg-opt.active { background: var(--primary); color: var(--primaryInk); }
+
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 8px;
+  border-bottom: var(--bw) solid var(--border);
+}
+.table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--surface2);
+}
+
+/* Student class-home: quiz list + "Join this class" QR side panel (v4.7.0 T4). */
+.student-class-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1024px) {
+  .student-class-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Home calendar: month view drops on small screens — week-only, per the 1024px convention. */
+@media (max-width: 1024px) {
+  .home-calendar-month-opt {
+    display: none;
+  }
 }

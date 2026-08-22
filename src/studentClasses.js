@@ -18,9 +18,13 @@ export function getApprovedClasses() {
   }
 }
 
-export function addApprovedClass(classId, className) {
+// joinCode is optional (v4.7.0 T4) — captured from the student's own typed code at approval time
+// so the class-home QR panel ("Join this class") can render without a new endpoint. A device
+// approved before v4.7.0 simply has no joinCode on its local record; the QR panel just doesn't
+// render for it (ponytail: graceful degrade, not a backfill).
+export function addApprovedClass(classId, className, joinCode) {
   const existing = getApprovedClasses().filter(c => c.classId !== classId)
-  existing.push({ classId, className })
+  existing.push({ classId, className, ...(joinCode && { joinCode }) })
   localStorage.setItem(KEY, JSON.stringify(existing))
 }
 

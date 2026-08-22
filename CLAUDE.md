@@ -26,7 +26,9 @@ MAJOR). v4.6.0 (First-Run Activation) is IN PROGRESS on `main` — Tasks 1-8 cod
 live-verified end-to-end, and DEPLOYED to production (frontend via SWA GitHub Actions, API via
 `func azure functionapp publish`, both confirmed live 2026-07-28); only v4.6.1 (Tasks 9-11) and
 the rc1 ship gate (integration test run, skip-path/failure-recovery E2E legs, content review)
-remain — not yet tagged `v4.6.0`. See its blurb below for exact status.**
+remain — not yet tagged `v4.6.0`. See its blurb below for exact status. v4.7.0 (Design Overhaul —
+Modernist) is IN PROGRESS on `main`, built directly on top of v4.6.0's code (not yet deployed) —
+see its blurb below.**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -255,6 +257,43 @@ v4.6.1 (Tasks 9-11 — projector join screen, first-result annotation, Home quic
 rc1 gate itself (skip-path walk, injected mid-chain failure recovery, the integration test run)
 is still open — see Known issues below.
 
+**v4.7.0 (Design Overhaul — Modernist) is [IN PROGRESS] on `main` — code-complete, live-verified
+in the browser preview, not yet deployed.** Built per `CC_PROMPTS_v470.md` (design/eng/CEO
+reviewed 2026-08-17 — see that file's review reports). Ships ranks 1-5 of the scoping doc: **DS**
+(global token remap — see Architecture decisions below and `DESIGN.md`), **Reskin** (Home /
+Analytics / student flow restyled, analytics behavior untouched), **S-CONF** (completion
+confidence self-summary), **S-QR** (QR-join + "Coming up" scheduled quizzes), **H-CAL** (Home
+calendar + Also-waiting attention cards). Ranks 6-9 (multi-class trend grid, nudge-non-submitters,
+device-scoped "Your activity", device linking — the last two ship together, they carry the
+sprint's only new container) are deferred to a v4.8.0 features sprint. **Zero new Cosmos
+containers, zero new security surface this sprint** — the one backend change is an additive
+extension to the existing `GET /api/student/quizzes`. No breaking changes.
+- **Design system** — `src/index.css`'s existing token *names* keep their 600+ call sites; only
+  the *values* changed to the Modernist palette (Archivo, self-hosted; one terracotta accent
+  `#ec3013`; `--radius: 0`; no shadows). New component classes (`.btn`/`.tag`/`.field`/`.input`/
+  `.seg`/`.table`) alongside the pre-existing `.bp-*` set. Full spec: `DESIGN.md`.
+- **Home** (`src/pages/teacher/TeacherHome.jsx`) gained a read-only calendar
+  (`src/components/home/HomeCalendar.jsx`, week/month toggle, sourced from the already-scoped
+  `GET /api/quizzes`) and an "Also waiting" attention-card row (`src/data/alsoWaiting.js`:
+  non-submitters, a below-target closed quiz, a draft-in-progress quiz) — both derived from data
+  the page already fetches, no new endpoint. The existing "Needs attention" (pending joins +
+  misconceptions) section is unchanged, not replaced.
+- **Student flow** — a self-contained, offline-capable "Join this class" QR
+  (`src/components/ClassJoinQR.jsx` + `src/components/QRCode.jsx`, bundles `qrcode-generator`, no
+  CDN) on `/student/class` and the `/join` approved screen; `GET /api/student/quizzes`
+  (`api/studentQuizzes.js`) now also returns `status='scheduled'` quizzes with a server-computed
+  `state` field, rendered as a "Coming up" section; the quiz completion screen shows the student's
+  own confidence tally (`src/data/confidenceTally.js`) instead of nothing — no score, ever.
+- **`src/data/fourCell.js`'s misconception colors** (hardcoded hex, not `var()`) were the one
+  place the token remap doesn't reach for free — realigned to the new accent by hand.
+- **Verification:** `npm run build` clean; 479/479 unit tests pass (20 new); the new
+  `tests/integration/api/v470-student-quizzes.test.js` run against `quizpulse-int-test-db`
+  (4/4 pass); live-walked in the browser preview end-to-end (join → approve → class-home QR +
+  Coming-up → take quiz → confidence summary; Home calendar week/month toggle) with zero console
+  errors on any page this sprint touched.
+- **Deploy status:** not yet deployed — built directly on `main` per the v4.5/v4.6 single-session
+  convention, no release branch.
+
 ---
 
 ## Tech stack
@@ -301,7 +340,7 @@ is still open — see Known issues below.
   not the raw .docx. Its APST/VTLM source text: `C:\Users\Ryan\Downloads\QuizPulse_VIT_Export_Research_Brief.docx`.
 - v4.4.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (no .docx — the prompt file is the source of truth)
 - Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
-  - `graphify-out/graph.json` — queryable JSON graph (1288 nodes, 2099 edges, as of 2026-08-17)
+  - `graphify-out/graph.json` — queryable JSON graph (1328 nodes, 2157 edges, as of 2026-08-17)
   - `graphify-out/GRAPH_REPORT.md` — architecture report
   - `graphify-out/graph.html` — interactive visualization
 
@@ -444,6 +483,7 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 11 | v4.4.0 | Traffic monitor — page-view analytics + admin Traffic dashboard, quiz funnel, PWA-install + push-delivery tracking, metrics de-stub |
 | 12 | v4.5.0 | Student class home & post-approval access — persistent `/student/class`, auto-subscribe, returning-device recognition, teacher share link |
 | 13 | v4.6.0 | First-run activation — server-orchestrated demo class/quiz/send/simulate chain, starter question pack, Getting Started checklist, misconception-biased demo simulation, activation funnel script (IN PROGRESS — see blurb above) |
+| 14 | v4.7.0 | Design overhaul (Modernist) — global token remap, Home calendar + attention cards, student QR-join + "Coming up", completion confidence summary (IN PROGRESS — see blurb above) |
 
 ### Rules
 
@@ -525,6 +565,14 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
     via CEO/eng/design plan review 2026-07-27; step zero fully closed same day; prompt in
     `CC_PROMPTS_v460.md`. See the v4.6.0 blurb near the top of this file for the exact
     task-by-task status.
+14. **v4.7.0 — Design overhaul (Modernist).** [IN PROGRESS — code-complete, not yet deployed]
+    Global design-token remap (Archivo, one terracotta accent, zero radius, no shadows — same
+    token names, 600+ existing call sites restyle for free), a read-only Home calendar +
+    "Also waiting" attention cards, a student "Join this class" QR + "Coming up" scheduled
+    quizzes, and a quiz-completion confidence self-summary. Reviewed via design/eng/CEO plan
+    review 2026-08-17; prompt in `CC_PROMPTS_v470.md`. See the v4.7.0 blurb near the top of this
+    file for the exact status. Ranks 6-9 (trend grid, nudge, device-scoped activity + linking)
+    deferred to v4.8.0.
 
 ---
 
@@ -1190,6 +1238,73 @@ founder-authored smoke run, Key Vault naming).
   non-404 Cosmos errors into a fake empty benchmark page (only a real 404 means "no data yet");
   `api/questions.js` rejects any attempt to change an AI-generated question's `visibility`.
 
+### Design overhaul — Modernist [CURRENT — v4.7.0]
+
+Built per `CC_PROMPTS_v470.md` (source: `DESIGN_OVERHAUL_v470_SCOPING.md` +
+`docs/design/CLAUDE_DESIGN_BRIEF.md` + the Modernist mockups). Full token/type spec: `DESIGN.md`
+at the repo root — read that file before touching any styling, not this summary.
+
+- **Remap, not a new system.** `src/index.css` already had a 2px-border brutalist token system
+  with 600+ `var()` call sites (`--bw`, `--border`, `--primary`, `--radius`, `--shadow`, `--sans`,
+  etc.) — v4.7.0 changed the *values* (Archivo, one terracotta accent `#ec3013`, `--radius: 0`,
+  shadows dropped to `none`) and left every name the same, so every already-tokenized screen
+  restyled with zero per-screen edits. A parallel `--color-*` scheme (what the raw mockup's own
+  token file used) was deliberately NOT introduced — eng review 2026-08-17 flagged that as the
+  wrong approach; it would have restyled nothing for free.
+- **Font is self-hosted** — `public/fonts/archivo-variable.woff2`, one variable-font file backing
+  four `@font-face` blocks (weights 400/600/700/800), same technique Google Fonts itself uses to
+  serve a variable family without duplicating bytes per weight. `staticwebapp.config.json`'s CSP
+  dropped `fonts.googleapis.com`/`fonts.gstatic.com` from `style-src`/`font-src` since nothing
+  fetches them at runtime anymore.
+- **`src/data/fourCell.js` is the one place the remap doesn't reach** — the four-cell misconception
+  chart's colors are hardcoded hex in a JS data module, not `var()`. Realigned by hand to the new
+  accent (`MISCONCEPTION_BORDER = '#AE1800'`). `Population.jsx`/`DemoGallery.jsx` still use the
+  pre-v4.7.0 terracotta (`#B5482E`) for their own illustrative swatches — out of this sprint's
+  in-scope-screens list (Home/Analytics/student flow only), left alone on purpose.
+- **Hardcoded-hex sweep is scoped, not exhaustive.** ~339 hardcoded hex values exist repo-wide;
+  only the screens this sprint touches were swept. Don't assume a screen not mentioned in the
+  v4.7.0 blurb near the top of this file has been migrated.
+- **Home calendar + "Also waiting" cards are pure client-side derivations** — `HomeCalendar.jsx`
+  reads `GET /api/quizzes` (already teacher-scoped, no filtering needed); `alsoWaiting.js`
+  reads the same `dashboard`/`quizzes` data the page already fetches. No new endpoint, no new
+  Cosmos query shape.
+- **"Below target" has no score-target concept behind it** — this app's quizzes are formative,
+  never graded against a set target, unlike the raw mockup's assumption. `alsoWaiting.js` uses
+  `responseRate < 60` (existing field) as an honest proxy instead of inventing a target-score
+  feature that doesn't exist in the data model.
+- **`GET /api/student/quizzes` (`api/studentQuizzes.js`) extension** — `WHERE c.status IN
+  ('sent','scheduled')` instead of `= 'sent'`; each returned quiz now carries a server-computed
+  `state` (`'open'|'closed'|'scheduled'`) and `scheduledFor`. **No `ORDER BY` in the Cosmos
+  query** — Cosmos doesn't support a `COALESCE(sentAt, scheduledFor)` expression in `ORDER BY`
+  (only a plain property path), and scheduled quizzes have a null `sentAt` that would mis-sort
+  under a plain `ORDER BY c.sentAt`. Sorted in JS by whichever date is the quiz's effective one,
+  after fetching (all matching docs, then capped at 50 in JS — the per-teacher/class query volume
+  is small enough this isn't a concern). Demo-exclusion, the 403-on-unapproved-device posture, and
+  the rate limit are unchanged.
+- **The QR panel is entirely client-side** (`src/components/QRCode.jsx`, bundles the tiny
+  `qrcode-generator` npm package — self-contained, works offline, no CDN script, since the raw
+  mockup's jsdelivr script wouldn't pass this app's CSP). `ClassJoinQR.jsx` encodes
+  `/join?code=<CODE>`; `JoinClass.jsx` reads that `?code=` param to prefill the join form (never
+  auto-submits). **The join code has to be captured locally at the moment the student types it** —
+  `studentClasses.js`'s `addApprovedClass()` gained an optional third `joinCode` argument, stored
+  alongside `classId`/`className`. A device approved before v4.7.0 (or one that reconciled a
+  pending request after closing its tab — `reconcileApprovals()` never had the code in memory to
+  begin with) simply has no `joinCode` on its local record; the QR panel gracefully doesn't render
+  for it. No backfill, no new endpoint to fetch a class's code after the fact.
+- **Completion confidence self-summary reads the just-submitted payload, not a new query.**
+  `src/data/confidenceTally.js`'s `tallyConfidence()` counts the same `answersPayload` array
+  `TakeQuiz.jsx` already built for `POST /api/responses` — it can't drift from what the server
+  actually received, and needs no round-trip. Participation-framed copy only (no score, no
+  right/wrong count) — same house rule as the encouragement line and the Companion Layer
+  non-negotiables.
+- **Scope cut, deliberately.** Ranks 6-9 from the scoping doc — the multi-class trend grid
+  (H-TREND), the "Nudge the N" button on the non-submitter card (H-NUDGE, new endpoint), and
+  device-scoped "Your activity" + device linking (S-ACT/S-LINK, the sprint's only new container —
+  `pairing_codes` — and only new security surface) — are deferred to a v4.8.0 features sprint.
+  T-TOUR (a coach-mark tour) stays a v4.8.0 *candidate*, not committed — CEO review 2026-08-17:
+  three onboarding surfaces already exist, a fourth on speculation is feature bloat; build only if
+  activation data shows the Getting Started checklist isn't landing.
+
 ---
 
 ## Security limits (enforce server-side)
@@ -1445,6 +1560,11 @@ dashboard, funnel strip, breakdowns). Live at
 | First-run chain (POST /api/onboarding/first-run, starter pack seed, Getting Started checklist state, misconception-biased demo simulation, activation funnel script) | [CURRENT] v4.6.0 code-complete — live-verified end-to-end 2026-07-27 |
 | First-run finale UI, checklist rendering, Tier 2 flow hardening, starter-seed empty-state CTA | [CURRENT] v4.6.0 Tasks 4/5/6 code-complete — live-verified end-to-end 2026-07-27; rc1 ship gate (skip-path/failure-recovery legs, integration test run) still open |
 | Projector join screen, first-result annotation, Home quick-start card | [PLANNED — v4.6.1] |
+| Design system remap (Modernist tokens, Archivo, DESIGN.md, new component classes) | [CURRENT] v4.7.0 code-complete — not yet deployed |
+| Home calendar + Also-waiting attention cards | [CURRENT] v4.7.0 code-complete — not yet deployed |
+| Student "Join this class" QR + "Coming up" scheduled quizzes | [CURRENT] v4.7.0 code-complete — not yet deployed |
+| Quiz completion confidence self-summary | [CURRENT] v4.7.0 code-complete — not yet deployed |
+| Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
@@ -1569,6 +1689,18 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     path was live-tested); starter-pack content review. (`graphify update .` run 2026-08-17.) Do not tell a future
     session "v4.6.0 is done" — v4.6.1 (Tasks 9-11) hasn't started, and the rc1 gate itself is
     still open. Check this file's v4.6.0 blurb near the top for the current task-by-task status.
+16. **v4.7.0 — code-complete, not yet deployed.** Built 2026-08-17: `npm run build` clean,
+    479/479 unit tests pass (20 new — `homeCalendar`/`alsoWaiting`/`confidenceTally`/
+    `studentQuizzesState` pure-logic tests, mirroring the ESM-source convention since this repo
+    has no jsdom/RTL, same pattern as `tests/unit/demoNav.test.js`), the new
+    `tests/integration/api/v470-student-quizzes.test.js` run against `quizpulse-int-test-db`
+    (4/4 pass — scheduled-quiz state, ordering, 403-on-unapproved, demo-exclusion), and the whole
+    flow live-walked in the browser preview (join → approve → class-home QR + "Coming up" →
+    take quiz → confidence summary; Home calendar week/month toggle) with zero console errors on
+    every page this sprint touched. **Neither `func azure functionapp publish` nor the SWA
+    frontend deploy has run yet** — do not tell a future session this is live in production.
+    Ranks 6-9 (trend grid, nudge, device-scoped activity + linking) deferred to v4.8.0, not
+    started. `graphify update .` run 2026-08-17.
 
 ---
 

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import API_BASE from '../../api'
 import { queueResponse, registerResponseSync } from '../../offlineQueue'
 import ENCOURAGEMENTS from '../../data/encouragements'
+import { tallyConfidence, tallySummaryText } from '../../data/confidenceTally'
 
 // Decision: all questions render on one screen rather than one-at-a-time. These are short
 // (≤20 question) low-stakes formative quizzes, so a single scrollable page lets students see
@@ -41,36 +42,28 @@ function ConfidenceExplainer({ onDone }) {
       zIndex: 100, padding: '24px',
     }}>
       <div style={{
-        background: 'white', borderRadius: '16px', padding: '28px 24px',
+        background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '28px 24px',
         maxWidth: '380px', width: '100%', textAlign: 'center',
       }}>
-        <div style={{ fontSize: '32px', marginBottom: '12px' }}>🤔</div>
-        <h2 style={{ margin: '0 0 10px', fontSize: '18px', color: '#1a1a1a' }}>
+        <h2 style={{ margin: '0 0 10px', fontSize: '18px', color: 'var(--text)' }}>
           How sure are you?
         </h2>
-        <p style={{ margin: '0 0 20px', fontSize: '14px', color: '#555', lineHeight: '1.6' }}>
+        <p style={{ margin: '0 0 20px', fontSize: '14px', color: 'var(--muted)', lineHeight: '1.6' }}>
           After each answer, tap how confident you feel — not to grade you, just so your teacher
           can see which topics to spend more time on.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
           {CONFIDENCE_LEVELS.map(({ label }) => (
             <div key={label} style={{
-              padding: '10px 14px', borderRadius: '8px',
-              border: 'var(--bw) solid var(--border)', fontSize: '14px', color: '#333',
-              background: '#fafafa',
+              padding: '10px 14px',
+              border: 'var(--bw) solid var(--border)', fontSize: '14px', color: 'var(--text)',
+              background: 'var(--surface2)',
             }}>
               {label}
             </div>
           ))}
         </div>
-        <button
-          onClick={onDone}
-          style={{
-            width: '100%', padding: '12px',
-            background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-            borderRadius: '8px', fontSize: '15px', fontWeight: '500', cursor: 'pointer',
-          }}
-        >
+        <button onClick={onDone} className="btn btn-primary btn-block">
           Got it
         </button>
       </div>
@@ -82,22 +75,16 @@ function ConfidenceExplainer({ onDone }) {
 function ConfidenceSelector({ questionId, value, onChange }) {
   return (
     <div style={{ marginTop: '12px' }}>
-      <div style={{ fontSize: '12px', color: '#888', marginBottom: '6px' }}>How sure are you?</div>
-      <div style={{ display: 'flex', gap: '6px' }}>
+      <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>How sure are you?</div>
+      <div className="seg" style={{ width: '100%' }}>
         {CONFIDENCE_LEVELS.map(({ value: cv, label }) => {
           const selected = value === cv
           return (
             <button
               key={cv}
               onClick={() => onChange(questionId, cv)}
-              style={{
-                flex: 1, padding: '7px 4px', fontSize: '12px', fontWeight: selected ? '600' : '400',
-                border: `1.5px solid ${selected ? 'var(--primary)' : '#d0d0d0'}`,
-                borderRadius: '8px',
-                background: selected ? 'var(--surface2)' : 'white',
-                color: selected ? 'var(--primary)' : '#555',
-                cursor: 'pointer', transition: 'all 0.15s',
-              }}
+              className={`seg-opt${selected ? ' active' : ''}`}
+              style={{ flex: 1, justifyContent: 'center' }}
             >
               {label}
             </button>
@@ -124,6 +111,9 @@ function TakeQuiz() {
   const [submitError, setSubmitError] = useState(null)
   const [outcome, setOutcome] = useState(null) // null | 'submitted' | 'already' | 'offline'
   const [showExplainer, setShowExplainer] = useState(false)
+  // The just-submitted answers, kept only to render the T5 completion confidence summary — never
+  // re-sent, never persisted beyond this render.
+  const [submittedAnswers, setSubmittedAnswers] = useState(null)
 
   // Timing: quiz start time (mount) for quizDurationMs; per-question first-interaction time.
   const quizStartRef = useRef(null)
@@ -240,6 +230,7 @@ function TakeQuiz() {
 
       if (res.status === 201) {
         localStorage.setItem(submittedKey(quizId), '1')
+        setSubmittedAnswers(answersPayload)
         setOutcome('submitted')
         return
       }
@@ -272,23 +263,21 @@ function TakeQuiz() {
   if (!quizId) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>⚠️</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Couldn't load this quiz</h2>
-        <p style={{ color: '#555', fontSize: '14px' }}>No quiz specified.</p>
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No quiz specified.</p>
       </div>
     )
   }
 
   if (loading) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading quiz…</div>
+    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading quiz…</div>
   }
 
   if (loadError) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>⚠️</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Couldn't load this quiz</h2>
-        <p style={{ color: '#555', fontSize: '14px' }}>{loadError}</p>
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>{loadError}</p>
       </div>
     )
   }
@@ -296,18 +285,33 @@ function TakeQuiz() {
   if (closed) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>🔒</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>This quiz has closed.</h2>
-        <p style={{ color: '#555', fontSize: '14px' }}>Ask your teacher if you think this is a mistake.</p>
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Ask your teacher if you think this is a mistake.</p>
       </div>
     )
   }
 
   if (outcome === 'submitted') {
+    // v4.7.0 T5 — the student's own confidence mix from the submission just sent, plus plain
+    // "what happens next" copy. Participation-framed only: no score, no right/wrong count (house
+    // rule — creature/room design non-negotiables carry over to any student-facing summary).
+    const tally = tallyConfidence(submittedAnswers || [])
+    const summary = tallySummaryText(tally)
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>✅</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>All done — your answers have been sent to your teacher.</h2>
+
+        {summary && (
+          <div style={{ marginTop: '20px', border: 'var(--bw) solid var(--border)', padding: '16px', textAlign: 'left' }}>
+            <div className="bp-label" style={{ marginBottom: '6px' }}>How you felt about it</div>
+            <div style={{ fontFamily: 'var(--heading)', fontWeight: 800, fontSize: '17px', marginBottom: '10px' }}>{summary}</div>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0, lineHeight: '1.6' }}>
+              Your teacher goes through the answers in class.
+              {tally.guessing > 0 && ' The one you marked as a guess is a good one to ask about.'}
+            </p>
+          </div>
+        )}
+
         <p
           data-testid="encouragement-line"
           style={{ fontSize: '15px', color: 'var(--primary)', fontStyle: 'italic', marginTop: '16px', lineHeight: '1.6' }}
@@ -321,7 +325,6 @@ function TakeQuiz() {
   if (outcome === 'already') {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>✅</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>You have already submitted this quiz.</h2>
       </div>
     )
@@ -330,9 +333,8 @@ function TakeQuiz() {
   if (outcome === 'offline') {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>📡</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Saved — will submit when you reconnect.</h2>
-        <p style={{ color: '#555', fontSize: '14px' }}>You can close this page. Your answers are stored on this device.</p>
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>You can close this page. Your answers are stored on this device.</p>
       </div>
     )
   }
@@ -343,13 +345,13 @@ function TakeQuiz() {
 
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px' }}>
         <h2 style={{ margin: '0 0 4px', fontSize: '20px' }}>{quiz?.name}</h2>
-        <p style={{ color: '#888', fontSize: '13px', marginBottom: '24px' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '24px' }}>
           {questions.length} question{questions.length !== 1 ? 's' : ''}
         </p>
 
         {questions.map((q, qi) => (
-          <div key={q.id} style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '18px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+          <div key={q.id} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '18px', marginBottom: '16px' }}>
+            <div className="bp-label" style={{ marginBottom: '8px' }}>
               Question {qi + 1}
             </div>
             <div style={{ fontSize: '15px', fontWeight: '500', marginBottom: '14px' }}>{q.text}</div>
@@ -361,9 +363,9 @@ function TakeQuiz() {
                   key={i}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '10px 12px', marginBottom: '8px', borderRadius: '8px',
-                    border: `1px solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
-                    background: isSelected ? 'var(--surface2)33' : 'white',
+                    padding: '10px 12px', marginBottom: '8px',
+                    border: `var(--bw) solid ${isSelected ? 'var(--primary)' : 'var(--surface2)'}`,
+                    background: isSelected ? 'var(--surface2)' : 'var(--surface)',
                     cursor: 'pointer',
                   }}
                 >
@@ -389,7 +391,7 @@ function TakeQuiz() {
         ))}
 
         {submitError && (
-          <div style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
+          <div style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
             {submitError}
           </div>
         )}
@@ -397,13 +399,8 @@ function TakeQuiz() {
         <button
           disabled={!allAnswered || submitting}
           onClick={handleSubmit}
-          style={{
-            width: '100%', padding: '12px',
-            background: !allAnswered || submitting ? '#ccc' : 'var(--primary)',
-            color: 'white', border: 'none', borderRadius: '8px',
-            fontSize: '15px', fontWeight: '500',
-            cursor: !allAnswered || submitting ? 'not-allowed' : 'pointer',
-          }}
+          className="btn btn-primary btn-block"
+          style={{ justifyContent: 'center', padding: '14px' }}
         >
           {submitting ? 'Submitting…' : 'Submit answers'}
         </button>

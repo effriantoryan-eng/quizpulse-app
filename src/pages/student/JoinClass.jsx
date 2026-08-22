@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
+import ClassJoinQR from '../../components/ClassJoinQR'
 import { getApprovedClasses, addApprovedClass, getPendingClasses, addPendingClass, removePendingClass, reconcileApprovals } from '../../studentClasses'
 import { autoSubscribe } from '../../pushSubscribe'
 
@@ -19,7 +20,10 @@ function getOrCreateDeviceId() {
 
 function JoinClass() {
   const navigate = useNavigate()
-  const [joinCode, setJoinCode] = useState('')
+  const [searchParams] = useSearchParams()
+  // Prefill from a scanned "Join this class" QR (v4.7.0 T4) — ?code=XXXX. Never auto-submits;
+  // the student still confirms their name.
+  const [joinCode, setJoinCode] = useState(() => (searchParams.get('code') || '').toUpperCase())
   const [studentName, setStudentName] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
@@ -95,15 +99,15 @@ function JoinClass() {
   // outcome is a normal, expected state here, not an error banner.
   useEffect(() => {
     if (status !== 'approved' || !classId) return
-    addApprovedClass(classId, className)
+    addApprovedClass(classId, className, joinCode.trim().toUpperCase() || undefined)
     removePendingClass(classId)
     setSubscribeState('priming')
     autoSubscribe(classId, deviceId).then(setSubscribeState)
-  }, [status, classId, className, deviceId])
+  }, [status, classId, className, deviceId, joinCode])
 
   if (reconciling) {
     return (
-      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>
+      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
         Checking for updates…
       </div>
     )
@@ -113,14 +117,14 @@ function JoinClass() {
   if (!submitted && knownClasses.length > 0 && !showJoinForm) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>👋</div>
         <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Welcome back</h2>
-        <p style={{ color: '#555', fontSize: '14px', marginBottom: '20px' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>
           You're already in {knownClasses.length === 1 ? knownClasses[0].className || 'your class' : `${knownClasses.length} classes`}.
         </p>
         <button
           onClick={() => navigate('/student/class')}
-          style={{ width: '100%', padding: '12px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '15px', fontWeight: '500', cursor: 'pointer', marginBottom: '10px' }}
+          className="btn btn-primary btn-block"
+          style={{ justifyContent: 'center', marginBottom: '10px' }}
         >
           Continue to my class
         </button>
@@ -189,43 +193,48 @@ function JoinClass() {
   if (submitted) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <div style={{ fontSize: '28px', marginBottom: '16px' }}>
-          {status === 'approved' ? '✅' : status === 'rejected' ? '❌' : '⏳'}
-        </div>
+        <span className="tag tag-neutral" style={{ marginBottom: '16px' }}>
+          {status === 'approved' ? 'Approved' : status === 'rejected' ? 'Not approved' : status === 'queued' ? 'Waitlisted' : 'Pending'}
+        </span>
 
         {status === 'approved' && (
           <>
-            <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>You're in!</h2>
-            <p style={{ color: '#555', fontSize: '14px', marginBottom: '20px' }}>
-              You've joined <strong>{className}</strong>.
+            <h2 style={{ margin: '16px 0 8px', fontSize: '20px' }}>You're in!</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>
+              You've joined <strong style={{ color: 'var(--text)' }}>{className}</strong>.
             </p>
             {subscribeState === 'priming' && (
-              <p style={{ color: '#888', fontSize: '13px', marginBottom: '12px' }}>
+              <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '12px' }}>
                 Turning on notifications so you don't miss a check-in — your browser may ask to confirm.
               </p>
             )}
             <button
               onClick={() => navigate('/student/class')}
-              style={{ width: '100%', padding: '12px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '15px', fontWeight: '500', cursor: 'pointer', marginBottom: '10px' }}
+              className="btn btn-primary btn-block"
+              style={{ marginBottom: '10px' }}
             >
               Go to my class
             </button>
-            <p style={{ color: '#aaa', fontSize: '12px' }}>
+            <p style={{ color: 'var(--muted)', fontSize: '12px', marginBottom: joinCode.trim() ? '24px' : 0 }}>
               We'll notify you when your teacher sends a check-in.
             </p>
+            {joinCode.trim() && (
+              <ClassJoinQR joinCode={joinCode.trim().toUpperCase()} className={className} />
+            )}
           </>
         )}
 
         {status === 'rejected' && (
           <>
-            <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Request not approved</h2>
-            <p style={{ color: '#555', fontSize: '14px' }}>
-              Your teacher did not approve your join request for <strong>{className}</strong>.
+            <h2 style={{ margin: '16px 0 8px', fontSize: '20px' }}>Request not approved</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
+              Your teacher did not approve your join request for <strong style={{ color: 'var(--text)' }}>{className}</strong>.
               Please check with your teacher if you think this is a mistake.
             </p>
             <button
               onClick={() => { setSubmitted(false); setJoinCode(''); setStudentName(''); setError(null) }}
-              style={{ marginTop: '16px', padding: '8px 20px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
+              className="btn btn-primary"
+              style={{ marginTop: '16px' }}
             >
               Try again
             </button>
@@ -234,12 +243,12 @@ function JoinClass() {
 
         {status === 'queued' && (
           <>
-            <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>You're on the waitlist</h2>
-            <p style={{ color: '#555', fontSize: '14px' }}>
-              <strong>{className}</strong> is currently full — your request is queued.
+            <h2 style={{ margin: '16px 0 8px', fontSize: '20px' }}>You're on the waitlist</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
+              <strong style={{ color: 'var(--text)' }}>{className}</strong> is currently full — your request is queued.
               You'll be added automatically when a spot opens up.
             </p>
-            <p style={{ color: '#aaa', fontSize: '12px' }}>Checking for updates automatically…</p>
+            <p style={{ color: 'var(--muted)', fontSize: '12px' }}>Checking for updates automatically…</p>
             <button
               onClick={leaveWait}
               style={{ marginTop: '16px', background: 'none', color: 'var(--primary)', border: 'none', fontSize: '13px', cursor: 'pointer' }}
@@ -251,12 +260,12 @@ function JoinClass() {
 
         {status === 'pending' && (
           <>
-            <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Request sent</h2>
-            <p style={{ color: '#555', fontSize: '14px' }}>
-              Your request to join <strong>{className}</strong> is waiting for your teacher to approve it.
+            <h2 style={{ margin: '16px 0 8px', fontSize: '20px' }}>Request sent</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
+              Your request to join <strong style={{ color: 'var(--text)' }}>{className}</strong> is waiting for your teacher to approve it.
               This page checks automatically every few seconds.
             </p>
-            <p style={{ color: '#aaa', fontSize: '12px' }}>Checking for updates automatically…</p>
+            <p style={{ color: 'var(--muted)', fontSize: '12px' }}>Checking for updates automatically…</p>
             <button
               onClick={leaveWait}
               style={{ marginTop: '16px', background: 'none', color: 'var(--primary)', border: 'none', fontSize: '13px', cursor: 'pointer' }}
@@ -272,7 +281,7 @@ function JoinClass() {
   return (
     <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px' }}>
       <h2 style={{ margin: '0 0 6px', fontSize: '22px' }}>Join a class</h2>
-      <p style={{ margin: '0 0 24px', color: '#666', fontSize: '14px' }}>
+      <p style={{ margin: '0 0 24px', color: 'var(--muted)', fontSize: '14px' }}>
         Enter the join code your teacher shared with you.
       </p>
 
@@ -284,53 +293,43 @@ function JoinClass() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
-          Join code
-        </label>
-        <input
-          type="text"
-          value={joinCode}
-          onChange={e => setJoinCode(e.target.value.toUpperCase())}
-          placeholder="e.g. ABCD1234"
-          maxLength={8}
-          autoComplete="off"
-          disabled={submitting}
-          style={{
-            width: '100%', padding: '10px 12px', fontSize: '18px', fontFamily: 'monospace',
-            letterSpacing: '2px', border: 'var(--bw) solid var(--border)', borderRadius: '8px',
-            boxSizing: 'border-box', marginBottom: '16px', textTransform: 'uppercase',
-          }}
-        />
+        <div className="field" style={{ marginBottom: '16px' }}>
+          <label>Join code</label>
+          <input
+            className="input"
+            type="text"
+            value={joinCode}
+            onChange={e => setJoinCode(e.target.value.toUpperCase())}
+            placeholder="e.g. ABCD1234"
+            maxLength={8}
+            autoComplete="off"
+            disabled={submitting}
+            style={{ fontSize: '18px', fontFamily: 'var(--mono)', letterSpacing: '2px', textTransform: 'uppercase' }}
+          />
+        </div>
 
-        <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
-          Your name
-        </label>
-        <input
-          type="text"
-          value={studentName}
-          onChange={e => setStudentName(e.target.value)}
-          placeholder="As your teacher knows you"
-          maxLength={STUDENT_NAME_MAX}
-          disabled={submitting}
-          style={{
-            width: '100%', padding: '10px 12px', fontSize: '14px',
-            border: 'var(--bw) solid var(--border)', borderRadius: '8px',
-            boxSizing: 'border-box', marginBottom: '16px',
-          }}
-        />
+        <div className="field" style={{ marginBottom: '16px' }}>
+          <label>Your name</label>
+          <input
+            className="input"
+            type="text"
+            value={studentName}
+            onChange={e => setStudentName(e.target.value)}
+            placeholder="As your teacher knows you"
+            maxLength={STUDENT_NAME_MAX}
+            disabled={submitting}
+          />
+        </div>
 
         {error && (
-          <p style={{ color: '#c0392b', fontSize: '13px', margin: '0 0 12px' }}>{error}</p>
+          <p style={{ color: 'var(--danger)', fontSize: '13px', margin: '0 0 12px' }}>{error}</p>
         )}
 
         <button
           type="submit"
           disabled={submitting}
-          style={{
-            width: '100%', padding: '12px', background: 'var(--primary)', color: 'white',
-            border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '500',
-            cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1,
-          }}
+          className="btn btn-primary btn-block"
+          style={{ justifyContent: 'center', padding: '14px' }}
         >
           {submitting ? 'Sending request…' : 'Request to join'}
         </button>
