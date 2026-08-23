@@ -4,9 +4,10 @@ import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
 import ClassJoinQR from '../../components/ClassJoinQR'
 import { getApprovedClasses, getPendingClasses, reconcileApprovals } from '../../studentClasses'
+import { submittedKey, gatherSubmittedPayloads } from '../../data/submittedAnswers'
+import { confidenceTrend } from '../../data/confidenceTally'
 
 const DEVICE_ID_KEY = 'quizpulse_device_id'
-const submittedKey = (quizId) => `quizpulse_submitted_${quizId}`
 
 function getDeviceId() {
   let id = localStorage.getItem(DEVICE_ID_KEY)
@@ -24,18 +25,26 @@ function friendlyDate(iso) {
   return d.toLocaleDateString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' })
 }
 
-function QuizCard({ quiz, onOpen }) {
+function QuizCard({ quiz, navigate }) {
   const scheduled = quiz.state === 'scheduled'
   const closed = quiz.state === 'closed'
   const answered = !!localStorage.getItem(submittedKey(quiz.id))
 
-  const tappable = !scheduled && !closed && !answered
+  // Answered → review your own answers (any state). Open + unanswered → take it. Closed and never
+  // answered has nothing saved to review, so it stays non-tappable.
+  const canReview = answered && !scheduled
+  const canTake = !scheduled && !closed && !answered
+  const tappable = canReview || canTake
+  const open = () => {
+    if (canReview) navigate(`/quiz/review?quizId=${quiz.id}`, { state: { name: quiz.name } })
+    else if (canTake) navigate(`/quiz?quizId=${quiz.id}`)
+  }
   return (
     <div
       role={tappable ? 'button' : undefined}
       tabIndex={tappable ? 0 : undefined}
-      onClick={tappable ? () => onOpen(quiz.id) : undefined}
-      onKeyDown={tappable ? (e) => { if (e.key === 'Enter' || e.key === ' ') onOpen(quiz.id) } : undefined}
+      onClick={tappable ? open : undefined}
+      onKeyDown={tappable ? (e) => { if (e.key === 'Enter' || e.key === ' ') open() } : undefined}
       style={{
         background: 'var(--surface)', border: 'var(--bw) solid var(--border)',
         padding: '18px', marginBottom: '12px', minHeight: '44px',
@@ -56,7 +65,7 @@ function QuizCard({ quiz, onOpen }) {
       </div>
       {tappable && (
         <div style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '600', marginTop: '10px' }}>
-          Tap to start →
+          {canReview ? 'Review your answers →' : 'Tap to start →'}
         </div>
       )}
     </div>
@@ -128,14 +137,14 @@ function ClassSection({ cls, navigate }) {
       )}
 
       {open.map(q => (
-        <QuizCard key={q.id} quiz={q} onOpen={(id) => navigate(`/quiz?quizId=${id}`)} />
+        <QuizCard key={q.id} quiz={q} navigate={navigate} />
       ))}
 
       {comingUp.length > 0 && (
         <>
           <div className="bp-label" style={{ marginTop: open.length > 0 ? '20px' : 0 }}>Coming up</div>
           {comingUp.map(q => (
-            <QuizCard key={q.id} quiz={q} onOpen={(id) => navigate(`/quiz?quizId=${id}`)} />
+            <QuizCard key={q.id} quiz={q} navigate={navigate} />
           ))}
         </>
       )}
@@ -144,7 +153,7 @@ function ClassSection({ cls, navigate }) {
         <>
           <div className="bp-label" style={{ marginTop: (open.length > 0 || comingUp.length > 0) ? '20px' : 0 }}>Answered / closed</div>
           {closedOrDone.map(q => (
-            <QuizCard key={q.id} quiz={q} onOpen={(id) => navigate(`/quiz?quizId=${id}`)} />
+            <QuizCard key={q.id} quiz={q} navigate={navigate} />
           ))}
         </>
       )}
@@ -210,8 +219,18 @@ function StudentClass() {
     )
   }
 
+  // E1 — device-wide confidence trend across every quiz this student has done. Null (nothing
+  // rendered) until there are at least 2 answered quizzes with confidence data. Participation
+  // signal only, never a score.
+  const trend = confidenceTrend(gatherSubmittedPayloads())
+
   return (
     <div style={{ maxWidth: 920, margin: '0 auto', padding: '24px' }}>
+      {trend && (
+        <div style={{ marginBottom: '24px', padding: '14px 16px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', fontSize: '14px', color: 'var(--text)' }}>
+          {trend}
+        </div>
+      )}
       {classes.map(cls => (
         <ClassSection key={cls.classId} cls={cls} navigate={navigate} />
       ))}
