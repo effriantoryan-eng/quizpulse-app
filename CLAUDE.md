@@ -653,8 +653,14 @@ attribution on old responses is accepted).
   `docs/azure/V430_CONTAINERS_SETUP.md`.
 - **`quiz_drafts`** **[CURRENT — v4.3.0]** (pk `/teacherId`, no TTL) — { id, teacherId, sourceId,
   sourceKind, chunkPageMap ({chunkIndex: page|null}, snapshotted at creation), unitPlanId,
-  topicTag, range, provider, pagesUsed, questions: [{ text, options, correctIndex, sourceRef,
-  reviewed, topicTag? }], status: 'draft'|'approved', expandedFromQuizId?, createdAt, updatedAt }.
+  topicTag, questionStyle, range, provider, pagesUsed, questions: [{ text, options, correctIndex,
+  sourceRef, reviewed, topicTag? }], status: 'draft'|'approved', expandedFromQuizId?, createdAt,
+  updatedAt }. `questionStyle` (`'mixed'` default | `'recall'` | `'conceptual'` | `'analytical'`)
+  is a prompt-only "question focus" (`api/shared/questionStyles.js`, mirrored client-side in
+  `src/data/questionStyles.js`) — every style still produces the standard 4-option MCQ shape;
+  reused by regenerate so a regenerated question keeps the same focus. Variable question *formats*
+  (true/false, yes/no) are deliberately NOT part of this — the 4-option count is hardcoded in
+  `draftSchema.js` + `questions.js` (×2), so formats are a separate, larger feature.
   Written by `POST /api/generation/drafts` and `POST /api/generation/expand`. Env:
   `COSMOS_CONTAINER_QUIZ_DRAFTS`. Provisioning: `docs/azure/V430_CONTAINERS_SETUP.md`.
 

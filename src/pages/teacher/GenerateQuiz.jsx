@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
+import QUESTION_STYLES from '../../data/questionStyles'
 import useStagedPending from '../../hooks/useStagedPending'
 
 // Three honest pending stages (§6.5) — no fake progress percentages, just staged reassurance
@@ -25,6 +26,7 @@ function GenerateQuiz() {
 
   const [questionCount, setQuestionCount] = useState(5)
   const [topicTag, setTopicTag] = useState('')
+  const [questionStyle, setQuestionStyle] = useState('mixed')
   const [rangeStart, setRangeStart] = useState('')
   const [rangeEnd, setRangeEnd] = useState('')
   const [generating, setGenerating] = useState(false)
@@ -69,6 +71,7 @@ function GenerateQuiz() {
           sourceId: source.sourceId,
           questionCount,
           ...(topicTag && { topicTag }),
+          ...(questionStyle && questionStyle !== 'mixed' && { questionStyle }),
           ...(range && { range }),
         }),
       })
@@ -177,6 +180,17 @@ function GenerateQuiz() {
           >
             <option value="">No topic</option>
             {TOPIC_TAGS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
+            Question focus
+          </label>
+          <select
+            value={questionStyle}
+            onChange={e => setQuestionStyle(e.target.value)}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px', background: 'white' }}
+          >
+            {QUESTION_STYLES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
 
           {source.chunkCount > 1 && (

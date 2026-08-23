@@ -6,7 +6,7 @@ const { buildSystemPrompt, buildUserPrompt } = require('../llmPrompts');
 
 const requiredEnv = ['LLM_API_KEY', 'LLM_ENDPOINT', 'LLM_MODEL'];
 
-async function generate({ chunks, questionCount, topicTag }) {
+async function generate({ chunks, questionCount, topicTag, questionStyle }) {
   const endpoint = process.env.LLM_ENDPOINT.replace(/\/$/, '');
   const model = process.env.LLM_MODEL;
   const res = await fetch(`${endpoint}/openai/deployments/${model}/chat/completions?api-version=2024-02-15-preview`, {
@@ -15,7 +15,7 @@ async function generate({ chunks, questionCount, topicTag }) {
     body: JSON.stringify({
       messages: [
         { role: 'system', content: buildSystemPrompt() },
-        { role: 'user', content: buildUserPrompt({ chunks, questionCount, topicTag }) },
+        { role: 'user', content: buildUserPrompt({ chunks, questionCount, topicTag, questionStyle }) },
       ],
       response_format: { type: 'json_object' },
       // ponytail: no fixed temperature — reasoning-family deployments (e.g. gpt-5-mini) reject

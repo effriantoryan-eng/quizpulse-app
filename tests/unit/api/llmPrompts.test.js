@@ -21,3 +21,21 @@ describe('llmPrompts — question count authority', () => {
       .toMatch(/exactly 5 questions?/i);
   });
 });
+
+describe('llmPrompts — question style', () => {
+  const base = { chunks: [{ index: 0, text: 'x' }], questionCount: 5 };
+
+  test('recall style injects a fact-recall instruction', () => {
+    expect(buildUserPrompt({ ...base, questionStyle: 'recall' })).toMatch(/factual recall/i);
+  });
+
+  test('analytical style injects an analysis/application instruction', () => {
+    expect(buildUserPrompt({ ...base, questionStyle: 'analytical' })).toMatch(/analysis and application/i);
+  });
+
+  test('no style (or unknown/mixed) adds no stray style line beyond the base prompt', () => {
+    // undefined → no extra line; unknown → stylePromptLine returns '' → no extra line.
+    expect(buildUserPrompt(base)).not.toMatch(/factual recall|analysis and application|conceptual understanding/i);
+    expect(buildUserPrompt({ ...base, questionStyle: 'bogus' })).not.toMatch(/factual recall|analysis and application/i);
+  });
+});

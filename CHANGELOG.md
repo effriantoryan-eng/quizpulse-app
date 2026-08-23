@@ -105,6 +105,18 @@ changes, no new Cosmos container.
 - `PendingRequests`' new classId-picker no longer treats a failed/rate-limited per-class count as
   zero — a class whose count couldn't be loaded still appears in the picker instead of vanishing.
 
+### AI generation — question focus (2026-08-23)
+- **Optional "Question focus" dropdown on AI quiz generation** (`GenerateQuiz.jsx`): Mixed
+  (default) / Recall & fact-checking / Conceptual understanding / Analysis & application. Prompt-only
+  — steers what the questions test; every focus still produces the standard 4-option multiple choice.
+  Threaded through `buildUserPrompt` → `generateDraft` → the real providers; stored as
+  `questionStyle` on the draft doc and reused by regenerate so a regenerated question keeps the same
+  focus. New shared enum `api/shared/questionStyles.js` (+ client mirror `src/data/questionStyles.js`),
+  validated server-side (400 on an unrecognised value). Live-verified against gpt-5-mini: recall vs
+  analytical produce visibly different question types from the same source. Variable question
+  *formats* (true/false, yes/no) are a separate future feature — the 4-option count is hardcoded in
+  `draftSchema.js` + `questions.js`.
+
 ### Fixes (post-deploy, 2026-08-17 — commit `04c8809`)
 - **Generation daily quota is now attempt-based** (`api/shared/dailyQuota.js` `checkAndIncrQuota`,
   wired into `api/generationDrafts.js`). Previously counted persisted drafts, so a failing/retried

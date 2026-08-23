@@ -13,6 +13,7 @@ const { generateDraft, MissingProviderKeyError } = require('./shared/llmAdapter'
 const { InsufficientContentError } = require('./shared/llmProviders/mock');
 const { validateDraftQuestions, validateQuestionShape, MIN_QUESTIONS, MAX_QUESTIONS } = require('./shared/draftSchema');
 const { isValidTopicTag } = require('./shared/topicTags');
+const { isValidQuestionStyle } = require('./shared/questionStyles');
 const { questionIdForDraft, quizIdForDraft, resolveSourceRefLabel } = require('./shared/materializeAi');
 
 const client = new CosmosClient({ endpoint: process.env.COSMOS_ENDPOINT, key: process.env.COSMOS_KEY });
@@ -84,7 +85,7 @@ app.http('generationDrafts', {
       const body = await request.json().catch(() => null);
       if (!body || typeof body !== 'object') return respond(400, { error: 'Request body must be a JSON object' }, teacherId);
 
-      const { sourceId, questionCount, topicTag, range, unitPlanId } = body;
+      const { sourceId, questionCount, topicTag, range, unitPlanId, questionStyle } = body;
       if (typeof sourceId !== 'string' || !sourceId.trim()) {
         return respond(400, { error: 'sourceId is required' }, teacherId);
       }
@@ -94,6 +95,12 @@ app.http('generationDrafts', {
       if (topicTag !== undefined && topicTag !== null && !isValidTopicTag(topicTag)) {
         return respond(400, { error: 'topicTag is not a recognised topic' }, teacherId);
       }
+      // Optional question focus (prompt-only, default 'mixed'). Unrecognised value → 400 rather
+      // than silently ignored, so a client typo surfaces instead of quietly generating 'mixed'.
+      if (questionStyle !== undefined && questionStyle !== null && !isValidQuestionStyle(questionStyle)) {
+        return respond(400, { error: 'questionStyle is not a recognised option' }, teacherId);
+      }
+      const resolvedStyle = questionStyle || 'mixed';
 
       const source = await readOwnDoc(sourcesContainer, sourceId, teacherId);
       if (!source) return respond(400, { error: SOURCE_EXPIRED_MESSAGE }, teacherId);
@@ -123,7 +130,7 @@ app.http('generationDrafts', {
 
       let generated;
       try {
-        generated = await generateDraft({ context, sourceId, chunks: source.chunks, questionCount, range: resolvedRange, topicTag });
+        generated = await generateDraft({ context, sourceId, chunks: source.chunks, questionCount, range: resolvedRange, topicTag, questionStyle: resolvedStyle });
       } catch (err) {
         if (err instanceof MissingProviderKeyError) return respond(503, { error: err.message }, teacherId);
         if (err instanceof InsufficientContentError) return respond(502, { error: err.message }, teacherId);
@@ -147,6 +154,7 @@ app.http('generationDrafts', {
         chunkPageMap: Object.fromEntries(source.chunks.map(c => [c.index, c.page ?? null])),
         unitPlanId: typeof unitPlanId === 'string' ? unitPlanId : null,
         topicTag: topicTag || null,
+        questionStyle: resolvedStyle,
         range: resolvedRange,
         provider: generated.provider,
         pagesUsed: generated.pagesUsed,
@@ -253,7 +261,7 @@ app.http('generationDraftRegenerateQuestion', {
 
       let generated;
       try {
-        generated = await generateDraft({ context, sourceId: draft.sourceId, chunks: source.chunks, questionCount: 1, range: draft.range, topicTag: draft.topicTag });
+        generated = await generateDraft({ context, sourceId: draft.sourceId, chunks: source.chunks, questionCount: 1, range: draft.range, topicTag: draft.topicTag, questionStyle: draft.questionStyle });
       } catch (err) {
         if (err instanceof MissingProviderKeyError) return respond(503, { error: err.message }, teacherId);
         if (err instanceof InsufficientContentError) return respond(502, { error: err.message }, teacherId);

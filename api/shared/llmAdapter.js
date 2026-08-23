@@ -58,7 +58,7 @@ function derivePagesUsed(selectedChunks) {
 
 // context: an Azure Functions InvocationContext (has .log/.error) — optional, so this stays unit
 // testable without a real Functions host.
-async function generateDraft({ context, sourceId, chunks, questionCount, range, topicTag }) {
+async function generateDraft({ context, sourceId, chunks, questionCount, range, topicTag, questionStyle }) {
   const providerName = getProviderName();
   const provider = PROVIDERS[providerName];
   const start = Date.now();
@@ -79,7 +79,7 @@ async function generateDraft({ context, sourceId, chunks, questionCount, range, 
   const chunkChars = selected.reduce((sum, c) => sum + c.text.length, 0);
 
   try {
-    const result = await provider.generate({ sourceId, chunks: selected, questionCount, topicTag });
+    const result = await provider.generate({ sourceId, chunks: selected, questionCount, topicTag, questionStyle });
     if (context) context.log(JSON.stringify({ sourceId, provider: providerName, chunkChars, questionCount, durationMs: Date.now() - start, outcome: 'success' }));
     return { ...result, chunkChars, provider: providerName, pagesUsed: derivePagesUsed(selected) };
   } catch (err) {

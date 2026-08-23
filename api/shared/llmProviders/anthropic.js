@@ -8,7 +8,7 @@ const { buildSystemPrompt, buildUserPrompt } = require('../llmPrompts');
 const requiredEnv = ['LLM_API_KEY'];
 const DEFAULT_MODEL = 'claude-sonnet-5';
 
-async function generate({ chunks, questionCount, topicTag }) {
+async function generate({ chunks, questionCount, topicTag, questionStyle }) {
   const model = process.env.LLM_MODEL || DEFAULT_MODEL;
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -21,7 +21,7 @@ async function generate({ chunks, questionCount, topicTag }) {
       model,
       max_tokens: 4096,
       system: buildSystemPrompt(),
-      messages: [{ role: 'user', content: buildUserPrompt({ chunks, questionCount, topicTag }) }],
+      messages: [{ role: 'user', content: buildUserPrompt({ chunks, questionCount, topicTag, questionStyle }) }],
     }),
   });
   if (!res.ok) throw new Error(`Anthropic request failed: ${res.status}`);
