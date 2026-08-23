@@ -16,7 +16,7 @@ const TOPIC_COLORS = {
 }
 
 function BuildQuiz() {
-  const { teacherId } = useAuth()
+  const { teacherId, login } = useAuth()
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('build')
   const [quizName, setQuizName] = useState('')
@@ -25,6 +25,7 @@ function BuildQuiz() {
   const [previewIndex, setPreviewIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
   const [communityIntro, setCommunityIntro] = useState(false)
   const [savingDraft, setSavingDraft] = useState(false)
   const [saveError, setSaveError] = useState(null)
@@ -63,22 +64,27 @@ function BuildQuiz() {
       .catch(() => {})
   }, [])
 
+  async function fetchQuestions() {
+    setLoading(true)
+    setError(null)
+    setSessionExpired(false)
+    try {
+      const res = await fetch(`${API_BASE}/questions?teacherId=${teacherId}`)
+      if (res.status === 401) { setSessionExpired(true); return }
+      if (!res.ok) throw new Error('Something went wrong loading your questions.')
+      const data = await res.json()
+      setAllQuestions(data)
+      setSelected(data)
+      setPreviewIndex(0)
+    } catch {
+      setError('Something went wrong loading your questions.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (!teacherId) return
-    async function fetchQuestions() {
-      try {
-        const res = await fetch(`${API_BASE}/questions?teacherId=${teacherId}`)
-        if (!res.ok) throw new Error(`Server error ${res.status}`)
-        const data = await res.json()
-        setAllQuestions(data)
-        setSelected(data)
-        setPreviewIndex(0)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchQuestions()
   }, [teacherId])
 
@@ -113,10 +119,30 @@ function BuildQuiz() {
     )
   }
 
+  if (sessionExpired) {
+    return (
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
+        <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+        <button
+          onClick={() => login()}
+          style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        >
+          Sign in
+        </button>
+      </div>
+    )
+  }
+
   if (error) {
     return (
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', color: '#c0392b', fontSize: '14px' }}>
-        Failed to load questions: {error}
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
+        <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
+        <button
+          onClick={fetchQuestions}
+          style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        >
+          Try again
+        </button>
       </div>
     )
   }

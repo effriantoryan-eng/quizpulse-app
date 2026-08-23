@@ -11,38 +11,67 @@ function formatDate(iso) {
 }
 
 export default function QuizHistory() {
-  const { teacherId } = useAuth()
+  const { teacherId, login } = useAuth()
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('history')
   const [quizzes, setQuizzes] = useState([])
   const [classNames, setClassNames] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
+
+  async function fetchQuizzes() {
+    setLoading(true)
+    setError(null)
+    setSessionExpired(false)
+    try {
+      const res = await fetch(`${API_BASE}/quizzes?teacherId=${teacherId}`)
+      if (res.status === 401) { setSessionExpired(true); return }
+      if (!res.ok) throw new Error('Something went wrong loading your quizzes.')
+      const data = await res.json()
+      setQuizzes(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+      const clsRes = await fetch(`${API_BASE}/classes`)
+      if (clsRes.ok) {
+        const classes = await clsRes.json()
+        setClassNames(Object.fromEntries(classes.map(c => [c.id, c.name])))
+      }
+    } catch {
+      setError('Something went wrong loading your quizzes.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!teacherId) return
-    async function fetchQuizzes() {
-      try {
-        const res = await fetch(`${API_BASE}/quizzes?teacherId=${teacherId}`)
-        if (!res.ok) throw new Error(`Server error ${res.status}`)
-        const data = await res.json()
-        setQuizzes(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
-        const clsRes = await fetch(`${API_BASE}/classes`)
-        if (clsRes.ok) {
-          const classes = await clsRes.json()
-          setClassNames(Object.fromEntries(classes.map(c => [c.id, c.name])))
-        }
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchQuizzes()
   }, [teacherId])
 
   if (loading) return <div style={{ padding: '24px', color: '#888', fontSize: '14px' }}>Loading quizzes…</div>
-  if (error) return <div style={{ padding: '24px', color: '#c0392b', fontSize: '14px' }}>{error}</div>
+
+  if (sessionExpired) return (
+    <div style={{ padding: '24px', textAlign: 'center' }}>
+      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+      <button
+        onClick={() => login()}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+      >
+        Sign in
+      </button>
+    </div>
+  )
+
+  if (error) return (
+    <div style={{ padding: '24px', textAlign: 'center' }}>
+      <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
+      <button
+        onClick={fetchQuizzes}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+      >
+        Try again
+      </button>
+    </div>
+  )
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}>

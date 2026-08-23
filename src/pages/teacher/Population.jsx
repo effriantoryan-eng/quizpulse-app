@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
 
@@ -113,33 +114,38 @@ function QuadrantScatter({ school, population }) {
 }
 
 function Population() {
+  const { login } = useAuth()
   const [topic, setTopic] = useState(TOPIC_TAGS[0])
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
     async function fetchPopulation() {
       setLoading(true)
       setError(null)
+      setSessionExpired(false)
       try {
         const res = await fetch(`${API_BASE}/analytics/population?topic=${encodeURIComponent(topic)}`)
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}))
-          throw new Error(body.error || `Server error ${res.status}`)
+        if (res.status === 401) {
+          if (!cancelled) setSessionExpired(true)
+          return
         }
+        if (!res.ok) throw new Error("Couldn't load benchmark data.")
         const body = await res.json()
         if (!cancelled) setData(body)
-      } catch (err) {
-        if (!cancelled) setError(err.message)
+      } catch {
+        if (!cancelled) setError("Couldn't load benchmark data.")
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
     fetchPopulation()
     return () => { cancelled = true }
-  }, [topic])
+  }, [topic, retryKey])
 
   const hasSchoolData = data && data.school.responseCount > 0
   const hasPopulationData = data && data.population.responseCount > 0
@@ -169,9 +175,27 @@ function Population() {
         <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Loading…</div>
       )}
 
-      {error && (
-        <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b' }}>
-          Couldn't load benchmark — {error}
+      {sessionExpired && (
+        <div style={{ padding: '16px', textAlign: 'center', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#c0392b' }}>Your session has ended. Sign in again to continue.</p>
+          <button
+            onClick={() => login()}
+            style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+          >
+            Sign in
+          </button>
+        </div>
+      )}
+
+      {error && !sessionExpired && (
+        <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', textAlign: 'center' }}>
+          {error}{' '}
+          <button
+            onClick={() => setRetryKey(k => k + 1)}
+            style={{ marginLeft: '8px', padding: '4px 10px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+          >
+            Try again
+          </button>
         </div>
       )}
 

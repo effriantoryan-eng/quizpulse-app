@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
+import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
 import { FOUR_CELL, MISCONCEPTION_BG, MISCONCEPTION_BORDER } from '../../data/fourCell'
 
@@ -75,6 +76,7 @@ function TimelineChart({ timeline, classSize }) {
 function Analytics() {
   const { quizId } = useParams()
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const classId = searchParams.get('classId') || ''
   const [hintVisible, dismissHint, showHint] = useHint('analytics')
@@ -90,6 +92,8 @@ function Analytics() {
   const [timeline, setTimeline] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState(null)
 
@@ -101,10 +105,11 @@ function Analytics() {
     async function fetchAnalytics() {
       try {
         const res = await fetch(`${API_BASE}/analytics?quizId=${quizId}${classQuery}`)
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          throw new Error(data.error || `Server error ${res.status}`)
+        if (res.status === 401) {
+          if (!cancelled) { setSessionExpired(true); setLoading(false) }
+          return
         }
+        if (!res.ok) throw new Error('Something went wrong loading analytics.')
         const data = await res.json()
         if (cancelled) return
 
@@ -118,20 +123,24 @@ function Analytics() {
         setNonResponders(data.nonResponders || [])
         setTimeline(data.timeline || [])
         setError(null)
-      } catch (err) {
-        if (!cancelled) setError(err.message)
+        setSessionExpired(false)
+      } catch {
+        if (!cancelled) setError('Something went wrong loading analytics.')
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
 
     fetchAnalytics()
+    // Stop polling once the session has expired — repeatedly re-hitting a 401 every
+    // 3s is pointless until the teacher signs back in.
+    if (sessionExpired) return
     const intervalId = setInterval(fetchAnalytics, POLL_INTERVAL_MS)
     return () => {
       cancelled = true
       clearInterval(intervalId)
     }
-  }, [quizId, classId])
+  }, [quizId, classId, retryKey, sessionExpired])
 
   function handleClassChange(e) {
     const next = e.target.value
@@ -197,7 +206,30 @@ function Analytics() {
   }
 
   if (loading) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading analytics...</div>
-  if (error) return <div style={{ padding: '24px', color: 'var(--danger)' }}>{error}</div>
+
+  if (sessionExpired) return (
+    <div style={{ padding: '24px', textAlign: 'center' }}>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+      <button
+        onClick={() => login()}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+      >
+        Sign in
+      </button>
+    </div>
+  )
+
+  if (error) return (
+    <div style={{ padding: '24px', textAlign: 'center' }}>
+      <p style={{ color: 'var(--danger)', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
+      <button
+        onClick={() => { setLoading(true); setRetryKey(k => k + 1) }}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+      >
+        Try again
+      </button>
+    </div>
+  )
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px' }}>

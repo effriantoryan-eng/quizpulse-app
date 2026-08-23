@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
+import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
 import matchTopics from '../../data/topicPrefilter'
@@ -46,6 +47,7 @@ function ShareLink({ quizId }) {
 }
 
 function SendQuiz() {
+  const { login } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -80,6 +82,7 @@ function SendQuiz() {
   const [classes, setClasses] = useState([])
   const [classesLoading, setClassesLoading] = useState(true)
   const [classesError, setClassesError] = useState(null)
+  const [classesSessionExpired, setClassesSessionExpired] = useState(false)
   const [selectedClasses, setSelectedClasses] = useState([])
   const [sending, setSending] = useState(false)
   const [sendingMsg, setSendingMsg] = useState('')
@@ -114,21 +117,24 @@ function SendQuiz() {
       .catch(() => {})
   }, [])
 
-  useEffect(() => {
-    async function fetchClasses() {
-      try {
-        const res = await fetch(`${API_BASE}/classes`)
-        if (!res.ok) throw new Error(`Server error ${res.status}`)
-        const data = await res.json()
-        setClasses(data)
-      } catch (err) {
-        setClassesError(err.message)
-      } finally {
-        setClassesLoading(false)
-      }
+  async function fetchClasses() {
+    setClassesLoading(true)
+    setClassesError(null)
+    setClassesSessionExpired(false)
+    try {
+      const res = await fetch(`${API_BASE}/classes`)
+      if (res.status === 401) { setClassesSessionExpired(true); return }
+      if (!res.ok) throw new Error('Something went wrong loading your classes.')
+      const data = await res.json()
+      setClasses(data)
+    } catch {
+      setClassesError('Something went wrong loading your classes.')
+    } finally {
+      setClassesLoading(false)
     }
-    fetchClasses()
-  }, [])
+  }
+
+  useEffect(() => { fetchClasses() }, [])
 
   if (incomingQuizId && loadingQuiz) {
     return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
@@ -369,13 +375,31 @@ function SendQuiz() {
             <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center' }}>Loading classes…</div>
           )}
 
-          {classesError && (
-            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: '8px', marginBottom: '16px' }}>
-              Failed to load classes: {classesError}
+          {classesSessionExpired && (
+            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: '8px', marginBottom: '16px', textAlign: 'center' }}>
+              <p style={{ margin: '0 0 8px' }}>Your session has ended. Sign in again to continue.</p>
+              <button
+                onClick={() => login()}
+                style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}
+              >
+                Sign in
+              </button>
             </div>
           )}
 
-          {!classesLoading && !classesError && classes.length === 0 && (
+          {classesError && !classesSessionExpired && (
+            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: '8px', marginBottom: '16px', textAlign: 'center' }}>
+              {classesError}{' '}
+              <button
+                onClick={fetchClasses}
+                style={{ marginLeft: '8px', padding: '4px 10px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {!classesLoading && !classesError && !classesSessionExpired && classes.length === 0 && (
             <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
               No classes yet.{' '}
               <span

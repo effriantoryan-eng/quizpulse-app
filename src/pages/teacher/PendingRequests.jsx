@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
 
 function matchBadge(req) {
@@ -35,12 +36,14 @@ function sortRequests(requests) {
 }
 
 function PendingRequests() {
+  const { login } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const classId = searchParams.get('classId')
 
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
   const [selected, setSelected] = useState(new Set())
   const [actionInProgress, setActionInProgress] = useState(false)
   const [actionError, setActionError] = useState(null)
@@ -99,14 +102,16 @@ function PendingRequests() {
   async function fetchRequests() {
     setLoading(true)
     setError(null)
+    setSessionExpired(false)
     try {
       const res = await fetch(`${API_BASE}/join-requests?classId=${encodeURIComponent(classId)}`)
-      if (!res.ok) throw new Error(`Server error ${res.status}`)
+      if (res.status === 401) { setSessionExpired(true); return }
+      if (!res.ok) throw new Error('Something went wrong loading requests.')
       const all = await res.json()
       // Show only pending and queued for the approval UI
       setRequests(all.filter(r => r.status === 'pending' || r.status === 'queued'))
-    } catch (err) {
-      setError(err.message)
+    } catch {
+      setError('Something went wrong loading requests.')
     } finally {
       setLoading(false)
     }
@@ -232,7 +237,30 @@ function PendingRequests() {
     )
   }
   if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading requests…</div>
-  if (error) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#c0392b', fontSize: '14px' }}>Failed to load requests: {error}</div>
+
+  if (sessionExpired) return (
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
+      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+      <button
+        onClick={() => login()}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+      >
+        Sign in
+      </button>
+    </div>
+  )
+
+  if (error) return (
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
+      <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
+      <button
+        onClick={fetchRequests}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+      >
+        Try again
+      </button>
+    </div>
+  )
 
   const sorted = sortRequests(requests)
   const pendingCount = requests.filter(r => r.status === 'pending').length

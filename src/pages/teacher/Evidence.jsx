@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
 import { APST_DESCRIPTORS, APST_DEFAULTS, VTLM_ALIGNMENT, REFLECTION_TEMPLATE_1, REFLECTION_TEMPLATE_2 } from '../../data/apstContent'
 
@@ -12,9 +13,14 @@ function formatDate(iso) {
 }
 
 async function downloadPdf(res, filename) {
+  if (res.status === 401) {
+    const err = new Error('Your session has ended. Sign in again to continue.')
+    err.sessionExpired = true
+    throw err
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.error || `Server error ${res.status}`)
+    throw new Error(body.error || 'Something went wrong generating this PDF.')
   }
   const blob = await res.blob()
   const url = URL.createObjectURL(blob)
@@ -28,6 +34,7 @@ async function downloadPdf(res, filename) {
 }
 
 function ExportPanel({ quiz, className, onClose }) {
+  const { login } = useAuth()
   const [step, setStep] = useState(1)
   const [teacherName, setTeacherName] = useState('')
   const [vitNumber, setVitNumber] = useState('')
@@ -40,6 +47,7 @@ function ExportPanel({ quiz, className, onClose }) {
   const [reflection2, setReflection2] = useState(REFLECTION_TEMPLATE_2)
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   function toggleDescriptor(id) {
     setDescriptorIds(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id])
@@ -50,6 +58,7 @@ function ExportPanel({ quiz, className, onClose }) {
   async function handleExport() {
     setExporting(true)
     setError(null)
+    setSessionExpired(false)
     try {
       const res = await fetch(`${API_BASE}/evidence/export`, {
         method: 'POST',
@@ -63,6 +72,7 @@ function ExportPanel({ quiz, className, onClose }) {
       onClose()
     } catch (err) {
       setError(err.message)
+      if (err.sessionExpired) setSessionExpired(true)
     } finally {
       setExporting(false)
     }
@@ -117,7 +127,14 @@ function ExportPanel({ quiz, className, onClose }) {
               Replace the [PERSONALISE: ...] text in both fields before exporting.
             </div>
           )}
-          {error && <div style={{ marginTop: '10px', fontSize: '12px', color: '#c0392b' }}>{error}</div>}
+          {error && (
+            <div style={{ marginTop: '10px', fontSize: '12px', color: '#c0392b' }}>
+              {error}
+              {sessionExpired && (
+                <button onClick={() => login()} style={{ ...secondaryBtnStyle, marginTop: '8px', display: 'block' }}>Sign in</button>
+              )}
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
             <button onClick={() => setStep(1)} style={secondaryBtnStyle}>Back</button>
@@ -137,11 +154,13 @@ function ExportPanel({ quiz, className, onClose }) {
 }
 
 function AnnualLogPanel({ onClose }) {
+  const { login } = useAuth()
   const today = new Date().toISOString().slice(0, 10)
   const lastYear = new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const [from, setFrom] = useState(lastYear)
   const [to, setTo] = useState(today)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
   const [generating, setGenerating] = useState(false)
 
   const rangeDays = (new Date(to) - new Date(from)) / (24 * 60 * 60 * 1000)
@@ -149,6 +168,7 @@ function AnnualLogPanel({ onClose }) {
 
   async function handleGenerate() {
     setError(null)
+    setSessionExpired(false)
     setGenerating(true)
     try {
       const res = await fetch(`${API_BASE}/evidence/annual-log?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
@@ -156,6 +176,7 @@ function AnnualLogPanel({ onClose }) {
       onClose()
     } catch (err) {
       setError(err.message)
+      if (err.sessionExpired) setSessionExpired(true)
     } finally {
       setGenerating(false)
     }
@@ -180,7 +201,14 @@ function AnnualLogPanel({ onClose }) {
       <div style={{ marginTop: '10px', fontSize: '12px', color: '#555' }}>
         This date range covers descriptors from {DOMAINS.map(d => `${d} ✓`).join(', ')} (based on your defaults — a missing domain is a warning, not a block).
       </div>
-      {error && <div style={{ marginTop: '8px', fontSize: '12px', color: '#c0392b' }}>{error}</div>}
+      {error && (
+        <div style={{ marginTop: '8px', fontSize: '12px', color: '#c0392b' }}>
+          {error}
+          {sessionExpired && (
+            <button onClick={() => login()} style={{ ...secondaryBtnStyle, marginTop: '8px', display: 'block' }}>Sign in</button>
+          )}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
         <button onClick={onClose} style={secondaryBtnStyle}>Cancel</button>
         <button
@@ -201,36 +229,41 @@ const primaryBtnStyle = { marginTop: '14px', padding: '8px 16px', background: 'v
 const secondaryBtnStyle = { marginTop: '14px', padding: '8px 16px', background: 'white', color: '#333', border: '1px solid #ddd', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }
 
 export default function Evidence() {
+  const { login } = useAuth()
   const [quizzes, setQuizzes] = useState([])
   const [classNames, setClassNames] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
   const [openQuizId, setOpenQuizId] = useState(null)
   const [showAnnualLog, setShowAnnualLog] = useState(false)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [quizRes, classRes] = await Promise.all([
-          fetch(`${API_BASE}/quizzes`),
-          fetch(`${API_BASE}/classes`),
-        ])
-        if (!quizRes.ok) throw new Error(`Server error ${quizRes.status}`)
-        const quizData = await quizRes.json()
-        const sent = quizData.filter(q => q.status === 'sent').sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt))
-        setQuizzes(sent)
-        if (classRes.ok) {
-          const classes = await classRes.json()
-          setClassNames(Object.fromEntries(classes.map(c => [c.id, c.name])))
-        }
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
+  useEffect(() => { load() }, [])
+
+  async function load() {
+    setLoading(true)
+    setError(null)
+    setSessionExpired(false)
+    try {
+      const [quizRes, classRes] = await Promise.all([
+        fetch(`${API_BASE}/quizzes`),
+        fetch(`${API_BASE}/classes`),
+      ])
+      if (quizRes.status === 401) { setSessionExpired(true); return }
+      if (!quizRes.ok) throw new Error('Something went wrong loading your quizzes.')
+      const quizData = await quizRes.json()
+      const sent = quizData.filter(q => q.status === 'sent').sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt))
+      setQuizzes(sent)
+      if (classRes.ok) {
+        const classes = await classRes.json()
+        setClassNames(Object.fromEntries(classes.map(c => [c.id, c.name])))
       }
+    } catch {
+      setError('Something went wrong loading your quizzes.')
+    } finally {
+      setLoading(false)
     }
-    load()
-  }, [])
+  }
 
   function classLabel(quiz) {
     const names = (quiz.classIds || []).map(id => classNames[id]).filter(Boolean)
@@ -252,14 +285,25 @@ export default function Evidence() {
       </div>
 
       {loading && <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Loading…</div>}
-      {error && <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b' }}>{error}</div>}
-      {!loading && !error && quizzes.length === 0 && (
+      {sessionExpired && (
+        <div style={{ padding: '16px', textAlign: 'center', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#c0392b' }}>Your session has ended. Sign in again to continue.</p>
+          <button onClick={() => login()} style={primaryBtnStyle}>Sign in</button>
+        </div>
+      )}
+      {error && !sessionExpired && (
+        <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b' }}>
+          {error}{' '}
+          <button onClick={load} style={{ ...secondaryBtnStyle, marginTop: 0, marginLeft: '8px', padding: '4px 10px' }}>Try again</button>
+        </div>
+      )}
+      {!loading && !error && !sessionExpired && quizzes.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 20px', color: '#888', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
           No sent quizzes yet — send a quiz to generate evidence from it.
         </div>
       )}
 
-      {quizzes.map(quiz => (
+      {!loading && !error && !sessionExpired && quizzes.map(quiz => (
         <div key={quiz.id} data-testid="evidence-quiz-card" style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '16px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div>
