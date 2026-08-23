@@ -294,8 +294,13 @@ extension to the existing `GET /api/student/quizzes`. No breaking changes.
 - **Deploy status:** not yet deployed — built directly on `main` per the v4.5/v4.6 single-session
   convention, no release branch.
 
-**v4.8.0 (Student Quiz History & Own-Answer Review) is [CURRENT] on `main` — code-complete,
-tagged `v4.8.0`, NOT yet pushed/deployed.** Closes the student post-quiz dead-end: a student can
+**v4.8.0 (Student Quiz History & Own-Answer Review) is [CURRENT] on `main` — tagged `v4.8.0`,
+deployed to production 2026-08-23** (frontend via SWA GitHub Actions on push to `main`, API via
+`func azure functionapp publish` from Node 22; post-deploy health confirmed — worker stack
+`NODE|22`, `studentQuizzes` returns 400 unauthenticated / `vapid-public-key` 200, no 503). That
+same API publish also shipped v4.7.0's previously-unpublished `studentQuizzes` scheduled-state
+extension, and prior SWA runs had already been auto-deploying the v4.7.0 frontend — so v4.7.0 is
+effectively live too (its "not yet deployed" notes elsewhere in this file are stale). Closes the student post-quiz dead-end: a student can
 review their OWN past answers + confidence (never a score, never the correct answer) and re-attempt
 a closed quiz privately. Built client-only per the CEO/design/eng plan review 2026-08-23 (plan at
 `~/.gstack/projects/effriantoryan-eng-quizpulse-app/ceo-plans/2026-08-23-student-quiz-history.md`).
@@ -324,8 +329,7 @@ the device that made them, same posture as v4.7.0's completion summary.
 - **Verification:** 500/500 unit tests pass (`submittedAnswers.test.js` new — covers the legacy-`'1'`
   trap + trend thresholds); `vite build` clean; live browser-walked (trend strip, review "You chose"
   + confidence with NO correct answer, practice private-framing + no-score completion, legacy soft
-  state) with zero console errors from the new code. **Not pushed/deployed yet** — do not tell a
-  future session this is live.
+  state) with zero console errors from the new code. Deployed to production 2026-08-23 (see the top-of-file v4.8.0 blurb for the health check).
 - **Security limits added:** none (no new endpoint). New localStorage key shape only.
 
 ---
@@ -608,8 +612,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
     review 2026-08-17; prompt in `CC_PROMPTS_v470.md`. See the v4.7.0 blurb near the top of this
     file for the exact status. Ranks 6-9 (trend grid, nudge, device-scoped activity + linking)
     deferred to v4.8.0.
-15. **v4.8.0 — Student quiz history & own-answer review.** [CURRENT — code-complete, tagged
-    `v4.8.0`, NOT yet pushed/deployed] Tappable answered cards on `/student/class` → a read-only
+15. **v4.8.0 — Student quiz history & own-answer review.** [CURRENT — deployed 2026-08-23] Tappable answered cards on `/student/class` → a read-only
     review of the student's own choices + confidence (`/quiz/review`), private self-practice
     (`/quiz/practice`), and a device-wide confidence-trend strip. Client-only: persist the submit
     payload to localStorage, no new endpoint. One backend line (`api/pageView.js` privacy strip
@@ -1613,9 +1616,9 @@ dashboard, funnel strip, breakdowns). Live at
 | Home calendar + Also-waiting attention cards | [CURRENT] v4.7.0 code-complete — not yet deployed |
 | Student "Join this class" QR + "Coming up" scheduled quizzes | [CURRENT] v4.7.0 code-complete — not yet deployed |
 | Quiz completion confidence self-summary | [CURRENT] v4.7.0 code-complete — not yet deployed |
-| Student quiz history + own-answer review (`/quiz/review`, tappable answered cards, persist-on-submit) | [CURRENT] v4.8.0 code-complete, tagged — not yet pushed/deployed |
-| Student self-practice (`/quiz/practice`, private, nothing submitted) | [CURRENT] v4.8.0 code-complete, tagged — not yet pushed/deployed |
-| Confidence-trend strip on `/student/class` (device-wide, 2+ quizzes) | [CURRENT] v4.8.0 code-complete, tagged — not yet pushed/deployed |
+| Student quiz history + own-answer review (`/quiz/review`, tappable answered cards, persist-on-submit) | [CURRENT] v4.8.0 deployed 2026-08-23 |
+| Student self-practice (`/quiz/practice`, private, nothing submitted) | [CURRENT] v4.8.0 deployed 2026-08-23 |
+| Confidence-trend strip on `/student/class` (device-wide, 2+ quizzes) | [CURRENT] v4.8.0 deployed 2026-08-23 |
 | Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0 features sprint (distinct from the shipped v4.8.0 above)] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
