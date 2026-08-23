@@ -82,10 +82,20 @@ az functionapp config appsettings set -g quizpulse-app-rg -n quizpulse-app-api-a
    `checkAndIncrRegenQuota` is now a thin wrapper over the same helper. A failing/retried real-provider
    call now counts against the daily cap — a spend-cap alert (Azure OpenAI budget / Anthropic usage
    limit) is still good practice as a second backstop, but no longer a hard gate on activation.
-4. **Flip `LLM_PROVIDER`** to `azureOpenai` or `anthropic` in Function App settings.
+4. ~~**Flip `LLM_PROVIDER`**~~ — **DONE (2026-08-23). Production `LLM_PROVIDER=azureOpenai`.**
+   The fixed provider code was deployed first (`func azure functionapp publish` from Node 22 —
+   runtime confirmed `NODE|22`), THEN the setting was flipped, so prod never ran the real provider
+   with the old buggy code. Post-flip health: `vapid-public-key` → 200 (Key Vault refs resolve),
+   `generation/drafts` → 401 (registered, awaiting auth), no 503s. Set the setting via a JSON file
+   (`--settings @file.json`) — the `)`-truncation gotcha above applies to any `az ... --settings`
+   call on this machine. **Local dev stays on `mock`** (`api/local.settings.json`) so `func start`
+   doesn't incur real spend — flip that one line locally when you want to test the real provider.
 5. Confirm `api/shared/llmAdapter.js` returns 503 (not a 500 or a hang) if the key is ever removed
-   or expires — this is already covered by `tests/unit/api/llmAdapter.test.js`'s
-   missing-provider-key case, but re-verify against the live Function App once activated.
+   or expires — covered by `tests/unit/api/llmAdapter.test.js`'s missing-provider-key case. NOT
+   re-verified live (would require removing the prod key). **Still TODO: a real authed
+   generation call through production** (upload a doc → generate) to confirm end-to-end — the
+   founder smoke test proved the provider+endpoint+code, and prod health is green, but an authed
+   prod round-trip hasn't been exercised.
 
 ## Behavioural parity note
 
