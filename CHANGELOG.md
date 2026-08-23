@@ -2,6 +2,39 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.8.0] — Student quiz history & own-answer review
+
+Closes the student post-quiz dead-end. A student can now see which quizzes they've done and
+re-open any answered one to look back on their **own** choices and confidence — reflection, never
+a grade. No score, no right/wrong, and the correct answer is never shown or even sent to the
+device (the questions endpoint already strips `correctIndex`). Built client-only: `TakeQuiz` now
+persists the just-submitted answer payload to `localStorage` (instead of a bare `'1'` flag), and
+the review screen reads it back — same "read the submitted payload, not a new query" posture as
+v4.7.0's completion summary. **No new endpoint, no Cosmos change, no new security surface.**
+
+Added:
+- **Own-answer review** (`src/pages/student/QuizReview.jsx`, route `/quiz/review?quizId=`) — a
+  read-only recap of each question with the option the student picked marked "You chose" and their
+  confidence chip. Reached by tapping an answered card on `/student/class`.
+- **Self-practice** (same component, route `/quiz/practice?quizId=`) — re-answer a closed quiz just
+  for yourself; nothing is submitted, nothing is stored, the teacher never sees it. Pure retrieval
+  practice, no score.
+- **Confidence-trend strip** on `/student/class` — one gentle, participation-framed line derived
+  from recent stored payloads (`confidenceTrend` in `src/data/confidenceTally.js`); shown only once
+  there are 2+ answered quizzes with confidence data.
+- `src/data/submittedAnswers.js` — `saveSubmitted` (one helper, both `TakeQuiz` submit sites, so
+  the stored shape can't drift) and `parseSubmittedAnswers` (tolerates the legacy `'1'` flag,
+  malformed JSON, and the `JSON.parse('1') === 1` trap — degrades to a soft "not saved" state,
+  never crashes). No backfill.
+
+Changed:
+- `api/pageView.js` — student-privacy fingerprint-stripping widened from `=== '/quiz'` to also
+  cover `/quiz/*`, so the new review/practice routes (and any future `/quiz/*` route) strip
+  browser-fingerprint fields by default. **This one line needs an API redeploy** (`func publish`).
+
+No breaking changes. Ranks 6-9 from the v4.7.0 scoping doc (trend grid, nudge, device-scoped
+activity + linking) remain deferred to a later features sprint.
+
 ## [v4.7.0] — Design overhaul: Modernist (IN PROGRESS — not yet tagged)
 
 A visual overhaul, not a behavior change. Remaps the app's existing 2px-border token system

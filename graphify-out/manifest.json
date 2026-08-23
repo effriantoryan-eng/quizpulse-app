@@ -1,6 +1,6 @@
 {
   ".claude/launch.json": {
-    "mtime": 1783655447.7940986,
+    "mtime": 1787450843.6912436,
     "ast_hash": "97d5f655e6d5502ae5e48c310e8b7bf4",
     "semantic_hash": ""
   },
@@ -30,7 +30,7 @@
     "semantic_hash": "5e31391b09d87ae7a13422511112e9be"
   },
   "api/classes.js": {
-    "mtime": 1785143235.5539422,
+    "mtime": 1787444466.9482198,
     "ast_hash": "f9f66163df21aed87c444b4701fda3e3",
     "semantic_hash": ""
   },
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "api/pageView.js": {
-    "mtime": 1784732976.2585588,
-    "ast_hash": "bb0ca056aea72d6d0063f4eb4371260f",
+    "mtime": 1787450480.8699481,
+    "ast_hash": "8f1d9ee9d80257136d4b75df86f26d7b",
     "semantic_hash": ""
   },
   "api/questions.js": {
@@ -95,7 +95,7 @@
     "semantic_hash": ""
   },
   "api/rateLimit.js": {
-    "mtime": 1785724994.2629766,
+    "mtime": 1787444466.9639134,
     "ast_hash": "327ff20391d3583176f70d86ffa29643",
     "semantic_hash": ""
   },
@@ -120,7 +120,7 @@
     "semantic_hash": "2f56365dec0e9ac3d8e71d60eabfcbed"
   },
   "api/sendNotification.js": {
-    "mtime": 1785183618.174757,
+    "mtime": 1787444466.9795756,
     "ast_hash": "cd9ccf43bd24da8ac6064a75c8e7e398",
     "semantic_hash": ""
   },
@@ -135,7 +135,7 @@
     "semantic_hash": "9a040351509ebcb6169366ae320f64dd"
   },
   "api/shared/demoNames.js": {
-    "mtime": 1785143213.2899086,
+    "mtime": 1787444466.9795756,
     "ast_hash": "49aaaf8fc38ffa5c352ba1a59d474011",
     "semantic_hash": ""
   },
@@ -145,7 +145,7 @@
     "semantic_hash": "0068adf967a5787ed57c33ac8c4aaac4"
   },
   "api/shared/runSimulation.js": {
-    "mtime": 1785135807.338498,
+    "mtime": 1787444467.0108602,
     "ast_hash": "4a7ccb1967d40626f365807ac48005e7",
     "semantic_hash": ""
   },
@@ -165,7 +165,7 @@
     "semantic_hash": ""
   },
   "api/teacher.js": {
-    "mtime": 1785185621.1164465,
+    "mtime": 1787444467.0108602,
     "ast_hash": "cba707342a70e88f0c8841e6472789ef",
     "semantic_hash": ""
   },
@@ -190,7 +190,7 @@
     "semantic_hash": "3aa4b57d7f08181d86bde52a4dcb7f22"
   },
   "package.json": {
-    "mtime": 1786948229.5290916,
+    "mtime": 1787444467.0674238,
     "ast_hash": "49b27544a2ecd212808b5548aaeb8338",
     "semantic_hash": ""
   },
@@ -205,8 +205,8 @@
     "semantic_hash": "befab5a938beafc2fd7270b8190d61f2"
   },
   "src/App.jsx": {
-    "mtime": 1785182639.1612825,
-    "ast_hash": "ce63818044478c73bfed1e1be717f12b",
+    "mtime": 1787450412.5855,
+    "ast_hash": "48ae891da92b9a04a2d397ab8bb33489",
     "semantic_hash": ""
   },
   "src/api.js": {
@@ -305,7 +305,7 @@
     "semantic_hash": "29c24d1c707b6ac8e43514e877b9f31a"
   },
   "src/pages/DemoGallery.jsx": {
-    "mtime": 1785185789.1590466,
+    "mtime": 1787444467.1071362,
     "ast_hash": "dadd54750cddbb734250b478dcf4ead9",
     "semantic_hash": ""
   },
@@ -315,33 +315,33 @@
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
-    "mtime": 1785724910.475376,
+    "mtime": 1787444467.1238122,
     "ast_hash": "85d9afa39404e6fe5e8bb6b9b2945952",
     "semantic_hash": ""
   },
   "src/pages/Onboarding.jsx": {
-    "mtime": 1785182643.213276,
+    "mtime": 1787444467.1432023,
     "ast_hash": "43a058972a5bfdf8a0f16614a7b500ba",
     "semantic_hash": ""
   },
   "src/pages/student/JoinClass.jsx": {
-    "mtime": 1786948903.9369128,
+    "mtime": 1787444467.1432023,
     "ast_hash": "14da7913bf57b4c99f6908486ae45e77",
     "semantic_hash": ""
   },
   "src/pages/student/TakeQuiz.jsx": {
-    "mtime": 1786948849.1691687,
-    "ast_hash": "6ae0bdb2aa74d2ac5832c01dd126620c",
+    "mtime": 1787450330.6195216,
+    "ast_hash": "1317e2ec962af71c8c4ce75a153cfbca",
     "semantic_hash": ""
   },
   "src/pages/teacher/Analytics.jsx": {
-    "mtime": 1786949275.9847353,
-    "ast_hash": "ee33460d67ac29704207820922e1e5c3",
+    "mtime": 1787445835.4481902,
+    "ast_hash": "32a694aee9faf2d1d2f048a38f5e7d17",
     "semantic_hash": ""
   },
   "src/pages/teacher/BuildQuiz.jsx": {
-    "mtime": 1785182877.0989215,
-    "ast_hash": "402a64d0115e079d13a9b58d2df318fb",
+    "mtime": 1787445835.4481902,
+    "ast_hash": "d5e9f88ba1a7823455bece01495f1019",
     "semantic_hash": ""
   },
   "src/pages/teacher/ClassRoster.jsx": {
@@ -350,14 +350,14 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/ClassSettings.jsx": {
-    "mtime": 1784732976.272889,
-    "ast_hash": "4eb664888a0ec18955374ffe6e459612",
+    "mtime": 1787445835.4481902,
+    "ast_hash": "501e2541e4b795b524b4702d03aae3b9",
     "semantic_hash": ""
   },
   "src/pages/teacher/Classes.jsx": {
-    "mtime": 1783081974.2624447,
-    "ast_hash": "e4485c5461263fef862f6e7e01db2bcb",
-    "semantic_hash": "e4485c5461263fef862f6e7e01db2bcb"
+    "mtime": 1787445835.4481902,
+    "ast_hash": "4b9526ec92647a62242145d37e5a6ef5",
+    "semantic_hash": ""
   },
   "src/pages/teacher/CreateQuestion.jsx": {
     "mtime": 1783081974.264456,
@@ -365,23 +365,23 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/PendingRequests.jsx": {
-    "mtime": 1785185608.4061482,
-    "ast_hash": "bd62e1301770099b4a8bc7fbd345c0f8",
+    "mtime": 1787445835.4585595,
+    "ast_hash": "3db92c492e57868bdfe209110359a51f",
     "semantic_hash": ""
   },
   "src/pages/teacher/QuestionBank.jsx": {
-    "mtime": 1785182825.6338596,
+    "mtime": 1787444467.1562393,
     "ast_hash": "11a2e3f4ab72578d254b8499f50bce82",
     "semantic_hash": ""
   },
   "src/pages/teacher/QuizHistory.jsx": {
-    "mtime": 1783820409.5515707,
-    "ast_hash": "88704989cce0e6b22c26b19d54267d06",
+    "mtime": 1787445835.4605663,
+    "ast_hash": "85126780bbf1c70c3586bf1709825a7d",
     "semantic_hash": ""
   },
   "src/pages/teacher/SendQuiz.jsx": {
-    "mtime": 1785182890.0139213,
-    "ast_hash": "89c4723472c7ec86b4cf8decd4b24050",
+    "mtime": 1787445835.4625728,
+    "ast_hash": "2fcab262b26a52c1ea71e24dc9f2e2d3",
     "semantic_hash": ""
   },
   "src/session.js": {
@@ -390,7 +390,7 @@
     "semantic_hash": "ff74b0409843dfcee47116f4d6e95bbc"
   },
   "staticwebapp.config.json": {
-    "mtime": 1786948460.8547394,
+    "mtime": 1787444467.1721919,
     "ast_hash": "cb28aa4aa48749b469690370bcb20258",
     "semantic_hash": ""
   },
@@ -515,12 +515,12 @@
     "semantic_hash": "7ce1ab488f9009c21e2b35bfdfe3c3fa"
   },
   "tests/unit/api/demoData.test.js": {
-    "mtime": 1785135866.2083485,
+    "mtime": 1787444467.1883242,
     "ast_hash": "916795a23f9ccebe5b51fe1658dc4920",
     "semantic_hash": ""
   },
   "tests/unit/api/demoSendNotification.test.js": {
-    "mtime": 1785183643.3975222,
+    "mtime": 1787444467.1883242,
     "ast_hash": "ed1f251eb614552ec4e542ddca840302",
     "semantic_hash": ""
   },
@@ -620,22 +620,22 @@
     "semantic_hash": ""
   },
   "api/shared/featureIntros.js": {
-    "mtime": 1785143854.9088247,
+    "mtime": 1787444466.9795756,
     "ast_hash": "ac4d6cc07e40c81f24d63a4eb7d16822",
     "semantic_hash": ""
   },
   "api/shared/features.js": {
-    "mtime": 1785135617.9496832,
+    "mtime": 1787444466.9795756,
     "ast_hash": "d2af56e142704dadd7729bd67ce30431",
     "semantic_hash": ""
   },
   "api/shared/introEligibility.js": {
-    "mtime": 1785143865.103769,
+    "mtime": 1787444467.0108602,
     "ast_hash": "6b024dfc783ba73d5d8182bb49fa6ab4",
     "semantic_hash": ""
   },
   "api/shared/pageViewAllowlist.js": {
-    "mtime": 1785182973.9498873,
+    "mtime": 1787444467.0108602,
     "ast_hash": "c24bcc65565d0015fbe22131e73fde34",
     "semantic_hash": ""
   },
@@ -680,7 +680,7 @@
     "semantic_hash": ""
   },
   "src/components/PromoSlot.jsx": {
-    "mtime": 1785185654.8782604,
+    "mtime": 1787444467.075819,
     "ast_hash": "edfbcdebaf7b163ec95925b472250ae2",
     "semantic_hash": ""
   },
@@ -690,7 +690,7 @@
     "semantic_hash": ""
   },
   "src/components/onboarding/ProfileWizardSteps.jsx": {
-    "mtime": 1785182683.6452384,
+    "mtime": 1787444467.0830731,
     "ast_hash": "54e8001b76f92b894dfa8ef655857700",
     "semantic_hash": ""
   },
@@ -720,8 +720,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/Population.jsx": {
-    "mtime": 1783820409.5481765,
-    "ast_hash": "3fe0c9166ada9d542b66dd2988938130",
+    "mtime": 1787445835.4585595,
+    "ast_hash": "e4f3ad4173544acfbad9e57eb0b2e769",
     "semantic_hash": ""
   },
   "src/pages/teacher/Results.jsx": {
@@ -730,8 +730,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/TeacherHome.jsx": {
-    "mtime": 1786949144.6483223,
-    "ast_hash": "40d762266f107d1bb13d99db6550c83a",
+    "mtime": 1787444467.1562393,
+    "ast_hash": "0f5da87668cba2c5ee423495d0ac4dd8",
     "semantic_hash": ""
   },
   "src/teacherNav.js": {
@@ -845,8 +845,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/Evidence.jsx": {
-    "mtime": 1784068864.4217052,
-    "ast_hash": "9497c67a03167535790249136b9280b7",
+    "mtime": 1787445835.4567678,
+    "ast_hash": "8f4073bc3863518cda32727cb5bb696a",
     "semantic_hash": ""
   },
   "tests/integration/api/v4-evidence.test.js": {
@@ -865,8 +865,8 @@
     "semantic_hash": ""
   },
   "api/generationDrafts.js": {
-    "mtime": 1785724981.6225412,
-    "ast_hash": "023954002192026c7895ca67f2c274f2",
+    "mtime": 1787451996.7363963,
+    "ast_hash": "fc7b34d5e58a8c32417daf9cf1d6ff2e",
     "semantic_hash": ""
   },
   "api/generationSources.js": {
@@ -875,7 +875,7 @@
     "semantic_hash": ""
   },
   "api/shared/dailyQuota.js": {
-    "mtime": 1785724968.481662,
+    "mtime": 1787444466.9795756,
     "ast_hash": "3a64fe939ef9d4e4848f447f519952f7",
     "semantic_hash": ""
   },
@@ -885,23 +885,23 @@
     "semantic_hash": ""
   },
   "api/shared/llmAdapter.js": {
-    "mtime": 1784073330.0222657,
-    "ast_hash": "7193672421bdfa9285950d28944a335e",
+    "mtime": 1787451933.3684995,
+    "ast_hash": "fef4ece46be649b2f3c8003f80715022",
     "semantic_hash": ""
   },
   "api/shared/llmPrompts.js": {
-    "mtime": 1784073330.0242462,
-    "ast_hash": "46923feb5a7c9b7cf78bcb23f27d3788",
+    "mtime": 1787451923.5133574,
+    "ast_hash": "b803233881b59482ad3f2c5670777c49",
     "semantic_hash": ""
   },
   "api/shared/llmProviders/anthropic.js": {
-    "mtime": 1784073330.027271,
-    "ast_hash": "8feba6ce19c8fc6b574976d2d15d3457",
+    "mtime": 1787451956.3024876,
+    "ast_hash": "d9b44378fbe4e5df9a291c19d2ecb2c6",
     "semantic_hash": ""
   },
   "api/shared/llmProviders/azureOpenai.js": {
-    "mtime": 1784073330.0292838,
-    "ast_hash": "cd558277b98b685802b4278ba5af0e0a",
+    "mtime": 1787451942.858044,
+    "ast_hash": "1dc9f7c5ea3555bfcc0dadfd6760085d",
     "semantic_hash": ""
   },
   "api/shared/llmProviders/mock.js": {
@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "src/pages/teacher/GenerateQuiz.jsx": {
-    "mtime": 1785185757.263516,
-    "ast_hash": "16c9e4bf2d5b77d95ebb832483cb9142",
+    "mtime": 1787452048.2954414,
+    "ast_hash": "a1f508498e549449ffacdcf29db84941",
     "semantic_hash": ""
   },
   "src/pages/teacher/ReviewDraft.jsx": {
@@ -995,18 +995,18 @@
     "semantic_hash": ""
   },
   "api/onboardingFirstRun.js": {
-    "mtime": 1785135678.5179505,
-    "ast_hash": "84526d78bf645739439bcf747352e91c",
+    "mtime": 1787444466.9482198,
+    "ast_hash": "2eaff5d4802c33e5519f9e089b7ef6d1",
     "semantic_hash": ""
   },
   "api/questionsStarterSeed.js": {
-    "mtime": 1785135690.001779,
-    "ast_hash": "5663456b5ffd41ae5560338cc55babd9",
+    "mtime": 1787444466.9482198,
+    "ast_hash": "8a4e567c19f420968226f6d8d9443b4e",
     "semantic_hash": ""
   },
   "api/shared/firstRun.js": {
-    "mtime": 1785183348.342903,
-    "ast_hash": "abffa912fbd159eeb83b98b8054d0ccc",
+    "mtime": 1787444466.9952185,
+    "ast_hash": "1d2557840fb8931a50397ec1056c0efb",
     "semantic_hash": ""
   },
   "api/shared/getApprovedJoinRequest.js": {
@@ -1015,23 +1015,23 @@
     "semantic_hash": ""
   },
   "api/shared/gettingStarted.js": {
-    "mtime": 1785182425.096664,
-    "ast_hash": "fec5b0448e09f1276ea22e72e6db201c",
+    "mtime": 1787444466.9952185,
+    "ast_hash": "9714baa0826091a2acb0587377628e7f",
     "semantic_hash": ""
   },
   "api/shared/starterPack.js": {
-    "mtime": 1785724918.582759,
-    "ast_hash": "34c87143405fbb4c9eb4ef328f966fac",
+    "mtime": 1787444467.0108602,
+    "ast_hash": "650ab34624e5d49e39ddae9580726d53",
     "semantic_hash": ""
   },
   "api/studentQuizzes.js": {
-    "mtime": 1786948530.3611152,
+    "mtime": 1787444467.0108602,
     "ast_hash": "0bdc8e0cd9637e3ef9b8aeb5741d79ca",
     "semantic_hash": ""
   },
   "src/pages/student/StudentClass.jsx": {
-    "mtime": 1786948734.883104,
-    "ast_hash": "54936b99e9505b37ac0bc3f86fcc6f86",
+    "mtime": 1787450475.0339646,
+    "ast_hash": "bc5a5c24fc76c271381cedd7fae390f1",
     "semantic_hash": ""
   },
   "src/pushSubscribe.js": {
@@ -1040,28 +1040,28 @@
     "semantic_hash": ""
   },
   "src/studentClasses.js": {
-    "mtime": 1786948613.1382754,
+    "mtime": 1787444467.1562393,
     "ast_hash": "874623cc7063f76501b9b0bb67d6b5c0",
     "semantic_hash": ""
   },
   "tests/integration/api/v460-first-run.test.js": {
-    "mtime": 1785144171.0014489,
-    "ast_hash": "edb6d3c9e3897b98068ad75b6ca9536c",
+    "mtime": 1787444467.1721919,
+    "ast_hash": "13a9fa9be7dd0388d7a1436a82eed14b",
     "semantic_hash": ""
   },
   "tests/setup/loadLocalSettingsEnv.js": {
-    "mtime": 1785133401.2005136,
-    "ast_hash": "0b280c3bd103e56eaa2124a06c8fc304",
+    "mtime": 1787444467.1721919,
+    "ast_hash": "e69bd43b6565da6388267f223eba1ad0",
     "semantic_hash": ""
   },
   "tests/unit/api/activationFunnel.test.js": {
-    "mtime": 1785144112.7958415,
-    "ast_hash": "f65923d3892b92b9c897d3cccf6071dc",
+    "mtime": 1787444467.1883242,
+    "ast_hash": "3fb1e175fe3faa4b76479001d1d940e7",
     "semantic_hash": ""
   },
   "tests/unit/api/firstRun.test.js": {
-    "mtime": 1785143320.1328864,
-    "ast_hash": "9bca2914dd1088da9eee2c2262bbfc17",
+    "mtime": 1787444467.1883242,
+    "ast_hash": "9293f4d8a62bd0b644448a7385872b20",
     "semantic_hash": ""
   },
   "tests/unit/api/getApprovedJoinRequest.test.js": {
@@ -1070,8 +1070,8 @@
     "semantic_hash": ""
   },
   "tests/unit/api/gettingStarted.test.js": {
-    "mtime": 1785182432.022518,
-    "ast_hash": "937732589cf20679d1706893c7f744e5",
+    "mtime": 1787444467.1883242,
+    "ast_hash": "b9727fd3da28815237f0cc3f5e1333e5",
     "semantic_hash": ""
   },
   "tests/unit/api/questions-put.regression-1.test.js": {
@@ -1080,93 +1080,128 @@
     "semantic_hash": ""
   },
   "tests/unit/studentReconcile.test.js": {
-    "mtime": 1785113394.8550992,
-    "ast_hash": "200bdd965c24ecbf5353f4123b2de82c",
+    "mtime": 1787444467.204146,
+    "ast_hash": "378a8035b93ab4ad055f2e1c27a9a8ba",
     "semantic_hash": ""
   },
   "src/components/GettingStartedChecklist.jsx": {
-    "mtime": 1786949204.305343,
-    "ast_hash": "c4d1f72e21bcd33995bb006280ef6a73",
+    "mtime": 1787444467.075819,
+    "ast_hash": "006638ed9f8a8a2479307a5214c6be1c",
     "semantic_hash": ""
   },
   "src/components/StarterSeedCta.jsx": {
-    "mtime": 1785182793.303076,
-    "ast_hash": "f868b30144b69180ef762df5e8401550",
+    "mtime": 1787444467.0830731,
+    "ast_hash": "02197ab96462006913528a41280ffb22",
     "semantic_hash": ""
   },
   "src/pages/FirstRunFinale.jsx": {
-    "mtime": 1785185737.2012525,
-    "ast_hash": "3daa65c42e7fd6db3e4dabadbeaa4657",
+    "mtime": 1787444467.1238122,
+    "ast_hash": "4b0e05ec81210693047c5a7c6d57b523",
     "semantic_hash": ""
   },
   "src/data/fourCell.js": {
-    "mtime": 1786948497.1899838,
-    "ast_hash": "0cb478320f3e1246f7261fcc78e462c5",
+    "mtime": 1787444467.0830731,
+    "ast_hash": "93b5acb20384d11ef361d3716b8b8edd",
     "semantic_hash": ""
   },
   "src/hooks/useStagedPending.js": {
-    "mtime": 1785185692.4748802,
-    "ast_hash": "1d45247d71260d66f7c24f12af3f4a1e",
+    "mtime": 1787444467.0912104,
+    "ast_hash": "456aaceff9d18d42475617d897a9ccf3",
     "semantic_hash": ""
   },
   "src/hooks/useWindowWidth.js": {
-    "mtime": 1785185684.9783995,
-    "ast_hash": "399480628328197a6dd74af373fe1cc6",
+    "mtime": 1787444467.0912104,
+    "ast_hash": "bbec84ac80d01356fbd545faf8d2ed2f",
     "semantic_hash": ""
   },
   "src/components/ClassJoinQR.jsx": {
-    "mtime": 1786948637.298694,
-    "ast_hash": "4980b7401fc61751c12d49f59a0399b1",
+    "mtime": 1787444467.075819,
+    "ast_hash": "c88667d7580cfeeae2b75f1e16c0ccae",
     "semantic_hash": ""
   },
   "src/components/QRCode.jsx": {
-    "mtime": 1786948620.5022638,
-    "ast_hash": "4e03753719f2e61ae18e0011d7b6d87d",
+    "mtime": 1787444467.075819,
+    "ast_hash": "c96fe6c373c05cc235d7f99e60f9ba9e",
     "semantic_hash": ""
   },
   "src/components/home/HomeCalendar.jsx": {
-    "mtime": 1786948959.9461088,
-    "ast_hash": "7cdca9ec4c4d9cc2ef025822b5aa5ef0",
+    "mtime": 1787444467.0830731,
+    "ast_hash": "e75595a9d671534d0f0db9e885a72ca6",
     "semantic_hash": ""
   },
   "src/data/alsoWaiting.js": {
-    "mtime": 1786949087.4723935,
-    "ast_hash": "f40651ab7b738ab025f333b8c09f6127",
+    "mtime": 1787444467.0830731,
+    "ast_hash": "a74a8bd54c034f287adc167f71e8f48e",
     "semantic_hash": ""
   },
   "src/data/confidenceTally.js": {
-    "mtime": 1786948745.3352904,
-    "ast_hash": "3375cda1b603525977115f04076c09dc",
+    "mtime": 1787450307.9840055,
+    "ast_hash": "e3a45d8591def73dace08f4be0a19bf9",
     "semantic_hash": ""
   },
   "src/data/homeCalendar.js": {
-    "mtime": 1786948948.5329986,
-    "ast_hash": "59a1b8c04cb63fac2b88eae529e2c21a",
+    "mtime": 1787444467.0912104,
+    "ast_hash": "8a40eeb69e8a21ed144584938ac1ce1b",
     "semantic_hash": ""
   },
   "tests/integration/api/v470-student-quizzes.test.js": {
-    "mtime": 1786948597.930277,
-    "ast_hash": "cdf31ecd3badde1c5da6e2005a5acc76",
+    "mtime": 1787444467.1721919,
+    "ast_hash": "7c666c2f998393e55eca23baaec056f8",
     "semantic_hash": ""
   },
   "tests/unit/alsoWaiting.test.js": {
-    "mtime": 1786949099.890224,
-    "ast_hash": "eff6bd99f5073028418c66db9fd5b141",
+    "mtime": 1787444467.1883242,
+    "ast_hash": "b61590e7e04174ebc0c732a2c5398577",
     "semantic_hash": ""
   },
   "tests/unit/api/studentQuizzesState.test.js": {
-    "mtime": 1786948606.6302702,
-    "ast_hash": "18d3a696c8fbc405679bc4ace81eb087",
+    "mtime": 1787444467.204146,
+    "ast_hash": "5f0a36a031c8e86f8a1d542193b7e73a",
     "semantic_hash": ""
   },
   "tests/unit/confidenceTally.test.js": {
-    "mtime": 1786949018.5742712,
-    "ast_hash": "393726643a51629e310d6dbc379f2be9",
+    "mtime": 1787444467.204146,
+    "ast_hash": "37335751e38ad3f474d595cf28546b58",
     "semantic_hash": ""
   },
   "tests/unit/homeCalendar.test.js": {
-    "mtime": 1786949378.2155151,
-    "ast_hash": "64fd0eb5783f6c2ccd2e290b235b6d38",
+    "mtime": 1787444467.204146,
+    "ast_hash": "b3c15a9bd5cd6512b711bd1789b1b042",
+    "semantic_hash": ""
+  },
+  "api/shared/questionStyles.js": {
+    "mtime": 1787451902.971358,
+    "ast_hash": "c416d6fc6175aaf9c33e1beb99ebd16f",
+    "semantic_hash": ""
+  },
+  "src/data/questionStyles.js": {
+    "mtime": 1787451908.9409661,
+    "ast_hash": "f16bdd728ee1a28d8f0352774161aa87",
+    "semantic_hash": ""
+  },
+  "src/data/submittedAnswers.js": {
+    "mtime": 1787450296.2454588,
+    "ast_hash": "bd6edf31866e7a26cb8dcdca399579bb",
+    "semantic_hash": ""
+  },
+  "src/pages/student/QuizReview.jsx": {
+    "mtime": 1787450403.889809,
+    "ast_hash": "828fb7bdfab6419aec354e4cb3732ec9",
+    "semantic_hash": ""
+  },
+  "tests/unit/api/llmPrompts.test.js": {
+    "mtime": 1787452059.4451973,
+    "ast_hash": "cd435299fd4da2619a0176db240099ea",
+    "semantic_hash": ""
+  },
+  "tests/unit/api/questionStyles.test.js": {
+    "mtime": 1787452067.4266937,
+    "ast_hash": "19837563f9add909ae0bd2c93415c582",
+    "semantic_hash": ""
+  },
+  "tests/unit/submittedAnswers.test.js": {
+    "mtime": 1787450530.2210336,
+    "ast_hash": "3b271ced403d06f940c39c15c7d8f431",
     "semantic_hash": ""
   }
 }

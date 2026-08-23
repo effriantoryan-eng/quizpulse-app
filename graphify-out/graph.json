@@ -1300,7 +1300,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_fuzzymatchhelper",
-      "community": 102,
+      "community": 6,
       "norm_label": "fuzzymatchhelper.js"
     },
     {
@@ -1310,7 +1310,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_fuzzymatchhelper_fuse",
-      "community": 102,
+      "community": 6,
       "norm_label": "fuse"
     },
     {
@@ -1320,7 +1320,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_fuzzymatchhelper_runfuzzymatch",
-      "community": 102,
+      "community": 6,
       "norm_label": "runfuzzymatch()"
     },
     {
@@ -1434,10 +1434,20 @@
       "norm_label": "{ isvalidtopictag }"
     },
     {
-      "label": "{ questionIdForDraft, quizIdForDraft, resolveSourceRefLabel }",
+      "label": "{ isValidQuestionStyle }",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
       "source_location": "L16",
+      "_origin": "ast",
+      "id": "api_generationdrafts_isvalidquestionstyle",
+      "community": 87,
+      "norm_label": "{ isvalidquestionstyle }"
+    },
+    {
+      "label": "{ questionIdForDraft, quizIdForDraft, resolveSourceRefLabel }",
+      "file_type": "code",
+      "source_file": "api/generationDrafts.js",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "api_generationdrafts_questionidfordraft_quizidfordraft_resolvesourcereflabel",
       "community": 87,
@@ -1447,7 +1457,7 @@
       "label": "client",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "api_generationdrafts_client",
       "community": 87,
@@ -1457,7 +1467,7 @@
       "label": "database",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L19",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "api_generationdrafts_database",
       "community": 87,
@@ -1467,7 +1477,7 @@
       "label": "sourcesContainer",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "api_generationdrafts_sourcescontainer",
       "community": 87,
@@ -1477,7 +1487,7 @@
       "label": "draftsContainer",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L21",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "api_generationdrafts_draftscontainer",
       "community": 87,
@@ -1487,7 +1497,7 @@
       "label": "questionsContainer",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L22",
+      "source_location": "L23",
       "_origin": "ast",
       "id": "api_generationdrafts_questionscontainer",
       "community": 87,
@@ -1497,7 +1507,7 @@
       "label": "quizzesContainer",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L23",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "api_generationdrafts_quizzescontainer",
       "community": 87,
@@ -1507,7 +1517,7 @@
       "label": "teachersContainer",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L24",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "api_generationdrafts_teacherscontainer",
       "community": 87,
@@ -1517,7 +1527,7 @@
       "label": "readOwnDoc()",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L36",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "api_generationdrafts_readowndoc",
       "community": 87,
@@ -1527,7 +1537,7 @@
       "label": "plainMessage()",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L46",
+      "source_location": "L47",
       "_origin": "ast",
       "id": "api_generationdrafts_plainmessage",
       "community": 87,
@@ -1537,7 +1547,7 @@
       "label": "respond()",
       "file_type": "code",
       "source_file": "api/generationDrafts.js",
-      "source_location": "L59",
+      "source_location": "L60",
       "_origin": "ast",
       "id": "api_generationdrafts_respond",
       "community": 87,
@@ -1920,7 +1930,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "api_institutions_respond",
-      "community": 78,
+      "community": 79,
       "norm_label": "respond()"
     },
     {
@@ -2140,7 +2150,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_logger",
-      "community": 27,
+      "community": 79,
       "norm_label": "logger.js"
     },
     {
@@ -2150,7 +2160,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "api_logger_logrequest",
-      "community": 27,
+      "community": 79,
       "norm_label": "logrequest()"
     },
     {
@@ -2290,7 +2300,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_metrics",
-      "community": 21,
+      "community": 22,
       "norm_label": "metrics.js"
     },
     {
@@ -2300,7 +2310,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_metrics_app",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ app }"
     },
     {
@@ -2310,7 +2320,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "api_metrics_authenticateadmin",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ authenticateadmin }"
     },
     {
@@ -2320,7 +2330,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "api_metrics_getcallerscope_requirerole_scopeerror_roles",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ getcallerscope, requirerole, scopeerror, roles }"
     },
     {
@@ -2330,7 +2340,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_metrics_ratelimit",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ ratelimit }"
     },
     {
@@ -2340,7 +2350,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_metrics_logrequest",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ logrequest }"
     },
     {
@@ -2350,7 +2360,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_metrics_exclude_demo_fragment",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ exclude_demo_fragment }"
     },
     {
@@ -2360,7 +2370,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "api_metrics_computerangequizstats",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ computerangequizstats }"
     },
     {
@@ -2370,7 +2380,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "api_metrics_getrangestart_range_days",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ getrangestart, range_days }"
     },
     {
@@ -2380,7 +2390,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "api_metrics_getcontainers",
-      "community": 21,
+      "community": 22,
       "norm_label": "getcontainers()"
     },
     {
@@ -2390,7 +2400,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "api_metrics_allowed_ranges",
-      "community": 21,
+      "community": 22,
       "norm_label": "allowed_ranges"
     },
     {
@@ -2410,7 +2420,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "api_metrics_respond",
-      "community": 21,
+      "community": 22,
       "norm_label": "respond()"
     },
     {
@@ -2420,7 +2430,7 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "api_metrics_buildrealtotals",
-      "community": 21,
+      "community": 22,
       "norm_label": "buildrealtotals()"
     },
     {
@@ -2440,7 +2450,7 @@
       "source_location": "L158",
       "_origin": "ast",
       "id": "api_metrics_buildstubbedmetrics",
-      "community": 21,
+      "community": 22,
       "norm_label": "buildstubbedmetrics()"
     },
     {
@@ -2560,7 +2570,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_onboardingfirstrun",
-      "community": 84,
+      "community": 99,
       "norm_label": "onboardingfirstrun.js"
     },
     {
@@ -2570,7 +2580,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_app",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ app }"
     },
     {
@@ -2580,7 +2590,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_cosmosclient",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ cosmosclient }"
     },
     {
@@ -2590,7 +2600,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_ratelimit_getclientip",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ ratelimit, getclientip }"
     },
     {
@@ -2600,7 +2610,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_logrequest",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ logrequest }"
     },
     {
@@ -2610,7 +2620,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_authenticateteacher",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ authenticateteacher }"
     },
     {
@@ -2620,7 +2630,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_getteacher",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ getteacher }"
     },
     {
@@ -2630,7 +2640,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_feature_first_run",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ feature_first_run }"
     },
     {
@@ -2640,7 +2650,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_runfirstrun",
-      "community": 84,
+      "community": 99,
       "norm_label": "{ runfirstrun }"
     },
     {
@@ -2650,7 +2660,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_client",
-      "community": 84,
+      "community": 99,
       "norm_label": "client"
     },
     {
@@ -2660,7 +2670,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_database",
-      "community": 84,
+      "community": 99,
       "norm_label": "database"
     },
     {
@@ -2670,7 +2680,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_classescontainer",
-      "community": 84,
+      "community": 99,
       "norm_label": "classescontainer"
     },
     {
@@ -2680,7 +2690,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_questionscontainer",
-      "community": 84,
+      "community": 99,
       "norm_label": "questionscontainer"
     },
     {
@@ -2690,7 +2700,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_quizzescontainer",
-      "community": 84,
+      "community": 99,
       "norm_label": "quizzescontainer"
     },
     {
@@ -2700,7 +2710,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "api_onboardingfirstrun_respond",
-      "community": 84,
+      "community": 99,
       "norm_label": "respond()"
     },
     {
@@ -3150,7 +3160,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "api_questions_respond",
-      "community": 12,
+      "community": 79,
       "norm_label": "respond()"
     },
     {
@@ -3160,7 +3170,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_questionsstarterseed",
-      "community": 84,
+      "community": 2,
       "norm_label": "questionsstarterseed.js"
     },
     {
@@ -3170,7 +3180,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_questionsstarterseed_app",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ app }"
     },
     {
@@ -3180,7 +3190,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_questionsstarterseed_cosmosclient",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ cosmosclient }"
     },
     {
@@ -3190,7 +3200,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "api_questionsstarterseed_ratelimit_getclientip",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ ratelimit, getclientip }"
     },
     {
@@ -3200,7 +3210,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "api_questionsstarterseed_logrequest",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ logrequest }"
     },
     {
@@ -3210,7 +3220,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "api_questionsstarterseed_authenticateteacher",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ authenticateteacher }"
     },
     {
@@ -3220,7 +3230,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "api_questionsstarterseed_feature_first_run",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ feature_first_run }"
     },
     {
@@ -3230,7 +3240,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "api_questionsstarterseed_seedstarterquestions",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ seedstarterquestions }"
     },
     {
@@ -3240,7 +3250,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "api_questionsstarterseed_client",
-      "community": 84,
+      "community": 2,
       "norm_label": "client"
     },
     {
@@ -3250,7 +3260,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "api_questionsstarterseed_database",
-      "community": 84,
+      "community": 2,
       "norm_label": "database"
     },
     {
@@ -3260,7 +3270,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "api_questionsstarterseed_questionscontainer",
-      "community": 84,
+      "community": 2,
       "norm_label": "questionscontainer"
     },
     {
@@ -3270,7 +3280,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "api_questionsstarterseed_respond",
-      "community": 84,
+      "community": 2,
       "norm_label": "respond()"
     },
     {
@@ -3280,7 +3290,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_quizzes",
-      "community": 2,
+      "community": 67,
       "norm_label": "quizzes.js"
     },
     {
@@ -3290,7 +3300,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_quizzes_app",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ app }"
     },
     {
@@ -3300,7 +3310,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "api_quizzes_cosmosclient",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ cosmosclient }"
     },
     {
@@ -3310,7 +3320,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "api_quizzes_ratelimit_getclientip",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ ratelimit, getclientip }"
     },
     {
@@ -3320,7 +3330,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_quizzes_logrequest",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ logrequest }"
     },
     {
@@ -3330,7 +3340,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_quizzes_authenticateteacher_extractbearer",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ authenticateteacher, extractbearer }"
     },
     {
@@ -3340,7 +3350,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_quizzes_assertscope_scopeerror",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ assertscope, scopeerror }"
     },
     {
@@ -3350,7 +3360,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "api_quizzes_isvalidtopictag",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ isvalidtopictag }"
     },
     {
@@ -3360,7 +3370,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "api_quizzes_cloneidforquiz",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ cloneidforquiz }"
     },
     {
@@ -3370,7 +3380,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "api_quizzes_sendnotificationforquiz",
-      "community": 2,
+      "community": 67,
       "norm_label": "{ sendnotificationforquiz }"
     },
     {
@@ -3380,7 +3390,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "api_quizzes_client",
-      "community": 2,
+      "community": 67,
       "norm_label": "client"
     },
     {
@@ -3390,7 +3400,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "api_quizzes_database",
-      "community": 2,
+      "community": 67,
       "norm_label": "database"
     },
     {
@@ -3400,7 +3410,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "api_quizzes_container",
-      "community": 2,
+      "community": 67,
       "norm_label": "container"
     },
     {
@@ -3410,7 +3420,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "api_quizzes_questionscontainer",
-      "community": 2,
+      "community": 67,
       "norm_label": "questionscontainer"
     },
     {
@@ -3420,7 +3430,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "api_quizzes_classescontainer",
-      "community": 2,
+      "community": 67,
       "norm_label": "classescontainer"
     },
     {
@@ -3430,7 +3440,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "api_quizzes_teacherscontainer",
-      "community": 2,
+      "community": 67,
       "norm_label": "teacherscontainer"
     },
     {
@@ -3440,7 +3450,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "api_quizzes_respond",
-      "community": 2,
+      "community": 67,
       "norm_label": "respond()"
     },
     {
@@ -3450,7 +3460,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_ratelimit",
-      "community": 28,
+      "community": 15,
       "norm_label": "ratelimit.js"
     },
     {
@@ -3460,7 +3470,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_ratelimit_store",
-      "community": 28,
+      "community": 15,
       "norm_label": "_store"
     },
     {
@@ -3470,7 +3480,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "api_ratelimit_ratelimit",
-      "community": 28,
+      "community": 15,
       "norm_label": "ratelimit()"
     },
     {
@@ -3480,7 +3490,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "api_ratelimit_getclientip",
-      "community": 28,
+      "community": 15,
       "norm_label": "getclientip()"
     },
     {
@@ -3830,7 +3840,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "api_schooladmin_respond",
-      "community": 1,
+      "community": 79,
       "norm_label": "respond()"
     },
     {
@@ -4170,7 +4180,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "api_sendnotification_ensurevapid",
-      "community": 99,
+      "community": 5,
       "norm_label": "ensurevapid()"
     },
     {
@@ -4180,7 +4190,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "api_sendnotification_sendnotificationforquiz",
-      "community": 99,
+      "community": 5,
       "norm_label": "sendnotificationforquiz()"
     },
     {
@@ -4270,7 +4280,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_auditlog",
-      "community": 1,
+      "community": 78,
       "norm_label": "auditlog.js"
     },
     {
@@ -4280,7 +4290,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "shared_auditlog_cosmosclient",
-      "community": 1,
+      "community": 78,
       "norm_label": "{ cosmosclient }"
     },
     {
@@ -4290,7 +4300,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "shared_auditlog_client",
-      "community": 1,
+      "community": 78,
       "norm_label": "client"
     },
     {
@@ -4300,7 +4310,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "shared_auditlog_database",
-      "community": 1,
+      "community": 78,
       "norm_label": "database"
     },
     {
@@ -4310,7 +4320,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "shared_auditlog_auditlogcontainer",
-      "community": 1,
+      "community": 78,
       "norm_label": "auditlogcontainer"
     },
     {
@@ -4320,7 +4330,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "shared_auditlog_writeaudit",
-      "community": 1,
+      "community": 78,
       "norm_label": "writeaudit()"
     },
     {
@@ -4420,7 +4430,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_createclass",
-      "community": 88,
+      "community": 13,
       "norm_label": "createclass.js"
     },
     {
@@ -4430,7 +4440,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "shared_createclass_crypto",
-      "community": 88,
+      "community": 13,
       "norm_label": "crypto"
     },
     {
@@ -4440,7 +4450,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "shared_createclass_classlimiterror",
-      "community": 88,
+      "community": 13,
       "norm_label": "classlimiterror"
     },
     {
@@ -4450,7 +4460,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "shared_createclass_classlimiterror_constructor",
-      "community": 88,
+      "community": 13,
       "norm_label": ".constructor()"
     },
     {
@@ -4460,7 +4470,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "shared_createclass_generatejoincode",
-      "community": 88,
+      "community": 13,
       "norm_label": "generatejoincode()"
     },
     {
@@ -4470,7 +4480,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "shared_createclass_createrealclass",
-      "community": 88,
+      "community": 13,
       "norm_label": "createrealclass()"
     },
     {
@@ -4690,7 +4700,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_featureintros",
-      "community": 16,
+      "community": 88,
       "norm_label": "featureintros.js"
     },
     {
@@ -4700,7 +4710,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "shared_featureintros_feature_intro_keys",
-      "community": 16,
+      "community": 88,
       "norm_label": "feature_intro_keys"
     },
     {
@@ -4710,7 +4720,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "shared_featureintros_isvalidintrokey",
-      "community": 16,
+      "community": 88,
       "norm_label": "isvalidintrokey()"
     },
     {
@@ -4720,7 +4730,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_features",
-      "community": 16,
+      "community": 88,
       "norm_label": "features.js"
     },
     {
@@ -4850,7 +4860,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_gettingstarted",
-      "community": 16,
+      "community": 102,
       "norm_label": "gettingstarted.js"
     },
     {
@@ -4860,7 +4870,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "shared_gettingstarted_exclude_demo_fragment",
-      "community": 16,
+      "community": 102,
       "norm_label": "{ exclude_demo_fragment }"
     },
     {
@@ -4870,7 +4880,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "shared_gettingstarted_getting_started_steps",
-      "community": 16,
+      "community": 102,
       "norm_label": "getting_started_steps"
     },
     {
@@ -4880,7 +4890,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "shared_gettingstarted_countpositive",
-      "community": 16,
+      "community": 102,
       "norm_label": "countpositive()"
     },
     {
@@ -4890,7 +4900,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "shared_gettingstarted_computegettingstartedsteps",
-      "community": 16,
+      "community": 102,
       "norm_label": "computegettingstartedsteps()"
     },
     {
@@ -4900,7 +4910,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "shared_gettingstarted_isreleased",
-      "community": 16,
+      "community": 102,
       "norm_label": "isreleased()"
     },
     {
@@ -4910,7 +4920,7 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "shared_gettingstarted_computegettingstarted",
-      "community": 16,
+      "community": 102,
       "norm_label": "computegettingstarted()"
     },
     {
@@ -4920,7 +4930,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_introeligibility",
-      "community": 16,
+      "community": 88,
       "norm_label": "introeligibility.js"
     },
     {
@@ -4930,7 +4940,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "shared_introeligibility_exclude_demo_fragment",
-      "community": 16,
+      "community": 88,
       "norm_label": "{ exclude_demo_fragment }"
     },
     {
@@ -4940,7 +4950,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "shared_introeligibility_feature_intro_keys",
-      "community": 16,
+      "community": 88,
       "norm_label": "{ feature_intro_keys }"
     },
     {
@@ -4950,7 +4960,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "shared_introeligibility_feature_apst_export_feature_ai_generation",
-      "community": 16,
+      "community": 88,
       "norm_label": "{ feature_apst_export, feature_ai_generation }"
     },
     {
@@ -4960,7 +4970,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "shared_introeligibility_flagdarkkeys",
-      "community": 16,
+      "community": 88,
       "norm_label": "flagdarkkeys()"
     },
     {
@@ -4970,7 +4980,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "shared_introeligibility_candidate_keys",
-      "community": 16,
+      "community": 88,
       "norm_label": "candidate_keys"
     },
     {
@@ -4980,7 +4990,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "shared_introeligibility_computeeligibleintros",
-      "community": 16,
+      "community": 88,
       "norm_label": "computeeligibleintros()"
     },
     {
@@ -5124,14 +5134,14 @@
       "norm_label": "llmprompts.js"
     },
     {
-      "label": "{ MIN_QUESTIONS, MAX_QUESTIONS }",
+      "label": "{ stylePromptLine }",
       "file_type": "code",
       "source_file": "api/shared/llmPrompts.js",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "shared_llmprompts_min_questions_max_questions",
+      "id": "shared_llmprompts_stylepromptline",
       "community": 86,
-      "norm_label": "{ min_questions, max_questions }"
+      "norm_label": "{ stylepromptline }"
     },
     {
       "label": "buildSystemPrompt()",
@@ -5207,7 +5217,7 @@
       "label": "{ buildSystemPrompt, buildUserPrompt }",
       "file_type": "code",
       "source_file": "api/shared/llmProviders/azureOpenai.js",
-      "source_location": "L6",
+      "source_location": "L5",
       "_origin": "ast",
       "id": "llmproviders_azureopenai_buildsystemprompt_builduserprompt",
       "community": 86,
@@ -5217,7 +5227,7 @@
       "label": "requiredEnv",
       "file_type": "code",
       "source_file": "api/shared/llmProviders/azureOpenai.js",
-      "source_location": "L8",
+      "source_location": "L7",
       "_origin": "ast",
       "id": "llmproviders_azureopenai_requiredenv",
       "community": 86,
@@ -5227,7 +5237,7 @@
       "label": "generate()",
       "file_type": "code",
       "source_file": "api/shared/llmProviders/azureOpenai.js",
-      "source_location": "L10",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "llmproviders_azureopenai_generate",
       "community": 86,
@@ -5490,7 +5500,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_profileschema",
-      "community": 16,
+      "community": 112,
       "norm_label": "profileschema.js"
     },
     {
@@ -5500,7 +5510,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "shared_profileschema_subjects",
-      "community": 16,
+      "community": 112,
       "norm_label": "subjects"
     },
     {
@@ -5510,7 +5520,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "shared_profileschema_registration_statuses",
-      "community": 16,
+      "community": 112,
       "norm_label": "registration_statuses"
     },
     {
@@ -5520,7 +5530,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "shared_profileschema_profile_fields",
-      "community": 16,
+      "community": 112,
       "norm_label": "profile_fields"
     },
     {
@@ -5530,7 +5540,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "shared_profileschema_validateprofile",
-      "community": 16,
+      "community": 112,
       "norm_label": "validateprofile()"
     },
     {
@@ -5540,8 +5550,58 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "shared_profileschema_isprofilecomplete",
-      "community": 16,
+      "community": 112,
       "norm_label": "isprofilecomplete()"
+    },
+    {
+      "label": "questionStyles.js",
+      "file_type": "code",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "shared_questionstyles",
+      "community": 86,
+      "norm_label": "questionstyles.js"
+    },
+    {
+      "label": "QUESTION_STYLES",
+      "file_type": "code",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "shared_questionstyles_question_styles",
+      "community": 86,
+      "norm_label": "question_styles"
+    },
+    {
+      "label": "STYLE_PROMPT",
+      "file_type": "code",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "shared_questionstyles_style_prompt",
+      "community": 86,
+      "norm_label": "style_prompt"
+    },
+    {
+      "label": "isValidQuestionStyle()",
+      "file_type": "code",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "shared_questionstyles_isvalidquestionstyle",
+      "community": 86,
+      "norm_label": "isvalidquestionstyle()"
+    },
+    {
+      "label": "stylePromptLine()",
+      "file_type": "code",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "shared_questionstyles_stylepromptline",
+      "community": 86,
+      "norm_label": "stylepromptline()"
     },
     {
       "label": "rangeQuizStats.js",
@@ -5820,7 +5880,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "shared_starterpack",
-      "community": 84,
+      "community": 2,
       "norm_label": "starterpack.js"
     },
     {
@@ -5830,7 +5890,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "shared_starterpack_deterministicid",
-      "community": 84,
+      "community": 2,
       "norm_label": "{ deterministicid }"
     },
     {
@@ -5840,7 +5900,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "shared_starterpack_starter_pack",
-      "community": 84,
+      "community": 2,
       "norm_label": "starter_pack"
     },
     {
@@ -5850,7 +5910,7 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "shared_starterpack_starterquestionid",
-      "community": 84,
+      "community": 2,
       "norm_label": "starterquestionid()"
     },
     {
@@ -5860,7 +5920,7 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "shared_starterpack_seedstarterquestions",
-      "community": 84,
+      "community": 2,
       "norm_label": "seedstarterquestions()"
     },
     {
@@ -5930,7 +5990,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "shared_topictags_isvalidtopictag",
-      "community": 23,
+      "community": 91,
       "norm_label": "isvalidtopictag()"
     },
     {
@@ -6320,7 +6380,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_subscribe",
-      "community": 27,
+      "community": 108,
       "norm_label": "subscribe.js"
     },
     {
@@ -6330,7 +6390,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_subscribe_app",
-      "community": 27,
+      "community": 108,
       "norm_label": "{ app }"
     },
     {
@@ -6340,7 +6400,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "api_subscribe_cosmosclient",
-      "community": 27,
+      "community": 108,
       "norm_label": "{ cosmosclient }"
     },
     {
@@ -6350,7 +6410,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "api_subscribe_ratelimit",
-      "community": 27,
+      "community": 108,
       "norm_label": "{ ratelimit }"
     },
     {
@@ -6360,7 +6420,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_subscribe_logrequest",
-      "community": 27,
+      "community": 108,
       "norm_label": "{ logrequest }"
     },
     {
@@ -6370,7 +6430,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_subscribe_crypto",
-      "community": 27,
+      "community": 108,
       "norm_label": "crypto"
     },
     {
@@ -6380,7 +6440,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "api_subscribe_client",
-      "community": 27,
+      "community": 108,
       "norm_label": "client"
     },
     {
@@ -6390,7 +6450,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "api_subscribe_database",
-      "community": 27,
+      "community": 108,
       "norm_label": "database"
     },
     {
@@ -6400,7 +6460,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "api_subscribe_subscriptionscontainer",
-      "community": 27,
+      "community": 108,
       "norm_label": "subscriptionscontainer"
     },
     {
@@ -6410,7 +6470,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "api_subscribe_joinrequestscontainer",
-      "community": 27,
+      "community": 108,
       "norm_label": "joinrequestscontainer"
     },
     {
@@ -6420,7 +6480,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "api_subscribe_respond",
-      "community": 27,
+      "community": 108,
       "norm_label": "respond()"
     },
     {
@@ -6860,7 +6920,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "api_teacherslist_respond",
-      "community": 27,
+      "community": 28,
       "norm_label": "respond()"
     },
     {
@@ -6990,7 +7050,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_vapidpublickey",
-      "community": 27,
+      "community": 79,
       "norm_label": "vapidpublickey.js"
     },
     {
@@ -7000,7 +7060,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_vapidpublickey_app",
-      "community": 27,
+      "community": 79,
       "norm_label": "{ app }"
     },
     {
@@ -7010,7 +7070,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "api_vapidpublickey_logrequest",
-      "community": 27,
+      "community": 79,
       "norm_label": "{ logrequest }"
     },
     {
@@ -7020,7 +7080,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "api_vapidpublickey_respond",
-      "community": 27,
+      "community": 79,
       "norm_label": "respond()"
     },
     {
@@ -7587,7 +7647,7 @@
       "label": "RequireAuth()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L41",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "src_app_requireauth",
       "community": 93,
@@ -7597,7 +7657,7 @@
       "label": "RequireTeacher()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L55",
+      "source_location": "L56",
       "_origin": "ast",
       "id": "src_app_requireteacher",
       "community": 4,
@@ -7607,7 +7667,7 @@
       "label": "FULL_WIDTH_ROUTES",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L89",
+      "source_location": "L90",
       "_origin": "ast",
       "id": "src_app_full_width_routes",
       "community": 4,
@@ -7617,7 +7677,7 @@
       "label": "AppRoutes()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L91",
+      "source_location": "L92",
       "_origin": "ast",
       "id": "src_app_approutes",
       "community": 4,
@@ -7627,7 +7687,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L149",
+      "source_location": "L152",
       "_origin": "ast",
       "id": "src_app_app",
       "community": 7,
@@ -8230,7 +8290,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "contexts_authcontext",
-      "community": 7,
+      "community": 93,
       "norm_label": "authcontext.jsx"
     },
     {
@@ -8240,7 +8300,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "contexts_authcontext_authcontext",
-      "community": 7,
+      "community": 93,
       "norm_label": "authcontext"
     },
     {
@@ -8250,7 +8310,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "contexts_authcontext_authprovider",
-      "community": 7,
+      "community": 93,
       "norm_label": "authprovider()"
     },
     {
@@ -8340,7 +8400,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "data_confidencetally",
-      "community": 22,
+      "community": 80,
       "norm_label": "confidencetally.js"
     },
     {
@@ -8350,7 +8410,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "data_confidencetally_tallyconfidence",
-      "community": 22,
+      "community": 80,
       "norm_label": "tallyconfidence()"
     },
     {
@@ -8360,8 +8420,28 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "data_confidencetally_tallysummarytext",
-      "community": 22,
+      "community": 80,
       "norm_label": "tallysummarytext()"
+    },
+    {
+      "label": "CONFIDENCE_LABELS",
+      "file_type": "code",
+      "source_file": "src/data/confidenceTally.js",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "data_confidencetally_confidence_labels",
+      "community": 80,
+      "norm_label": "confidence_labels"
+    },
+    {
+      "label": "confidenceTrend()",
+      "file_type": "code",
+      "source_file": "src/data/confidenceTally.js",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "data_confidencetally_confidencetrend",
+      "community": 80,
+      "norm_label": "confidencetrend()"
     },
     {
       "label": "encouragements.js",
@@ -8370,7 +8450,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "data_encouragements",
-      "community": 22,
+      "community": 80,
       "norm_label": "encouragements.js"
     },
     {
@@ -8380,7 +8460,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "data_encouragements_encouragements",
-      "community": 22,
+      "community": 80,
       "norm_label": "encouragements"
     },
     {
@@ -8494,6 +8574,86 @@
       "norm_label": "monthgrid()"
     },
     {
+      "label": "questionStyles.js",
+      "file_type": "code",
+      "source_file": "src/data/questionStyles.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "data_questionstyles",
+      "community": 9,
+      "norm_label": "questionstyles.js"
+    },
+    {
+      "label": "QUESTION_STYLES",
+      "file_type": "code",
+      "source_file": "src/data/questionStyles.js",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "data_questionstyles_question_styles",
+      "community": 9,
+      "norm_label": "question_styles"
+    },
+    {
+      "label": "submittedAnswers.js",
+      "file_type": "code",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "data_submittedanswers",
+      "community": 80,
+      "norm_label": "submittedanswers.js"
+    },
+    {
+      "label": "submittedKey()",
+      "file_type": "code",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "data_submittedanswers_submittedkey",
+      "community": 80,
+      "norm_label": "submittedkey()"
+    },
+    {
+      "label": "saveSubmitted()",
+      "file_type": "code",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "data_submittedanswers_savesubmitted",
+      "community": 80,
+      "norm_label": "savesubmitted()"
+    },
+    {
+      "label": "parseSubmittedAnswers()",
+      "file_type": "code",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "data_submittedanswers_parsesubmittedanswers",
+      "community": 80,
+      "norm_label": "parsesubmittedanswers()"
+    },
+    {
+      "label": "readSubmitted()",
+      "file_type": "code",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "data_submittedanswers_readsubmitted",
+      "community": 80,
+      "norm_label": "readsubmitted()"
+    },
+    {
+      "label": "gatherSubmittedPayloads()",
+      "file_type": "code",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "data_submittedanswers_gathersubmittedpayloads",
+      "community": 80,
+      "norm_label": "gathersubmittedpayloads()"
+    },
+    {
       "label": "topicPrefilter.js",
       "file_type": "code",
       "source_file": "src/data/topicPrefilter.js",
@@ -8540,7 +8700,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_devauth",
-      "community": 7,
+      "community": 93,
       "norm_label": "devauth.js"
     },
     {
@@ -8550,7 +8710,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_devauth_claims",
-      "community": 7,
+      "community": 93,
       "norm_label": "claims"
     },
     {
@@ -8560,7 +8720,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_devauth_b64url",
-      "community": 7,
+      "community": 93,
       "norm_label": "b64url()"
     },
     {
@@ -8570,7 +8730,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_devauth_devauthuser",
-      "community": 7,
+      "community": 93,
       "norm_label": "devauthuser"
     },
     {
@@ -8860,7 +9020,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_offlinequeue",
-      "community": 22,
+      "community": 80,
       "norm_label": "offlinequeue.js"
     },
     {
@@ -8870,7 +9030,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_offlinequeue_opendb",
-      "community": 22,
+      "community": 80,
       "norm_label": "opendb()"
     },
     {
@@ -8880,7 +9040,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_offlinequeue_queueresponse",
-      "community": 22,
+      "community": 80,
       "norm_label": "queueresponse()"
     },
     {
@@ -8890,7 +9050,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_offlinequeue_registerresponsesync",
-      "community": 22,
+      "community": 80,
       "norm_label": "registerresponsesync()"
     },
     {
@@ -8930,7 +9090,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "pages_adminlog",
-      "community": 108,
+      "community": 4,
       "norm_label": "adminlog.jsx"
     },
     {
@@ -8940,7 +9100,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "pages_adminlog_formatdate",
-      "community": 108,
+      "community": 4,
       "norm_label": "formatdate()"
     },
     {
@@ -8950,7 +9110,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "pages_adminlog_section",
-      "community": 108,
+      "community": 4,
       "norm_label": "section()"
     },
     {
@@ -8960,7 +9120,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "pages_adminlog_adminlog",
-      "community": 108,
+      "community": 4,
       "norm_label": "adminlog()"
     },
     {
@@ -9384,6 +9544,66 @@
       "norm_label": "joinclass()"
     },
     {
+      "label": "QuizReview.jsx",
+      "file_type": "code",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "student_quizreview",
+      "community": 80,
+      "norm_label": "quizreview.jsx"
+    },
+    {
+      "label": "box",
+      "file_type": "code",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "student_quizreview_box",
+      "community": 80,
+      "norm_label": "box"
+    },
+    {
+      "label": "centered",
+      "file_type": "code",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "student_quizreview_centered",
+      "community": 80,
+      "norm_label": "centered"
+    },
+    {
+      "label": "pickEncouragement()",
+      "file_type": "code",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "student_quizreview_pickencouragement",
+      "community": 80,
+      "norm_label": "pickencouragement()"
+    },
+    {
+      "label": "OptionRow()",
+      "file_type": "code",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "student_quizreview_optionrow",
+      "community": 80,
+      "norm_label": "optionrow()"
+    },
+    {
+      "label": "QuizReview()",
+      "file_type": "code",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "student_quizreview_quizreview",
+      "community": 80,
+      "norm_label": "quizreview()"
+    },
+    {
       "label": "StudentClass.jsx",
       "file_type": "code",
       "source_file": "src/pages/student/StudentClass.jsx",
@@ -9394,20 +9614,10 @@
       "norm_label": "studentclass.jsx"
     },
     {
-      "label": "submittedKey()",
-      "file_type": "code",
-      "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L9",
-      "_origin": "ast",
-      "id": "student_studentclass_submittedkey",
-      "community": 80,
-      "norm_label": "submittedkey()"
-    },
-    {
       "label": "getDeviceId()",
       "file_type": "code",
       "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "student_studentclass_getdeviceid",
       "community": 80,
@@ -9417,7 +9627,7 @@
       "label": "friendlyDate()",
       "file_type": "code",
       "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L21",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "student_studentclass_friendlydate",
       "community": 80,
@@ -9427,7 +9637,7 @@
       "label": "QuizCard()",
       "file_type": "code",
       "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L27",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "student_studentclass_quizcard",
       "community": 80,
@@ -9437,7 +9647,7 @@
       "label": "ClassSection()",
       "file_type": "code",
       "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L66",
+      "source_location": "L75",
       "_origin": "ast",
       "id": "student_studentclass_classsection",
       "community": 80,
@@ -9447,7 +9657,7 @@
       "label": "StudentClass()",
       "file_type": "code",
       "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L166",
+      "source_location": "L175",
       "_origin": "ast",
       "id": "student_studentclass_studentclass",
       "community": 80,
@@ -9460,67 +9670,57 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "student_takequiz",
-      "community": 22,
+      "community": 80,
       "norm_label": "takequiz.jsx"
-    },
-    {
-      "label": "submittedKey()",
-      "file_type": "code",
-      "source_file": "src/pages/student/TakeQuiz.jsx",
-      "source_location": "L18",
-      "_origin": "ast",
-      "id": "student_takequiz_submittedkey",
-      "community": 22,
-      "norm_label": "submittedkey()"
     },
     {
       "label": "CONFIDENCE_LEVELS",
       "file_type": "code",
       "source_file": "src/pages/student/TakeQuiz.jsx",
-      "source_location": "L21",
+      "source_location": "L23",
       "_origin": "ast",
       "id": "student_takequiz_confidence_levels",
-      "community": 22,
+      "community": 80,
       "norm_label": "confidence_levels"
     },
     {
       "label": "getOrCreateDeviceId()",
       "file_type": "code",
       "source_file": "src/pages/student/TakeQuiz.jsx",
-      "source_location": "L27",
+      "source_location": "L29",
       "_origin": "ast",
       "id": "student_takequiz_getorcreatedeviceid",
-      "community": 22,
+      "community": 80,
       "norm_label": "getorcreatedeviceid()"
     },
     {
       "label": "ConfidenceExplainer()",
       "file_type": "code",
       "source_file": "src/pages/student/TakeQuiz.jsx",
-      "source_location": "L37",
+      "source_location": "L39",
       "_origin": "ast",
       "id": "student_takequiz_confidenceexplainer",
-      "community": 22,
+      "community": 80,
       "norm_label": "confidenceexplainer()"
     },
     {
       "label": "ConfidenceSelector()",
       "file_type": "code",
       "source_file": "src/pages/student/TakeQuiz.jsx",
-      "source_location": "L75",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "student_takequiz_confidenceselector",
-      "community": 22,
+      "community": 80,
       "norm_label": "confidenceselector()"
     },
     {
       "label": "TakeQuiz()",
       "file_type": "code",
       "source_file": "src/pages/student/TakeQuiz.jsx",
-      "source_location": "L98",
+      "source_location": "L100",
       "_origin": "ast",
       "id": "student_takequiz_takequiz",
-      "community": 22,
+      "community": 80,
       "norm_label": "takequiz()"
     },
     {
@@ -9537,7 +9737,7 @@
       "label": "OPTION_COLORS",
       "file_type": "code",
       "source_file": "src/pages/teacher/Analytics.jsx",
-      "source_location": "L8",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "teacher_analytics_option_colors",
       "community": 8,
@@ -9547,7 +9747,7 @@
       "label": "OPTION_BORDER",
       "file_type": "code",
       "source_file": "src/pages/teacher/Analytics.jsx",
-      "source_location": "L9",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "teacher_analytics_option_border",
       "community": 8,
@@ -9557,7 +9757,7 @@
       "label": "TimelineChart()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Analytics.jsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "teacher_analytics_timelinechart",
       "community": 8,
@@ -9567,7 +9767,7 @@
       "label": "Analytics()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Analytics.jsx",
-      "source_location": "L75",
+      "source_location": "L76",
       "_origin": "ast",
       "id": "teacher_analytics_analytics",
       "community": 8,
@@ -9630,17 +9830,17 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "teacher_classsettings",
-      "community": 4,
+      "community": 93,
       "norm_label": "classsettings.jsx"
     },
     {
       "label": "ClassSettings()",
       "file_type": "code",
       "source_file": "src/pages/teacher/ClassSettings.jsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "teacher_classsettings_classsettings",
-      "community": 4,
+      "community": 93,
       "norm_label": "classsettings()"
     },
     {
@@ -9650,17 +9850,17 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "teacher_classes",
-      "community": 4,
+      "community": 93,
       "norm_label": "classes.jsx"
     },
     {
       "label": "Classes()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Classes.jsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "teacher_classes_classes",
-      "community": 4,
+      "community": 93,
       "norm_label": "classes()"
     },
     {
@@ -9697,7 +9897,7 @@
       "label": "PD_TYPES",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L5",
+      "source_location": "L6",
       "_origin": "ast",
       "id": "teacher_evidence_pd_types",
       "community": 72,
@@ -9707,7 +9907,7 @@
       "label": "DOMAINS",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "teacher_evidence_domains",
       "community": 72,
@@ -9717,7 +9917,7 @@
       "label": "formatDate()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L9",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "teacher_evidence_formatdate",
       "community": 72,
@@ -9727,7 +9927,7 @@
       "label": "downloadPdf()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L14",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "teacher_evidence_downloadpdf",
       "community": 72,
@@ -9737,7 +9937,7 @@
       "label": "ExportPanel()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L30",
+      "source_location": "L36",
       "_origin": "ast",
       "id": "teacher_evidence_exportpanel",
       "community": 72,
@@ -9747,7 +9947,7 @@
       "label": "AnnualLogPanel()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L139",
+      "source_location": "L156",
       "_origin": "ast",
       "id": "teacher_evidence_annuallogpanel",
       "community": 72,
@@ -9757,7 +9957,7 @@
       "label": "fieldStyle",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L199",
+      "source_location": "L227",
       "_origin": "ast",
       "id": "teacher_evidence_fieldstyle",
       "community": 72,
@@ -9767,7 +9967,7 @@
       "label": "primaryBtnStyle",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L200",
+      "source_location": "L228",
       "_origin": "ast",
       "id": "teacher_evidence_primarybtnstyle",
       "community": 72,
@@ -9777,7 +9977,7 @@
       "label": "secondaryBtnStyle",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L201",
+      "source_location": "L229",
       "_origin": "ast",
       "id": "teacher_evidence_secondarybtnstyle",
       "community": 72,
@@ -9787,7 +9987,7 @@
       "label": "Evidence()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Evidence.jsx",
-      "source_location": "L203",
+      "source_location": "L231",
       "_origin": "ast",
       "id": "teacher_evidence_evidence",
       "community": 72,
@@ -9807,7 +10007,7 @@
       "label": "PENDING_STAGES",
       "file_type": "code",
       "source_file": "src/pages/teacher/GenerateQuiz.jsx",
-      "source_location": "L9",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "teacher_generatequiz_pending_stages",
       "community": 9,
@@ -9817,7 +10017,7 @@
       "label": "GenerateQuiz()",
       "file_type": "code",
       "source_file": "src/pages/teacher/GenerateQuiz.jsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "teacher_generatequiz_generatequiz",
       "community": 9,
@@ -9830,37 +10030,37 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "teacher_pendingrequests",
-      "community": 4,
+      "community": 93,
       "norm_label": "pendingrequests.jsx"
     },
     {
       "label": "matchBadge()",
       "file_type": "code",
       "source_file": "src/pages/teacher/PendingRequests.jsx",
-      "source_location": "L5",
+      "source_location": "L6",
       "_origin": "ast",
       "id": "teacher_pendingrequests_matchbadge",
-      "community": 4,
+      "community": 93,
       "norm_label": "matchbadge()"
     },
     {
       "label": "sortRequests()",
       "file_type": "code",
       "source_file": "src/pages/teacher/PendingRequests.jsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "teacher_pendingrequests_sortrequests",
-      "community": 4,
+      "community": 93,
       "norm_label": "sortrequests()"
     },
     {
       "label": "PendingRequests()",
       "file_type": "code",
       "source_file": "src/pages/teacher/PendingRequests.jsx",
-      "source_location": "L37",
+      "source_location": "L38",
       "_origin": "ast",
       "id": "teacher_pendingrequests_pendingrequests",
-      "community": 4,
+      "community": 93,
       "norm_label": "pendingrequests()"
     },
     {
@@ -9877,7 +10077,7 @@
       "label": "ComparisonBar()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Population.jsx",
-      "source_location": "L8",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "teacher_population_comparisonbar",
       "community": 95,
@@ -9887,7 +10087,7 @@
       "label": "REFERENCE_DOTS",
       "file_type": "code",
       "source_file": "src/pages/teacher/Population.jsx",
-      "source_location": "L56",
+      "source_location": "L57",
       "_origin": "ast",
       "id": "teacher_population_reference_dots",
       "community": 95,
@@ -9897,7 +10097,7 @@
       "label": "QuadrantScatter()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Population.jsx",
-      "source_location": "L65",
+      "source_location": "L66",
       "_origin": "ast",
       "id": "teacher_population_quadrantscatter",
       "community": 95,
@@ -9907,7 +10107,7 @@
       "label": "Population()",
       "file_type": "code",
       "source_file": "src/pages/teacher/Population.jsx",
-      "source_location": "L115",
+      "source_location": "L116",
       "_origin": "ast",
       "id": "teacher_population_population",
       "community": 95,
@@ -10020,7 +10220,7 @@
       "source_location": "L212",
       "_origin": "ast",
       "id": "teacher_questionbank_questionbank",
-      "community": 93,
+      "community": 31,
       "norm_label": "questionbank()"
     },
     {
@@ -10127,7 +10327,7 @@
       "label": "ShareLink()",
       "file_type": "code",
       "source_file": "src/pages/teacher/SendQuiz.jsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "teacher_sendquiz_sharelink",
       "community": 8,
@@ -10137,7 +10337,7 @@
       "label": "SendQuiz()",
       "file_type": "code",
       "source_file": "src/pages/teacher/SendQuiz.jsx",
-      "source_location": "L48",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "teacher_sendquiz_sendquiz",
       "community": 8,
@@ -11750,7 +11950,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_createclass_test",
-      "community": 88,
+      "community": 13,
       "norm_label": "createclass.test.js"
     },
     {
@@ -11760,7 +11960,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_createclass_test_createrealclass_classlimiterror_generatejoincode",
-      "community": 88,
+      "community": 13,
       "norm_label": "{ createrealclass, classlimiterror, generatejoincode }"
     },
     {
@@ -11770,7 +11970,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_createclass_test_mockcontainer",
-      "community": 88,
+      "community": 13,
       "norm_label": "mockcontainer()"
     },
     {
@@ -11900,7 +12100,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_demosendnotification_test",
-      "community": 99,
+      "community": 5,
       "norm_label": "demosendnotification.test.js"
     },
     {
@@ -11910,7 +12110,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "api_demosendnotification_test_webpush",
-      "community": 99,
+      "community": 5,
       "norm_label": "webpush"
     },
     {
@@ -11920,7 +12120,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "api_demosendnotification_test_sendnotificationforquiz",
-      "community": 99,
+      "community": 5,
       "norm_label": "{ sendnotificationforquiz }"
     },
     {
@@ -11930,7 +12130,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "api_demosendnotification_test_ctx",
-      "community": 99,
+      "community": 5,
       "norm_label": "ctx"
     },
     {
@@ -12030,7 +12230,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_fuzzymatch_test",
-      "community": 102,
+      "community": 6,
       "norm_label": "fuzzymatch.test.js"
     },
     {
@@ -12040,7 +12240,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_fuzzymatch_test_runfuzzymatch",
-      "community": 102,
+      "community": 6,
       "norm_label": "{ runfuzzymatch }"
     },
     {
@@ -12080,7 +12280,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_gettingstarted_test",
-      "community": 16,
+      "community": 102,
       "norm_label": "gettingstarted.test.js"
     },
     {
@@ -12090,7 +12290,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "api_gettingstarted_test_computegettingstarted_computegettingstartedsteps_isreleased_getting_started_steps",
-      "community": 16,
+      "community": 102,
       "norm_label": "{ computegettingstarted, computegettingstartedsteps, isreleased, getting_started_steps }"
     },
     {
@@ -12100,7 +12300,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_gettingstarted_test_makecontainer",
-      "community": 16,
+      "community": 102,
       "norm_label": "makecontainer()"
     },
     {
@@ -12110,7 +12310,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "api_gettingstarted_test_makeconditionalcontainer",
-      "community": 16,
+      "community": 102,
       "norm_label": "makeconditionalcontainer()"
     },
     {
@@ -12120,7 +12320,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_introeligibility_test",
-      "community": 16,
+      "community": 88,
       "norm_label": "introeligibility.test.js"
     },
     {
@@ -12130,7 +12330,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "api_introeligibility_test_computeeligibleintros",
-      "community": 16,
+      "community": 88,
       "norm_label": "{ computeeligibleintros }"
     },
     {
@@ -12140,7 +12340,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_introeligibility_test_countcontainer",
-      "community": 16,
+      "community": 88,
       "norm_label": "countcontainer()"
     },
     {
@@ -12150,7 +12350,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "api_introeligibility_test_routedcontainer",
-      "community": 16,
+      "community": 88,
       "norm_label": "routedcontainer()"
     },
     {
@@ -12204,6 +12404,26 @@
       "norm_label": "makechunks()"
     },
     {
+      "label": "llmPrompts.test.js",
+      "file_type": "code",
+      "source_file": "tests/unit/api/llmPrompts.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "api_llmprompts_test",
+      "community": 86,
+      "norm_label": "llmprompts.test.js"
+    },
+    {
+      "label": "{ buildSystemPrompt, buildUserPrompt }",
+      "file_type": "code",
+      "source_file": "tests/unit/api/llmPrompts.test.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "api_llmprompts_test_buildsystemprompt_builduserprompt",
+      "community": 86,
+      "norm_label": "{ buildsystemprompt, builduserprompt }"
+    },
+    {
       "label": "llmProviderMock.test.js",
       "file_type": "code",
       "source_file": "tests/unit/api/llmProviderMock.test.js",
@@ -12250,7 +12470,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_metrics_test",
-      "community": 21,
+      "community": 22,
       "norm_label": "metrics.test.js"
     },
     {
@@ -12260,7 +12480,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_metrics_test_buildstubbedmetrics",
-      "community": 21,
+      "community": 22,
       "norm_label": "{ buildstubbedmetrics }"
     },
     {
@@ -12410,7 +12630,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_profileschema_test",
-      "community": 16,
+      "community": 112,
       "norm_label": "profileschema.test.js"
     },
     {
@@ -12420,8 +12640,28 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "api_profileschema_test_validateprofile_isprofilecomplete_profile_fields",
-      "community": 16,
+      "community": 112,
       "norm_label": "{ validateprofile, isprofilecomplete, profile_fields }"
+    },
+    {
+      "label": "questionStyles.test.js",
+      "file_type": "code",
+      "source_file": "tests/unit/api/questionStyles.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "api_questionstyles_test",
+      "community": 86,
+      "norm_label": "questionstyles.test.js"
+    },
+    {
+      "label": "{ QUESTION_STYLES, isValidQuestionStyle, stylePromptLine }",
+      "file_type": "code",
+      "source_file": "tests/unit/api/questionStyles.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "api_questionstyles_test_question_styles_isvalidquestionstyle_stylepromptline",
+      "community": 86,
+      "norm_label": "{ question_styles, isvalidquestionstyle, stylepromptline }"
     },
     {
       "label": "questions-put.regression-1.test.js",
@@ -12510,7 +12750,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_ratelimit_test",
-      "community": 28,
+      "community": 15,
       "norm_label": "ratelimit.test.js"
     },
     {
@@ -12520,7 +12760,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_ratelimit_test_ratelimit_getclientip",
-      "community": 28,
+      "community": 15,
       "norm_label": "{ ratelimit, getclientip }"
     },
     {
@@ -12530,7 +12770,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "api_ratelimit_test_makerequest",
-      "community": 28,
+      "community": 15,
       "norm_label": "makerequest()"
     },
     {
@@ -13152,6 +13392,36 @@
       "id": "unit_studentreconcile_test_servererr",
       "community": 101,
       "norm_label": "servererr()"
+    },
+    {
+      "label": "submittedAnswers.test.js",
+      "file_type": "code",
+      "source_file": "tests/unit/submittedAnswers.test.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "unit_submittedanswers_test",
+      "community": 113,
+      "norm_label": "submittedanswers.test.js"
+    },
+    {
+      "label": "parseSubmittedAnswers()",
+      "file_type": "code",
+      "source_file": "tests/unit/submittedAnswers.test.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "unit_submittedanswers_test_parsesubmittedanswers",
+      "community": 113,
+      "norm_label": "parsesubmittedanswers()"
+    },
+    {
+      "label": "confidenceTrend()",
+      "file_type": "code",
+      "source_file": "tests/unit/submittedAnswers.test.js",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "unit_submittedanswers_test_confidencetrend",
+      "community": 113,
+      "norm_label": "confidencetrend()"
     },
     {
       "label": "topicPrefilter.test.js",
@@ -16491,6 +16761,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/generationDrafts.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "api_generationdrafts",
+      "target": "api_generationdrafts_isvalidquestionstyle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "api/generationDrafts.js",
       "source_location": "L15",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -16837,6 +17117,28 @@
       "confidence_score": 1.0,
       "source": "api_generationdrafts",
       "target": "shared_materializeai_resolvesourcereflabel"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "api/generationDrafts.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "api_generationdrafts",
+      "target": "shared_questionstyles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "api/generationDrafts.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "api_generationdrafts",
+      "target": "shared_questionstyles_isvalidquestionstyle",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -24111,6 +24413,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/llmPrompts.test.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "api_llmprompts_test",
+      "target": "shared_llmprompts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "api/shared/llmProviders/anthropic.js",
       "source_location": "L6",
       "weight": 1.0,
@@ -24155,9 +24468,42 @@
       "source_file": "api/shared/llmPrompts.js",
       "source_location": "L5",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "shared_llmprompts",
-      "target": "shared_llmprompts_min_questions_max_questions"
+      "target": "shared_llmprompts_stylepromptline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "api/shared/llmPrompts.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "shared_llmprompts",
+      "target": "shared_questionstyles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "api/shared/llmPrompts.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "shared_llmprompts",
+      "target": "shared_questionstyles_stylepromptline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/llmPrompts.test.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "api_llmprompts_test",
+      "target": "shared_llmprompts_buildsystemprompt",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -24207,6 +24553,17 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/llmPrompts.test.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "api_llmprompts_test",
+      "target": "shared_llmprompts_builduserprompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "api/shared/llmProviders/anthropic.js",
       "source_location": "L6",
       "weight": 1.0,
@@ -24246,6 +24603,17 @@
       "weight": 1.0,
       "source": "llmproviders_azureopenai_generate",
       "target": "shared_llmprompts_builduserprompt"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "api/shared/llmPrompts.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "shared_llmprompts_builduserprompt",
+      "target": "shared_questionstyles_stylepromptline"
     },
     {
       "relation": "contains",
@@ -24951,6 +25319,90 @@
       "confidence_score": 1.0,
       "source": "api_teacher",
       "target": "shared_profileschema_isprofilecomplete"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/questionStyles.test.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "api_questionstyles_test",
+      "target": "shared_questionstyles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "shared_questionstyles",
+      "target": "shared_questionstyles_isvalidquestionstyle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "shared_questionstyles",
+      "target": "shared_questionstyles_question_styles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "shared_questionstyles",
+      "target": "shared_questionstyles_style_prompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "api/shared/questionStyles.js",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "shared_questionstyles",
+      "target": "shared_questionstyles_stylepromptline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/questionStyles.test.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "api_questionstyles_test",
+      "target": "shared_questionstyles_question_styles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/questionStyles.test.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "api_questionstyles_test",
+      "target": "shared_questionstyles_isvalidquestionstyle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/questionStyles.test.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "api_questionstyles_test",
+      "target": "shared_questionstyles_stylepromptline",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -26313,9 +26765,9 @@
       "source_file": "api/studentQuizzes.js",
       "source_location": "L68",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_studentquizzes",
-      "target": "api_studentquizzes_stateof",
-      "confidence_score": 1.0
+      "target": "api_studentquizzes_stateof"
     },
     {
       "relation": "contains",
@@ -27174,9 +27626,9 @@
       "source_file": "package.json",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_dependencies",
-      "target": "package_dependencies_qrcode_generator",
-      "confidence_score": 1.0
+      "target": "package_dependencies_qrcode_generator"
     },
     {
       "relation": "contains",
@@ -27994,6 +28446,28 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "src_app",
+      "target": "student_quizreview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "src_app",
+      "target": "student_quizreview_quizreview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
       "source_location": "L36",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -28631,6 +29105,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "src_api",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/pages/student/StudentClass.jsx",
       "source_location": "L3",
       "weight": 1.0,
@@ -29046,9 +29531,9 @@
       "source_file": "src/components/ClassJoinQR.jsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_classjoinqr",
-      "target": "components_classjoinqr_classjoinqr",
-      "confidence_score": 1.0
+      "target": "components_classjoinqr_classjoinqr"
     },
     {
       "relation": "imports_from",
@@ -29057,9 +29542,9 @@
       "source_file": "src/components/ClassJoinQR.jsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_classjoinqr",
-      "target": "components_qrcode",
-      "confidence_score": 1.0
+      "target": "components_qrcode"
     },
     {
       "relation": "imports",
@@ -29068,9 +29553,9 @@
       "source_file": "src/components/ClassJoinQR.jsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_classjoinqr",
-      "target": "components_qrcode_qrcode",
-      "confidence_score": 1.0
+      "target": "components_qrcode_qrcode"
     },
     {
       "relation": "imports_from",
@@ -29079,9 +29564,9 @@
       "source_file": "src/pages/student/JoinClass.jsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_joinclass",
-      "target": "components_classjoinqr",
-      "confidence_score": 1.0
+      "target": "components_classjoinqr"
     },
     {
       "relation": "imports_from",
@@ -29090,9 +29575,9 @@
       "source_file": "src/pages/student/StudentClass.jsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_studentclass",
-      "target": "components_classjoinqr",
-      "confidence_score": 1.0
+      "target": "components_classjoinqr"
     },
     {
       "relation": "imports",
@@ -29101,9 +29586,9 @@
       "source_file": "src/pages/student/JoinClass.jsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_joinclass",
-      "target": "components_classjoinqr_classjoinqr",
-      "confidence_score": 1.0
+      "target": "components_classjoinqr_classjoinqr"
     },
     {
       "relation": "imports",
@@ -29112,9 +29597,9 @@
       "source_file": "src/pages/student/StudentClass.jsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_studentclass",
-      "target": "components_classjoinqr_classjoinqr",
-      "confidence_score": 1.0
+      "target": "components_classjoinqr_classjoinqr"
     },
     {
       "relation": "contains",
@@ -29798,9 +30283,9 @@
       "source_file": "src/components/QRCode.jsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_qrcode",
-      "target": "components_qrcode_qrcode",
-      "confidence_score": 1.0
+      "target": "components_qrcode_qrcode"
     },
     {
       "relation": "contains",
@@ -30064,9 +30549,9 @@
       "source_file": "src/components/home/HomeCalendar.jsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_homecalendar",
-      "target": "data_homecalendar",
-      "confidence_score": 1.0
+      "target": "data_homecalendar"
     },
     {
       "relation": "imports",
@@ -30075,9 +30560,9 @@
       "source_file": "src/components/home/HomeCalendar.jsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_homecalendar",
-      "target": "data_homecalendar_monthgrid",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_monthgrid"
     },
     {
       "relation": "imports",
@@ -30086,9 +30571,9 @@
       "source_file": "src/components/home/HomeCalendar.jsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_homecalendar",
-      "target": "data_homecalendar_quizzesonday",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_quizzesonday"
     },
     {
       "relation": "imports",
@@ -30097,9 +30582,9 @@
       "source_file": "src/components/home/HomeCalendar.jsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_homecalendar",
-      "target": "data_homecalendar_sameday",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_sameday"
     },
     {
       "relation": "imports",
@@ -30108,9 +30593,9 @@
       "source_file": "src/components/home/HomeCalendar.jsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_homecalendar",
-      "target": "data_homecalendar_weekdays",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_weekdays"
     },
     {
       "relation": "contains",
@@ -30118,9 +30603,9 @@
       "source_file": "src/components/home/HomeCalendar.jsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_homecalendar",
-      "target": "home_homecalendar_day_labels",
-      "confidence_score": 1.0
+      "target": "home_homecalendar_day_labels"
     },
     {
       "relation": "contains",
@@ -30128,9 +30613,9 @@
       "source_file": "src/components/home/HomeCalendar.jsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_homecalendar",
-      "target": "home_homecalendar_homecalendar",
-      "confidence_score": 1.0
+      "target": "home_homecalendar_homecalendar"
     },
     {
       "relation": "imports_from",
@@ -30139,9 +30624,9 @@
       "source_file": "src/pages/teacher/TeacherHome.jsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "teacher_teacherhome",
-      "target": "home_homecalendar",
-      "confidence_score": 1.0
+      "target": "home_homecalendar"
     },
     {
       "relation": "calls",
@@ -30172,9 +30657,9 @@
       "source_file": "src/pages/teacher/TeacherHome.jsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "teacher_teacherhome",
-      "target": "home_homecalendar_homecalendar",
-      "confidence_score": 1.0
+      "target": "home_homecalendar_homecalendar"
     },
     {
       "relation": "contains",
@@ -30337,6 +30822,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Analytics.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "teacher_analytics",
+      "target": "contexts_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/pages/teacher/BuildQuiz.jsx",
       "source_location": "L3",
       "weight": 1.0,
@@ -30348,12 +30844,67 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Classes.jsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "teacher_classes",
+      "target": "contexts_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/ClassSettings.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "teacher_classsettings",
+      "target": "contexts_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/pages/teacher/CreateQuestion.jsx",
       "source_location": "L2",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "teacher_createquestion",
       "target": "contexts_authcontext"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Evidence.jsx",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "teacher_evidence",
+      "target": "contexts_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/PendingRequests.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "teacher_pendingrequests",
+      "target": "contexts_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Population.jsx",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "teacher_population",
+      "target": "contexts_authcontext",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -30376,6 +30927,17 @@
       "confidence_score": 1.0,
       "source": "teacher_quizhistory",
       "target": "contexts_authcontext"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/SendQuiz.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "teacher_sendquiz",
+      "target": "contexts_authcontext",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -30403,6 +30965,28 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Analytics.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "teacher_analytics",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Analytics.jsx",
+      "source_location": "L79",
+      "weight": 1.0,
+      "source": "teacher_analytics_analytics",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/pages/teacher/BuildQuiz.jsx",
       "source_location": "L3",
       "weight": 1.0,
@@ -30425,6 +31009,50 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Classes.jsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "teacher_classes",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Classes.jsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "teacher_classes_classes",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/ClassSettings.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "teacher_classsettings",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/ClassSettings.jsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "teacher_classsettings_classsettings",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/pages/teacher/CreateQuestion.jsx",
       "source_location": "L2",
       "weight": 1.0,
@@ -30442,6 +31070,94 @@
       "confidence_score": 1.0,
       "source": "teacher_createquestion_createquestion",
       "target": "contexts_authcontext_useauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Evidence.jsx",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "teacher_evidence",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Evidence.jsx",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "teacher_evidence_annuallogpanel",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/pages/teacher/Evidence.jsx",
+      "source_location": "L232",
+      "weight": 1.0,
+      "source": "teacher_evidence_evidence",
+      "target": "contexts_authcontext_useauth"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Evidence.jsx",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "teacher_evidence_exportpanel",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/PendingRequests.jsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "teacher_pendingrequests",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/PendingRequests.jsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "teacher_pendingrequests_pendingrequests",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Population.jsx",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "teacher_population",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/Population.jsx",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "teacher_population_population",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -30488,14 +31204,36 @@
       "target": "contexts_authcontext_useauth"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/SendQuiz.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "teacher_sendquiz",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/SendQuiz.jsx",
+      "source_location": "L50",
+      "weight": 1.0,
+      "source": "teacher_sendquiz_sendquiz",
+      "target": "contexts_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/alsoWaiting.js",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_alsowaiting",
-      "target": "data_alsowaiting_buildalsowaitingcards",
-      "confidence_score": 1.0
+      "target": "data_alsowaiting_buildalsowaitingcards"
     },
     {
       "relation": "imports_from",
@@ -30504,9 +31242,9 @@
       "source_file": "src/pages/teacher/TeacherHome.jsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "teacher_teacherhome",
-      "target": "data_alsowaiting",
-      "confidence_score": 1.0
+      "target": "data_alsowaiting"
     },
     {
       "relation": "imports",
@@ -30515,9 +31253,9 @@
       "source_file": "src/pages/teacher/TeacherHome.jsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "teacher_teacherhome",
-      "target": "data_alsowaiting_buildalsowaitingcards",
-      "confidence_score": 1.0
+      "target": "data_alsowaiting_buildalsowaitingcards"
     },
     {
       "relation": "calls",
@@ -30607,11 +31345,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/confidenceTally.js",
-      "source_location": "L5",
+      "source_location": "L23",
       "weight": 1.0,
       "source": "data_confidencetally",
-      "target": "data_confidencetally_tallyconfidence",
+      "target": "data_confidencetally_confidence_labels",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/confidenceTally.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "data_confidencetally",
+      "target": "data_confidencetally_confidencetrend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/confidenceTally.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "data_confidencetally",
+      "target": "data_confidencetally_tallyconfidence"
     },
     {
       "relation": "contains",
@@ -30619,8 +31377,30 @@
       "source_file": "src/data/confidenceTally.js",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_confidencetally",
-      "target": "data_confidencetally_tallysummarytext",
+      "target": "data_confidencetally_tallysummarytext"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "data_confidencetally",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "student_studentclass",
+      "target": "data_confidencetally",
       "confidence_score": 1.0
     },
     {
@@ -30630,9 +31410,9 @@
       "source_file": "src/pages/student/TakeQuiz.jsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_takequiz",
-      "target": "data_confidencetally",
-      "confidence_score": 1.0
+      "target": "data_confidencetally"
     },
     {
       "relation": "imports",
@@ -30641,9 +31421,9 @@
       "source_file": "src/pages/student/TakeQuiz.jsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_takequiz",
-      "target": "data_confidencetally_tallyconfidence",
-      "confidence_score": 1.0
+      "target": "data_confidencetally_tallyconfidence"
     },
     {
       "relation": "calls",
@@ -30652,9 +31432,9 @@
       "source_file": "src/pages/student/TakeQuiz.jsx",
       "source_location": "L298",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_takequiz_takequiz",
-      "target": "data_confidencetally_tallyconfidence",
-      "confidence_score": 1.0
+      "target": "data_confidencetally_tallyconfidence"
     },
     {
       "relation": "imports",
@@ -30663,9 +31443,9 @@
       "source_file": "src/pages/student/TakeQuiz.jsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_takequiz",
-      "target": "data_confidencetally_tallysummarytext",
-      "confidence_score": 1.0
+      "target": "data_confidencetally_tallysummarytext"
     },
     {
       "relation": "calls",
@@ -30674,8 +31454,41 @@
       "source_file": "src/pages/student/TakeQuiz.jsx",
       "source_location": "L299",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_takequiz_takequiz",
-      "target": "data_confidencetally_tallysummarytext",
+      "target": "data_confidencetally_tallysummarytext"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "data_confidencetally_confidence_labels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "student_studentclass",
+      "target": "data_confidencetally_confidencetrend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L225",
+      "weight": 1.0,
+      "source": "student_studentclass_studentclass",
+      "target": "data_confidencetally_confidencetrend",
       "confidence_score": 1.0
     },
     {
@@ -30692,12 +31505,34 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "data_encouragements",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/pages/student/TakeQuiz.jsx",
       "source_location": "L5",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "student_takequiz",
       "target": "data_encouragements"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "data_encouragements_encouragements",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -30780,9 +31615,9 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar",
-      "target": "data_homecalendar_effectivedates",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_effectivedates"
     },
     {
       "relation": "contains",
@@ -30790,9 +31625,9 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L42",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar",
-      "target": "data_homecalendar_monthgrid",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_monthgrid"
     },
     {
       "relation": "contains",
@@ -30800,9 +31635,9 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar",
-      "target": "data_homecalendar_quizzesonday",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_quizzesonday"
     },
     {
       "relation": "contains",
@@ -30810,9 +31645,9 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar",
-      "target": "data_homecalendar_sameday",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_sameday"
     },
     {
       "relation": "contains",
@@ -30820,9 +31655,9 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar",
-      "target": "data_homecalendar_startofweek",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_startofweek"
     },
     {
       "relation": "contains",
@@ -30830,9 +31665,9 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar",
-      "target": "data_homecalendar_weekdays",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_weekdays"
     },
     {
       "relation": "calls",
@@ -30841,9 +31676,9 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L45",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar_monthgrid",
-      "target": "data_homecalendar_startofweek",
-      "confidence_score": 1.0
+      "target": "data_homecalendar_startofweek"
     },
     {
       "relation": "calls",
@@ -30852,8 +31687,277 @@
       "source_file": "src/data/homeCalendar.js",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_homecalendar_weekdays",
-      "target": "data_homecalendar_startofweek",
+      "target": "data_homecalendar_startofweek"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/questionStyles.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "data_questionstyles",
+      "target": "data_questionstyles_question_styles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/GenerateQuiz.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "teacher_generatequiz",
+      "target": "data_questionstyles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/teacher/GenerateQuiz.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "teacher_generatequiz",
+      "target": "data_questionstyles_question_styles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "data_submittedanswers",
+      "target": "data_submittedanswers_gathersubmittedpayloads",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "data_submittedanswers",
+      "target": "data_submittedanswers_parsesubmittedanswers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "data_submittedanswers",
+      "target": "data_submittedanswers_readsubmitted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "data_submittedanswers",
+      "target": "data_submittedanswers_savesubmitted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "data_submittedanswers",
+      "target": "data_submittedanswers_submittedkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "data_submittedanswers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "student_studentclass",
+      "target": "data_submittedanswers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/TakeQuiz.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "student_takequiz",
+      "target": "data_submittedanswers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "data_submittedanswers_readsubmitted",
+      "target": "data_submittedanswers_submittedkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "data_submittedanswers_savesubmitted",
+      "target": "data_submittedanswers_submittedkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "student_studentclass",
+      "target": "data_submittedanswers_submittedkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "student_studentclass_quizcard",
+      "target": "data_submittedanswers_submittedkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/TakeQuiz.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "student_takequiz",
+      "target": "data_submittedanswers_submittedkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/TakeQuiz.jsx",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "student_takequiz_takequiz",
+      "target": "data_submittedanswers_submittedkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/TakeQuiz.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "student_takequiz",
+      "target": "data_submittedanswers_savesubmitted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/TakeQuiz.jsx",
+      "source_location": "L234",
+      "weight": 1.0,
+      "source": "student_takequiz_takequiz",
+      "target": "data_submittedanswers_savesubmitted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "data_submittedanswers_gathersubmittedpayloads",
+      "target": "data_submittedanswers_parsesubmittedanswers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/submittedAnswers.js",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "data_submittedanswers_readsubmitted",
+      "target": "data_submittedanswers_parsesubmittedanswers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "data_submittedanswers_readsubmitted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "student_quizreview_quizreview",
+      "target": "data_submittedanswers_readsubmitted"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "student_studentclass",
+      "target": "data_submittedanswers_gathersubmittedpayloads",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/StudentClass.jsx",
+      "source_location": "L225",
+      "weight": 1.0,
+      "source": "student_studentclass_studentclass",
+      "target": "data_submittedanswers_gathersubmittedpayloads",
       "confidence_score": 1.0
     },
     {
@@ -32417,6 +33521,56 @@
       "target": "src_studentclasses_removependingclass"
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "student_quizreview_box",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "student_quizreview_centered",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "student_quizreview_optionrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "student_quizreview_pickencouragement",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/student/QuizReview.jsx",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "student_quizreview",
+      "target": "student_quizreview_quizreview",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -32476,9 +33630,9 @@
       "source_file": "src/pages/student/StudentClass.jsx",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_studentclass",
-      "target": "student_studentclass_friendlydate",
-      "confidence_score": 1.0
+      "target": "student_studentclass_friendlydate"
     },
     {
       "relation": "contains",
@@ -32511,36 +33665,15 @@
       "target": "student_studentclass_studentclass"
     },
     {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "student_studentclass",
-      "target": "student_studentclass_submittedkey"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/pages/student/StudentClass.jsx",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "student_studentclass_quizcard",
-      "target": "student_studentclass_submittedkey"
-    },
-    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/student/StudentClass.jsx",
       "source_location": "L50",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "student_studentclass_quizcard",
-      "target": "student_studentclass_friendlydate",
-      "confidence_score": 1.0
+      "target": "student_studentclass_friendlydate"
     },
     {
       "relation": "calls",
@@ -32614,16 +33747,6 @@
       "confidence_score": 1.0,
       "source": "student_takequiz",
       "target": "student_takequiz_getorcreatedeviceid"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/pages/student/TakeQuiz.jsx",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "student_takequiz",
-      "target": "student_takequiz_submittedkey"
     },
     {
       "relation": "contains",
@@ -33144,9 +34267,9 @@
       "source_file": "src/pages/teacher/TeacherHome.jsx",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "teacher_teacherhome",
-      "target": "teacher_teacherhome_alsowaitingcard",
-      "confidence_score": 1.0
+      "target": "teacher_teacherhome_alsowaitingcard"
     },
     {
       "relation": "contains",
@@ -34500,9 +35623,9 @@
       "source_file": "tests/integration/api/v470-student-quizzes.test.js",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_v470_student_quizzes_test",
-      "target": "api_v470_student_quizzes_test_authheaders",
-      "confidence_score": 1.0
+      "target": "api_v470_student_quizzes_test_authheaders"
     },
     {
       "relation": "contains",
@@ -34510,9 +35633,9 @@
       "source_file": "tests/integration/api/v470-student-quizzes.test.js",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_v470_student_quizzes_test",
-      "target": "api_v470_student_quizzes_test_createquestion",
-      "confidence_score": 1.0
+      "target": "api_v470_student_quizzes_test_createquestion"
     },
     {
       "relation": "contains",
@@ -34520,9 +35643,9 @@
       "source_file": "tests/integration/api/v470-student-quizzes.test.js",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_v470_student_quizzes_test",
-      "target": "api_v470_student_quizzes_test_jwt",
-      "confidence_score": 1.0
+      "target": "api_v470_student_quizzes_test_jwt"
     },
     {
       "relation": "calls",
@@ -34531,9 +35654,9 @@
       "source_file": "tests/integration/api/v470-student-quizzes.test.js",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_v470_student_quizzes_test_createquestion",
-      "target": "api_v470_student_quizzes_test_authheaders",
-      "confidence_score": 1.0
+      "target": "api_v470_student_quizzes_test_authheaders"
     },
     {
       "relation": "contains",
@@ -34541,9 +35664,9 @@
       "source_file": "tests/unit/alsoWaiting.test.js",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_alsowaiting_test",
-      "target": "unit_alsowaiting_test_buildalsowaitingcards",
-      "confidence_score": 1.0
+      "target": "unit_alsowaiting_test_buildalsowaitingcards"
     },
     {
       "relation": "contains",
@@ -35068,6 +36191,16 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/llmPrompts.test.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "api_llmprompts_test",
+      "target": "api_llmprompts_test_buildsystemprompt_builduserprompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "tests/unit/api/llmProviderMock.test.js",
       "source_location": "L19",
       "weight": 1.0,
@@ -35204,6 +36337,16 @@
       "confidence_score": 1.0,
       "source": "api_profileschema_test",
       "target": "api_profileschema_test_validateprofile_isprofilecomplete_profile_fields"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/unit/api/questionStyles.test.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "api_questionstyles_test",
+      "target": "api_questionstyles_test_question_styles_isvalidquestionstyle_stylepromptline",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -35422,9 +36565,9 @@
       "source_file": "tests/unit/api/studentQuizzesState.test.js",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_studentquizzesstate_test",
-      "target": "api_studentquizzesstate_test_stateof",
-      "confidence_score": 1.0
+      "target": "api_studentquizzesstate_test_stateof"
     },
     {
       "relation": "contains",
@@ -35472,9 +36615,9 @@
       "source_file": "tests/unit/confidenceTally.test.js",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_confidencetally_test",
-      "target": "unit_confidencetally_test_tallyconfidence",
-      "confidence_score": 1.0
+      "target": "unit_confidencetally_test_tallyconfidence"
     },
     {
       "relation": "contains",
@@ -35482,9 +36625,9 @@
       "source_file": "tests/unit/confidenceTally.test.js",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_confidencetally_test",
-      "target": "unit_confidencetally_test_tallysummarytext",
-      "confidence_score": 1.0
+      "target": "unit_confidencetally_test_tallysummarytext"
     },
     {
       "relation": "contains",
@@ -35572,9 +36715,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test",
-      "target": "unit_homecalendar_test_effectivedates",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_effectivedates"
     },
     {
       "relation": "contains",
@@ -35582,9 +36725,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test",
-      "target": "unit_homecalendar_test_monthgrid",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_monthgrid"
     },
     {
       "relation": "contains",
@@ -35592,9 +36735,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test",
-      "target": "unit_homecalendar_test_quizzesonday",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_quizzesonday"
     },
     {
       "relation": "contains",
@@ -35602,9 +36745,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test",
-      "target": "unit_homecalendar_test_sameday",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_sameday"
     },
     {
       "relation": "contains",
@@ -35612,9 +36755,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test",
-      "target": "unit_homecalendar_test_startofweek",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_startofweek"
     },
     {
       "relation": "contains",
@@ -35622,9 +36765,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test",
-      "target": "unit_homecalendar_test_weekdays",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_weekdays"
     },
     {
       "relation": "calls",
@@ -35633,9 +36776,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test_monthgrid",
-      "target": "unit_homecalendar_test_startofweek",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_startofweek"
     },
     {
       "relation": "calls",
@@ -35644,9 +36787,9 @@
       "source_file": "tests/unit/homeCalendar.test.js",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "unit_homecalendar_test_weekdays",
-      "target": "unit_homecalendar_test_startofweek",
-      "confidence_score": 1.0
+      "target": "unit_homecalendar_test_startofweek"
     },
     {
       "relation": "contains",
@@ -35805,6 +36948,26 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "tests/unit/submittedAnswers.test.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "unit_submittedanswers_test",
+      "target": "unit_submittedanswers_test_confidencetrend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/unit/submittedAnswers.test.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "unit_submittedanswers_test",
+      "target": "unit_submittedanswers_test_parsesubmittedanswers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "tests/unit/topicPrefilter.test.js",
       "source_location": "L5",
       "weight": 1.0,
@@ -35916,5 +37079,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "588e5d690f08276a3eff1f4418c7ce8a51507570"
+  "built_at_commit": "35712c420fde6fbc43539d9f344d84bb21cb680b"
 }
