@@ -35,7 +35,7 @@ Changed:
 No breaking changes. Ranks 6-9 from the v4.7.0 scoping doc (trend grid, nudge, device-scoped
 activity + linking) remain deferred to a later features sprint.
 
-## [v4.7.0] — Design overhaul: Modernist (IN PROGRESS — not yet tagged)
+## [v4.7.0] — Design overhaul: Modernist
 
 A visual overhaul, not a behavior change. Remaps the app's existing 2px-border token system
 (`src/index.css`) to a Modernist palette/type (Archivo, one terracotta-red accent, zero corner

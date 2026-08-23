@@ -27,8 +27,9 @@ live-verified end-to-end, and DEPLOYED to production (frontend via SWA GitHub Ac
 `func azure functionapp publish`, both confirmed live 2026-07-28); only v4.6.1 (Tasks 9-11) and
 the rc1 ship gate (integration test run, skip-path/failure-recovery E2E legs, content review)
 remain — not yet tagged `v4.6.0`. See its blurb below for exact status. v4.7.0 (Design Overhaul —
-Modernist) is IN PROGRESS on `main`, built directly on top of v4.6.0's code (not yet deployed) —
-see its blurb below.**
+Modernist) is tagged `v4.7.0` and deployed to production (frontend auto-deployed on an earlier push
+to `main`; its `studentQuizzes` API extension published 2026-08-23 alongside v4.8.0) — see its
+blurb below.**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -257,8 +258,11 @@ v4.6.1 (Tasks 9-11 — projector join screen, first-result annotation, Home quic
 rc1 gate itself (skip-path walk, injected mid-chain failure recovery, the integration test run)
 is still open — see Known issues below.
 
-**v4.7.0 (Design Overhaul — Modernist) is [IN PROGRESS] on `main` — code-complete, live-verified
-in the browser preview, not yet deployed.** Built per `CC_PROMPTS_v470.md` (design/eng/CEO
+**v4.7.0 (Design Overhaul — Modernist) is [CURRENT] — tagged `v4.7.0`, deployed to production.**
+The frontend auto-deployed via SWA GitHub Actions on an earlier push to `main`; its one API change
+(the `studentQuizzes` scheduled-state extension) was published 2026-08-23 with the v4.8.0 API
+deploy (post-deploy health confirmed — worker stack `NODE|22`, `studentQuizzes` returns 400
+unauthenticated, no 503). Built per `CC_PROMPTS_v470.md` (design/eng/CEO
 reviewed 2026-08-17 — see that file's review reports). Ships ranks 1-5 of the scoping doc: **DS**
 (global token remap — see Architecture decisions below and `DESIGN.md`), **Reskin** (Home /
 Analytics / student flow restyled, analytics behavior untouched), **S-CONF** (completion
@@ -291,8 +295,9 @@ extension to the existing `GET /api/student/quizzes`. No breaking changes.
   (4/4 pass); live-walked in the browser preview end-to-end (join → approve → class-home QR +
   Coming-up → take quiz → confidence summary; Home calendar week/month toggle) with zero console
   errors on any page this sprint touched.
-- **Deploy status:** not yet deployed — built directly on `main` per the v4.5/v4.6 single-session
-  convention, no release branch.
+- **Deploy status:** deployed to production — built directly on `main` per the v4.5/v4.6
+  single-session convention (no release branch); frontend auto-deployed on push, API
+  `studentQuizzes` extension published 2026-08-23 with v4.8.0.
 
 **v4.8.0 (Student Quiz History & Own-Answer Review) is [CURRENT] on `main` — tagged `v4.8.0`,
 deployed to production 2026-08-23** (frontend via SWA GitHub Actions on push to `main`, API via
@@ -521,7 +526,7 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 11 | v4.4.0 | Traffic monitor — page-view analytics + admin Traffic dashboard, quiz funnel, PWA-install + push-delivery tracking, metrics de-stub |
 | 12 | v4.5.0 | Student class home & post-approval access — persistent `/student/class`, auto-subscribe, returning-device recognition, teacher share link |
 | 13 | v4.6.0 | First-run activation — server-orchestrated demo class/quiz/send/simulate chain, starter question pack, Getting Started checklist, misconception-biased demo simulation, activation funnel script (IN PROGRESS — see blurb above) |
-| 14 | v4.7.0 | Design overhaul (Modernist) — global token remap, Home calendar + attention cards, student QR-join + "Coming up", completion confidence summary (IN PROGRESS — see blurb above) |
+| 14 | v4.7.0 | Design overhaul (Modernist) — global token remap, Home calendar + attention cards, student QR-join + "Coming up", completion confidence summary (deployed) |
 | 15 | v4.8.0 | Student quiz history & own-answer review — persist-on-submit, `/quiz/review` + `/quiz/practice`, confidence-trend strip, tappable answered cards (client-only; one pageView privacy line) |
 
 ### Rules
@@ -604,7 +609,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
     via CEO/eng/design plan review 2026-07-27; step zero fully closed same day; prompt in
     `CC_PROMPTS_v460.md`. See the v4.6.0 blurb near the top of this file for the exact
     task-by-task status.
-14. **v4.7.0 — Design overhaul (Modernist).** [IN PROGRESS — code-complete, not yet deployed]
+14. **v4.7.0 — Design overhaul (Modernist).** [CURRENT — tagged `v4.7.0`, deployed 2026-08-23]
     Global design-token remap (Archivo, one terracotta accent, zero radius, no shadows — same
     token names, 600+ existing call sites restyle for free), a read-only Home calendar +
     "Also waiting" attention cards, a student "Join this class" QR + "Coming up" scheduled
@@ -1612,10 +1617,10 @@ dashboard, funnel strip, breakdowns). Live at
 | First-run chain (POST /api/onboarding/first-run, starter pack seed, Getting Started checklist state, misconception-biased demo simulation, activation funnel script) | [CURRENT] v4.6.0 code-complete — live-verified end-to-end 2026-07-27 |
 | First-run finale UI, checklist rendering, Tier 2 flow hardening, starter-seed empty-state CTA | [CURRENT] v4.6.0 Tasks 4/5/6 code-complete — live-verified end-to-end 2026-07-27; rc1 ship gate (skip-path/failure-recovery legs, integration test run) still open |
 | Projector join screen, first-result annotation, Home quick-start card | [PLANNED — v4.6.1] |
-| Design system remap (Modernist tokens, Archivo, DESIGN.md, new component classes) | [CURRENT] v4.7.0 code-complete — not yet deployed |
-| Home calendar + Also-waiting attention cards | [CURRENT] v4.7.0 code-complete — not yet deployed |
-| Student "Join this class" QR + "Coming up" scheduled quizzes | [CURRENT] v4.7.0 code-complete — not yet deployed |
-| Quiz completion confidence self-summary | [CURRENT] v4.7.0 code-complete — not yet deployed |
+| Design system remap (Modernist tokens, Archivo, DESIGN.md, new component classes) | [CURRENT] v4.7.0 deployed 2026-08-23 |
+| Home calendar + Also-waiting attention cards | [CURRENT] v4.7.0 deployed 2026-08-23 |
+| Student "Join this class" QR + "Coming up" scheduled quizzes | [CURRENT] v4.7.0 deployed 2026-08-23 |
+| Quiz completion confidence self-summary | [CURRENT] v4.7.0 deployed 2026-08-23 |
 | Student quiz history + own-answer review (`/quiz/review`, tappable answered cards, persist-on-submit) | [CURRENT] v4.8.0 deployed 2026-08-23 |
 | Student self-practice (`/quiz/practice`, private, nothing submitted) | [CURRENT] v4.8.0 deployed 2026-08-23 |
 | Confidence-trend strip on `/student/class` (device-wide, 2+ quizzes) | [CURRENT] v4.8.0 deployed 2026-08-23 |
@@ -1744,7 +1749,7 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     path was live-tested); starter-pack content review. (`graphify update .` run 2026-08-17.) Do not tell a future
     session "v4.6.0 is done" — v4.6.1 (Tasks 9-11) hasn't started, and the rc1 gate itself is
     still open. Check this file's v4.6.0 blurb near the top for the current task-by-task status.
-16. **v4.7.0 — code-complete, not yet deployed.** Built 2026-08-17: `npm run build` clean,
+16. **v4.7.0 — deployed to production (resolved 2026-08-23).** Built 2026-08-17: `npm run build` clean,
     479/479 unit tests pass (20 new — `homeCalendar`/`alsoWaiting`/`confidenceTally`/
     `studentQuizzesState` pure-logic tests, mirroring the ESM-source convention since this repo
     has no jsdom/RTL, same pattern as `tests/unit/demoNav.test.js`), the new
@@ -1752,10 +1757,12 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     (4/4 pass — scheduled-quiz state, ordering, 403-on-unapproved, demo-exclusion), and the whole
     flow live-walked in the browser preview (join → approve → class-home QR + "Coming up" →
     take quiz → confidence summary; Home calendar week/month toggle) with zero console errors on
-    every page this sprint touched. **Neither `func azure functionapp publish` nor the SWA
-    frontend deploy has run yet** — do not tell a future session this is live in production.
-    Ranks 6-9 (trend grid, nudge, device-scoped activity + linking) deferred to v4.8.0, not
-    started. `graphify update .` run 2026-08-17.
+    every page this sprint touched. **Now deployed 2026-08-23:** the frontend had already been
+    auto-deploying via SWA GitHub Actions on pushes to `main`, and the `studentQuizzes`
+    scheduled-state API extension was published 2026-08-23 with the v4.8.0 API deploy (worker
+    stack confirmed `NODE|22`, `studentQuizzes` returns 400 unauthenticated, no 503).
+    Ranks 6-9 (trend grid, nudge, device-scoped activity + linking) deferred to a later features
+    sprint, not started. `graphify update .` run 2026-08-17.
 
 ---
 
