@@ -1,6 +1,5 @@
-// Real provider: Azure OpenAI. Not exercised against a live endpoint in this build session (no
-// key configured) — structurally correct, activation requires the steps in
-// docs/azure/LLM_PROVIDER_SETUP.md. Env var is LLM_API_KEY (underscores — hyphens are invalid
+// Real provider: Azure OpenAI. Live-verified 2026-08-23 against a gpt-5-mini deployment (see
+// docs/azure/LLM_PROVIDER_SETUP.md). Env var is LLM_API_KEY (underscores — hyphens are invalid
 // Linux app-setting names); the Key Vault SECRET stays LLM-API-KEY per the VAPID convention.
 
 const { buildSystemPrompt, buildUserPrompt } = require('../llmPrompts');
@@ -19,7 +18,10 @@ async function generate({ chunks, questionCount, topicTag }) {
         { role: 'user', content: buildUserPrompt({ chunks, questionCount, topicTag }) },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.4,
+      // ponytail: no fixed temperature — reasoning-family deployments (e.g. gpt-5-mini) reject
+      // any non-default value ("Unsupported value: 'temperature' does not support 0.4 with this
+      // model"). Omitting lets each deployment use its own default; upgrade to a per-model
+      // override table only if a future deployment needs a specific non-default temperature.
     }),
   });
   if (!res.ok) throw new Error(`Azure OpenAI request failed: ${res.status}`);

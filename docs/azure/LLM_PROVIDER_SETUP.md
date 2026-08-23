@@ -4,6 +4,39 @@ The sprint ships and is tested entirely against the **mock provider** (`LLM_PROV
 the default) — no real LLM API key is required to build, test, or use v4.3.0 in its default
 state. This doc covers activating a real provider later.
 
+## Provisioned resource (2026-08-23)
+
+An Azure OpenAI resource is now live and wired to the Function App (but **`LLM_PROVIDER` in
+production is still `mock`** — not flipped until steps 4-5 below are done):
+
+| Thing | Value |
+|---|---|
+| Resource | `quizpulse-openai-av5z18` (kind OpenAI, S0, **australiaeast**, resource group `quizpulse-app-rg`) |
+| Endpoint | `https://quizpulse-openai-av5z18.openai.azure.com/` |
+| Deployment | `gpt-5-mini` (version 2025-08-07, GlobalStandard, capacity 10) — **gpt-4o-mini is gone from Azure's catalog (deprecated for new deployments)**; gpt-5-mini is the current small/cheap chat tier |
+| Key Vault secret | `LLM-API-KEY` in `quizpulse-app-kv-av5z18` |
+| App settings set | `LLM_API_KEY` (KV ref), `LLM_ENDPOINT`, `LLM_MODEL=gpt-5-mini` |
+
+**Two gotchas found live and fixed in `api/shared/llmProviders/azureOpenai.js`:**
+1. **No `temperature`.** gpt-5-mini is a reasoning-family model and rejects any non-default
+   temperature (`Unsupported value: 'temperature' does not support 0.4`). The provider no longer
+   sends one.
+2. **Setting the KV reference via `az` on this Windows machine drops the trailing `)`** (Known
+   issue #7, but worse than documented — it truncates even from PowerShell with any quoting when
+   other `--settings` args follow). **Fix: set app settings from a JSON file** —
+   `az functionapp config appsettings set ... --settings @settings.json` — which bypasses the
+   arg-parsing entirely. Verify afterward that `LLM_API_KEY` ends in `)`.
+
+**Founder smoke test (2026-08-23): PASS.** Ran `generateDraft` (5 questions) and the
+regenerate-shape call (1 question) against the live deployment with founder-authored material.
+Both returned valid, factually-grounded questions passing `draftSchema` validation. **Two real
+bugs caught and fixed** before any teacher use:
+- Regenerate asked for 1 question but got 3 — the system prompt hardcoded "between 3 and 15
+  questions", contradicting the user prompt's "exactly N". Invisible against the mock (which loops
+  exactly N). Fixed in `api/shared/llmPrompts.js` (guarded by `tests/unit/api/llmPrompts.test.js`).
+- **Latency is ~4-9s per call**, far above the mock's ~2s dev-delay proxy. The pending-UI copy
+  (GenerateQuiz/ReviewDraft staged loader) must tolerate ~10s comfortably before go-live.
+
 ---
 
 ## Env vars
@@ -42,12 +75,13 @@ az functionapp config appsettings set -g quizpulse-app-rg -n quizpulse-app-api-a
 2b. Use the mock provider's `~2s` dev delay (see `api/shared/llmProviders/mock.js` caller in
    `api/generationDrafts.js`, once built) as a rough proxy for what the pending UI needs to
    tolerate — a real provider call will typically take longer.
-3. **Switch quota semantics** — the shipped quota (`api/shared/dailyQuota.js`) counts
-   **successful** generations/uploads only. Before activating a real (paid) provider, either:
-   - switch quota counting to attempt-based (count every call, success or failure), **or**
-   - set a hard provider-side spend cap (Azure OpenAI budget alert / Anthropic usage limit).
-   Skipping this step means a buggy client retry loop could burn unlimited real-provider spend
-   without ever tripping the daily quota, since failed attempts don't count against it today.
+3. ~~**Switch quota semantics**~~ — **DONE (2026-08-17, commit `04c8809`).**
+   `api/shared/dailyQuota.js` now exports `checkAndIncrQuota`, an attempt-based counter (increments
+   before the provider call, not after a persisted success) wired into both `POST
+   /api/generation/drafts` and `POST /api/generation/expand` in `api/generationDrafts.js`.
+   `checkAndIncrRegenQuota` is now a thin wrapper over the same helper. A failing/retried real-provider
+   call now counts against the daily cap — a spend-cap alert (Azure OpenAI budget / Anthropic usage
+   limit) is still good practice as a second backstop, but no longer a hard gate on activation.
 4. **Flip `LLM_PROVIDER`** to `azureOpenai` or `anthropic` in Function App settings.
 5. Confirm `api/shared/llmAdapter.js` returns 503 (not a 500 or a hang) if the key is ever removed
    or expires — this is already covered by `tests/unit/api/llmAdapter.test.js`'s
