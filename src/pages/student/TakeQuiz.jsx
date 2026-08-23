@@ -4,6 +4,7 @@ import API_BASE from '../../api'
 import { queueResponse, registerResponseSync } from '../../offlineQueue'
 import ENCOURAGEMENTS from '../../data/encouragements'
 import { tallyConfidence, tallySummaryText } from '../../data/confidenceTally'
+import { submittedKey, saveSubmitted } from '../../data/submittedAnswers'
 
 // Decision: all questions render on one screen rather than one-at-a-time. These are short
 // (≤20 question) low-stakes formative quizzes, so a single scrollable page lets students see
@@ -12,10 +13,11 @@ import { tallyConfidence, tallySummaryText } from '../../data/confidenceTally'
 
 const CONFIDENCE_KEY = 'quizpulse_confidence_explained'
 const DEVICE_ID_KEY = 'quizpulse_device_id'
-// Per-quiz "this device already submitted" flag. The device UUID IS the student identity,
-// so a local flag matches the server's duplicate check for the same device; if storage is
-// cleared the server's 409 still catches the duplicate at submit.
-const submittedKey = (quizId) => `quizpulse_submitted_${quizId}`
+// Per-quiz "this device already submitted" record (submittedKey + saveSubmitted from
+// data/submittedAnswers). The device UUID IS the student identity, so a local record matches the
+// server's duplicate check for the same device; if storage is cleared the server's 409 still
+// catches the duplicate at submit. What's stored is now the answer payload (for later review),
+// not a bare '1' — legacy '1' values degrade to "no detail saved" on the review screen.
 
 // Confidence levels shown to students — plain language, no score implication.
 const CONFIDENCE_LEVELS = [
@@ -229,13 +231,13 @@ function TakeQuiz() {
       })
 
       if (res.status === 201) {
-        localStorage.setItem(submittedKey(quizId), '1')
+        saveSubmitted(quizId, answersPayload)
         setSubmittedAnswers(answersPayload)
         setOutcome('submitted')
         return
       }
       if (res.status === 409) {
-        localStorage.setItem(submittedKey(quizId), '1')
+        saveSubmitted(quizId, answersPayload)
         setOutcome('already')
         return
       }
