@@ -14,6 +14,28 @@ describe('llmPrompts — question count authority', () => {
     expect(sys).toMatch(/exactly the number of questions requested/i);
   });
 
+  test('system prompt forbids referring to the source ("based on the slides" etc.)', () => {
+    const sys = buildSystemPrompt();
+    expect(sys).toMatch(/stand alone/i);
+    expect(sys).toMatch(/never refer to it/i);
+  });
+
+  test('system prompt enforces MCQ quality rules (one correct, no answer tells, no all-of-above)', () => {
+    const sys = buildSystemPrompt();
+    expect(sys).toMatch(/exactly one option is correct/i);
+    expect(sys).toMatch(/misconception/i);          // distractors reflect real mistakes (drives analytics)
+    expect(sys).toMatch(/not shuffled/i);            // options shown in given order → no length/position tell
+    expect(sys).toMatch(/all of the above/i);        // banned
+  });
+
+  test('system prompt enforces grounding, distinctness, minor-safety, and plain text', () => {
+    const sys = buildSystemPrompt();
+    expect(sys).toMatch(/do not invent details/i);   // anti-hallucination / source-grounded
+    expect(sys).toMatch(/distinct/i);                // no duplicate questions
+    expect(sys).toMatch(/minors/i);                  // content safety
+    expect(sys).toMatch(/plain text only/i);         // no markdown / no A. B. labels
+  });
+
   test('user prompt pins the exact requested count', () => {
     expect(buildUserPrompt({ chunks: [{ index: 0, text: 'x' }], questionCount: 1 }))
       .toMatch(/exactly 1 questions?/i);
@@ -31,6 +53,16 @@ describe('llmPrompts — question style', () => {
 
   test('analytical style injects an analysis/application instruction', () => {
     expect(buildUserPrompt({ ...base, questionStyle: 'analytical' })).toMatch(/analysis and application/i);
+  });
+
+  test('year level from topicTag is injected only when the topic names a year', () => {
+    const base = { chunks: [{ index: 0, text: 'x' }], questionCount: 5 };
+    // Named year → difficulty line present with the right number.
+    expect(buildUserPrompt({ ...base, topicTag: 'Year 7 Science' })).toMatch(/write for year 7 students/i);
+    expect(buildUserPrompt({ ...base, topicTag: 'Year 11 Maths' })).toMatch(/write for year 11 students/i);
+    // No topic, or a non-"Year N" topic → no year line at all.
+    expect(buildUserPrompt(base)).not.toMatch(/write for year/i);
+    expect(buildUserPrompt({ ...base, topicTag: 'General Science' })).not.toMatch(/write for year/i);
   });
 
   test('no style (or unknown/mixed) adds no stray style line beyond the base prompt', () => {
