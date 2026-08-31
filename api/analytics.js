@@ -267,11 +267,7 @@ app.http('analyticsExport', {
       const nameByDevice = new Map(approvedStudents.map(s => [s.deviceId, s.studentName]));
       const questionById = new Map(questions.map(q => [q.id, q]));
 
-      // ponytail: confidence layer NOT exported yet — answers carry a.confidence
-      // ("sure"|"pretty_sure"|"guessing") + a.responseTimeMs since v3.2.0, but this CSV
-      // drops both. Add a "confidence" column (and maybe responseTimeMs) when a teacher
-      // asks for it; would also want the header row updated below.
-      const rows = [['studentName', 'question', 'answer', 'timestamp']];
+      const rows = [['studentName', 'question', 'answer', 'confidence', 'responseTimeMs', 'timestamp']];
       for (const r of responses) {
         const studentName = nameByDevice.get(r.studentId) || r.studentId;
         for (const a of (r.answers || [])) {
@@ -280,7 +276,8 @@ app.http('analyticsExport', {
           const answerText = q && q.options && q.options[a.selectedIndex] !== undefined
             ? q.options[a.selectedIndex]
             : String(a.selectedIndex);
-          rows.push([studentName, questionText, answerText, r.completedAt]);
+          // Legacy answers (pre-v3.2.0) have neither field — render as empty, not undefined/crash.
+          rows.push([studentName, questionText, answerText, a.confidence || '', a.responseTimeMs != null ? a.responseTimeMs : '', r.completedAt]);
         }
       }
 
