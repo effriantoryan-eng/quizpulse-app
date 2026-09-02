@@ -25,8 +25,8 @@ verified 2026-07-27 — see the per-version blurbs below), on top of v3.3.0 / Sp
 MAJOR). v4.6.0 (First-Run Activation) is IN PROGRESS on `main` — Tasks 1-8 code-complete,
 live-verified end-to-end, and DEPLOYED to production (frontend via SWA GitHub Actions, API via
 `func azure functionapp publish`, both confirmed live 2026-07-28); only v4.6.1 (Tasks 9-11) and
-the rc1 ship gate (integration test run, skip-path/failure-recovery E2E legs, content review)
-remain — not yet tagged `v4.6.0`. See its blurb below for exact status. v4.7.0 (Design Overhaul —
+the rc1 ship gate (integration test run, skip-path/failure-recovery E2E legs; content review
+DONE 2026-09-02 — all 5 starter questions passed) remain — not yet tagged `v4.6.0`. See its blurb below for exact status. v4.7.0 (Design Overhaul —
 Modernist) is tagged `v4.7.0` and deployed to production (frontend auto-deployed on an earlier push
 to `main`; its `studentQuizzes` API extension published 2026-08-23 alongside v4.8.0) — see its
 blurb below.**
@@ -172,9 +172,11 @@ Done so far:
   demo class is reused instead of creating a fresh one.
 - **Task 2 — starter pack** (`api/shared/starterPack.js`, `api/questionsStarterSeed.js`): 5
   human-written, curriculum-neutral study-skills questions, `origin: 'starter'` on the question
-  doc (mirrors the `generatedBy: 'ai'` provenance-marker convention). **Not yet content-reviewed
-  to the `apstContent.js` verbatim-accuracy bar** — required before rc1 per the sprint's ship
-  gates.
+  doc (mirrors the `generatedBy: 'ai'` provenance-marker convention). **Content-reviewed
+  2026-09-02** — all 5 questions passed (defensible answer keys, minors-safe, curriculum-neutral,
+  no ambiguous double-correct; key spread `(2,0,3,1,2)` intact). The applicable bar here is
+  answer-key defensibility, not `apstContent.js`-style verbatim-source match — the starter pack is
+  original study-skills items with no source doc to quote. rc1 content-review gate cleared.
 - **Task 3 — Getting Started checklist state** (`api/shared/gettingStarted.js`): 5 steps
   (practice-quiz-sent, results-seen, real-class-created, join-code-shared, first-real-send)
   computed from LIVE Cosmos counts on every call — never stored tick-state, so e.g. deleting the
@@ -253,10 +255,10 @@ unit suite because the fakes didn't reproduce the exact failure shape:**
    upserting the whole stale object. Regression-guarded in
    `tests/unit/api/demoSendNotification.test.js`.
 
-Not yet built: starter-pack content review, and all of
+Starter-pack content review is DONE (2026-09-02 — all 5 passed). Not yet built: all of
 v4.6.1 (Tasks 9-11 — projector join screen, first-result annotation, Home quick-start card). The
-rc1 gate itself (skip-path walk, injected mid-chain failure recovery, the integration test run)
-is still open — see Known issues below.
+rc1 gate is still partly open (skip-path walk, injected mid-chain failure recovery, the
+integration test run) — see Known issues below.
 
 **v4.7.0 (Design Overhaul — Modernist) is [CURRENT] — tagged `v4.7.0`, deployed to production.**
 The frontend auto-deployed via SWA GitHub Actions on an earlier push to `main`; its one API change
@@ -1746,7 +1748,8 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     integration test (`tests/integration/api/v460-first-run.test.js`) has NOT been run against
     `quizpulse-int-test-db` (written, unrun — unlike v4.4.0's, confirmed 14/14); the skip-path and
     injected-mid-chain-failure-recovery legs of the E2E walk are unexercised (only the fast/happy
-    path was live-tested); starter-pack content review. (`graphify update .` run 2026-08-17.) Do not tell a future
+    path was live-tested). Starter-pack content review is DONE (2026-09-02 — all 5 passed).
+    (`graphify update .` run 2026-08-17.) Do not tell a future
     session "v4.6.0 is done" — v4.6.1 (Tasks 9-11) hasn't started, and the rc1 gate itself is
     still open. Check this file's v4.6.0 blurb near the top for the current task-by-task status.
 16. **v4.7.0 — deployed to production (resolved 2026-08-23).** Built 2026-08-17: `npm run build` clean,

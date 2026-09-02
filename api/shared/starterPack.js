@@ -1,7 +1,8 @@
 // v4.6.0 — a generic, curriculum-neutral starter pack so a brand-new teacher can see the
-// Send -> Analytics loop without writing a single question first. Content-reviewed to the same
-// verbatim-accuracy bar as api/shared/apstContent.js before v4.6.0-rc1: human-written,
-// minors-safe, study-skills/general knowledge only (no subject curriculum claims).
+// Send -> Analytics loop without writing a single question first. Content-reviewed 2026-09-02
+// (all 5 passed): human-written, minors-safe, study-skills only (no subject curriculum claims),
+// answer keys defensible with no ambiguous double-correct. The bar here is key defensibility, not
+// apstContent.js-style verbatim-source match — these are original items with no source doc.
 //
 // Seeded into the teacher's OWN questions container (never a shared pool) so ownership/limits
 // work exactly like any other question. `origin: 'starter'` is the provenance marker — mirrors
