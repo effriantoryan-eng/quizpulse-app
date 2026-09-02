@@ -255,6 +255,14 @@ function SendQuiz() {
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', padding: '24px' }}>
+      {!sentResult && (
+        <button
+          onClick={() => navigate(-1)}
+          style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: 0, marginBottom: '16px' }}
+        >
+          ← Back
+        </button>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Send quiz</h2>
         {!hintVisible && (

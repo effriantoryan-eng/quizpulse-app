@@ -154,9 +154,17 @@ function GenerateQuiz() {
 
       {source && (
         <>
-          <div style={{ padding: '12px 14px', background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: '8px', fontSize: '13px', color: '#085041', marginBottom: '20px' }}>
-            {source.kind === 'pdf' ? `${source.pageCount} pages read ✓` : `${source.chunkCount} sections read ✓`}
-            {source.truncated && ' — we read as much as we could fit.'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ flex: 1, padding: '12px 14px', background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: '8px', fontSize: '13px', color: '#085041' }}>
+              {source.kind === 'pdf' ? `${source.pageCount} pages read ✓` : `${source.chunkCount} sections read ✓`}
+              {source.truncated && ' — we read as much as we could fit.'}
+            </div>
+            <button
+              onClick={() => setSource(null)}
+              style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: 0, whiteSpace: 'nowrap' }}
+            >
+              Choose a different file
+            </button>
           </div>
 
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
