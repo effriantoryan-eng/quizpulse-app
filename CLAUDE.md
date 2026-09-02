@@ -25,8 +25,9 @@ verified 2026-07-27 — see the per-version blurbs below), on top of v3.3.0 / Sp
 MAJOR). v4.6.0 (First-Run Activation) is IN PROGRESS on `main` — Tasks 1-8 code-complete,
 live-verified end-to-end, and DEPLOYED to production (frontend via SWA GitHub Actions, API via
 `func azure functionapp publish`, both confirmed live 2026-07-28); only v4.6.1 (Tasks 9-11) and
-the rc1 ship gate (integration test run, skip-path/failure-recovery E2E legs; content review
-DONE 2026-09-02 — all 5 starter questions passed) remain — not yet tagged `v4.6.0`. See its blurb below for exact status. v4.7.0 (Design Overhaul —
+the rc1 ship gate (skip-path/failure-recovery E2E legs only; integration test run DONE
+2026-09-02 — 5/5 pass; content review DONE 2026-09-02 — all 5 starter questions passed) remain —
+not yet tagged `v4.6.0`. See its blurb below for exact status. v4.7.0 (Design Overhaul —
 Modernist) is tagged `v4.7.0` and deployed to production (frontend auto-deployed on an earlier push
 to `main`; its `studentQuizzes` API extension published 2026-08-23 alongside v4.8.0) — see its
 blurb below.**
@@ -1744,11 +1745,13 @@ ID app registration. Diagnosis: `docs/fixes/SIGNIN_DIAGNOSIS.md`.
     zero console errors) — this also caught and fixed two real bugs (see the v4.6.0 blurb near the
     top: `getOrCreateQuiz` returning `undefined` on a fresh quiz, and a demo-branch upsert in
     `api/sendNotification.js` that has silently clobbered `confidenceResponseCount` on every
-    demo-quiz send since v4.2.0). 459/459 unit tests pass. **Still open before rc1:** the
-    integration test (`tests/integration/api/v460-first-run.test.js`) has NOT been run against
-    `quizpulse-int-test-db` (written, unrun — unlike v4.4.0's, confirmed 14/14); the skip-path and
-    injected-mid-chain-failure-recovery legs of the E2E walk are unexercised (only the fast/happy
-    path was live-tested). Starter-pack content review is DONE (2026-09-02 — all 5 passed).
+    demo-quiz send since v4.2.0). 459/459 unit tests pass. **Resolved 2026-09-02:** the integration
+    test (`tests/integration/api/v460-first-run.test.js`) was run against `quizpulse-int-test-db`
+    via `func start` with `COSMOS_ENDPOINT`/`COSMOS_KEY` overridden to the test values — **5/5
+    pass** (first-run create, retry-idempotency, cross-tenant isolation, starter-seed create,
+    starter-seed cross-tenant). Starter-pack content review is also DONE (2026-09-02 — all 5
+    passed). **Still open before rc1:** the skip-path and injected-mid-chain-failure-recovery
+    legs of the E2E walk are unexercised (only the fast/happy path was live-tested).
     (`graphify update .` run 2026-08-17.) Do not tell a future
     session "v4.6.0 is done" — v4.6.1 (Tasks 9-11) hasn't started, and the rc1 gate itself is
     still open. Check this file's v4.6.0 blurb near the top for the current task-by-task status.
