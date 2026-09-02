@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { loginRequest, signUpRequest } from '../authConfig'
 import InstallButton from '../components/InstallButton'
+import PricingTiers from '../components/PricingTiers'
 
 // Brand accents for the public landing.
 const BRAND = '#534AB7'
@@ -34,16 +35,28 @@ export default function Home() {
           }}>⚡</div>
           <span style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text)' }}>QuizPulse</span>
         </div>
-        <button
-          data-testid="preview-gallery-link"
-          onClick={() => navigate('/demo')}
-          style={{
-            background: 'none', border: 'none', color: BRAND, fontSize: '14px',
-            fontWeight: '600', cursor: 'pointer', textDecoration: 'underline',
-          }}
-        >
-          Preview gallery
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <button
+            data-testid="plans-link"
+            onClick={() => navigate('/pricing')}
+            style={{
+              background: 'none', border: 'none', color: BRAND, fontSize: '14px',
+              fontWeight: '600', cursor: 'pointer', textDecoration: 'underline',
+            }}
+          >
+            Plans
+          </button>
+          <button
+            data-testid="preview-gallery-link"
+            onClick={() => navigate('/demo')}
+            style={{
+              background: 'none', border: 'none', color: BRAND, fontSize: '14px',
+              fontWeight: '600', cursor: 'pointer', textDecoration: 'underline',
+            }}
+          >
+            Preview gallery
+          </button>
+        </div>
       </div>
 
       {/* Hero line */}
@@ -132,6 +145,20 @@ export default function Home() {
 
       {/* Add-to-phone — secondary weight, centered, below the two cards. */}
       <InstallButton align="center" />
+
+      {/* Plans — the same tier cards as /pricing, rendered inline. */}
+      <div style={{ marginTop: '72px', paddingTop: '48px', borderTop: '1px solid var(--border)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
+            Simple plans for every teacher
+          </h2>
+          <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '480px', margin: '0 auto', lineHeight: '1.6' }}>
+            The whole check-in loop is free. Pay only when you want your full history, deeper
+            insight, and registration evidence.
+          </p>
+        </div>
+        <PricingTiers />
+      </div>
     </div>
   )
 }

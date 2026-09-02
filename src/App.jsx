@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { getOnboarded, setOnboarded as markOnboarded } from './onboardingCache'
 import API_BASE from './api'
 import Home from './pages/Home'
+import Pricing from './pages/Pricing'
 import DemoGallery from './pages/DemoGallery'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
@@ -100,6 +101,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/demo" element={<DemoGallery />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
       <Route path="/onboarding/profile" element={<RequireTeacher><OnboardingProfile /></RequireTeacher>} />
