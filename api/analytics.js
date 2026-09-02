@@ -22,13 +22,18 @@ const CSV_EXPORT_WINDOW_MS = 3600000;
 // Loads the quiz, its questions (ordered, full fields), its responses, and the approved
 // students for its target classes. Throws { status, error } on ownership/lookup failure.
 async function loadQuizAnalytics(quizId, teacherId) {
-  const { resources: quizMatches } = await quizzesContainer.items.query({
-    query: 'SELECT * FROM c WHERE c.id = @id',
-    parameters: [{ name: '@id', value: quizId }],
-  }).fetchAll();
-  if (quizMatches.length === 0) throw { status: 404, error: 'Quiz not found' };
-  const quiz = quizMatches[0];
-  if (quiz.teacherId !== teacherId) throw { status: 404, error: 'Quiz not found' };
+  // Point read on (id, teacherId): quizzes is partitioned on /teacherId, so this is a single
+  // O(1) partition lookup instead of a cross-partition scan by id. It also enforces ownership for
+  // free — a quiz owned by another teacher lives in a different partition and simply isn't found.
+  // A miss may resolve with resource:undefined OR throw 404 depending on SDK config; handle both
+  // so "not found" stays a 404, never a 500 (same belt-and-suspenders pattern as firstRun.js).
+  let quiz;
+  try {
+    ({ resource: quiz } = await quizzesContainer.item(quizId, teacherId).read());
+  } catch (err) {
+    if (err.code !== 404) throw err;
+  }
+  if (!quiz) throw { status: 404, error: 'Quiz not found' };
 
   const questionIds = quiz.questionIds || [];
   let questions = [];
@@ -190,7 +195,7 @@ app.http('analytics', {
 
       // 60/min, not 60/hr: the analytics page polls every 3s (20 req/min) by design,
       // so an hourly bucket dies after ~3 minutes of live viewing.
-      if (!rateLimit(`analytics:${getClientIp(request)}`, 60, 60000)) {
+      if (!rateLimit(`analytics:${teacherId}`, 60, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 

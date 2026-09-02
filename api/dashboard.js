@@ -56,7 +56,7 @@ app.http('dashboard', {
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
 
-      if (!rateLimit(`dashboard:${getClientIp(request)}`, 60, 60000)) {
+      if (!rateLimit(`dashboard:${teacherId}`, 60, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
