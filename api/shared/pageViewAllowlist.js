@@ -4,6 +4,7 @@
 // entry silently buckets to 'other' forever, so that test fails loudly instead.
 const ALLOWED_PREFIXES = [
   '/demo',
+  '/pricing',
   '/login',
   '/onboarding',
   '/teacher/first-run',
