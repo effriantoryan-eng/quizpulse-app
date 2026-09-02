@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import PromoSlot from '../../components/PromoSlot'
@@ -87,22 +87,29 @@ export default function TeacherHome() {
     return () => { cancelled = true }
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      try {
-        const res = await fetch(`${API_BASE}/dashboard`)
-        if (!res.ok) throw new Error('Could not load your dashboard.')
-        const d = await res.json()
-        if (!cancelled) { setData(d); setError(null) }
-      } catch (err) {
-        if (!cancelled) setError(err.message)
-      }
+  const [reloading, setReloading] = useState(false)
+  const mounted = useRef(true)
+  useEffect(() => () => { mounted.current = false }, [])
+
+  const loadDashboard = useCallback(async () => {
+    setReloading(true)
+    try {
+      const res = await fetch(`${API_BASE}/dashboard`)
+      if (!res.ok) throw new Error('Could not load your dashboard.')
+      const d = await res.json()
+      if (mounted.current) { setData(d); setError(null) }
+    } catch (err) {
+      if (mounted.current) setError(err.message)
+    } finally {
+      if (mounted.current) setReloading(false)
     }
-    load()
-    const id = setInterval(load, POLL_INTERVAL_MS)
-    return () => { cancelled = true; clearInterval(id) }
   }, [])
+
+  useEffect(() => {
+    loadDashboard()
+    const id = setInterval(loadDashboard, POLL_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [loadDashboard])
 
   // Full quiz list — feeds the calendar (sentAt/scheduledFor marks) and the draft-in-progress
   // "also waiting" card. Read-only, teacher-scoped, no new endpoint (v4.7.0 T1).
@@ -115,12 +122,14 @@ export default function TeacherHome() {
     return () => { cancelled = true }
   }, [])
 
-  if (error && !data) return <div style={{ padding: '24px', color: 'var(--danger)' }}>{error}</div>
-  if (!data) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading…</div>
-
-  const { teacherName, activeQuizzes, recentResults, pendingRequestCount, misconceptions, counts } = data
+  // Never gate the whole page on the dashboard fetch. Render the shell always; when data is slow or
+  // failed, sections fall back to their own empty states via these defaults and an inline status
+  // strip explains why + offers a retry. A blank error page was the worst part of a failed load.
+  const { teacherName = null, activeQuizzes = [], recentResults = [], pendingRequestCount = 0, misconceptions = [], counts = null } = data || {}
   const alsoWaiting = buildAlsoWaitingCards({ activeQuizzes, recentResults, quizzes })
   const hasAttention = pendingRequestCount > 0 || misconceptions.length > 0
+  const loadFailed = error && !data
+  const loadingFirst = !data && !error
 
   return (
     <div style={{ maxWidth: 780, margin: '0 auto', padding: '24px' }}>
@@ -130,6 +139,22 @@ export default function TeacherHome() {
       <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>
         Here's what's happening with your classes.
       </div>
+
+      {loadingFirst && (
+        <div style={{ ...card, color: 'var(--muted)', fontSize: '13px', textAlign: 'center' }}>
+          Loading your latest data…
+        </div>
+      )}
+      {loadFailed && (
+        <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--tipBg)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--text)' }}>
+            We couldn't load your latest data. Everything else still works.
+          </span>
+          <button onClick={loadDashboard} disabled={reloading} className="btn btn-secondary" style={{ flexShrink: 0 }}>
+            {reloading ? 'Retrying…' : 'Retry'}
+          </button>
+        </div>
+      )}
 
       {/* Getting Started owns this slot until released/dismissed (v4.6.0 Task 4) — PromoSlot
           returns once it steps aside. Wait for the /api/me fetch so we don't flash PromoSlot
@@ -250,10 +275,10 @@ export default function TeacherHome() {
       {/* At-a-glance counts */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2px', marginTop: '24px' }}>
         {[
-          ['Classes', counts.classes],
-          ['Students', counts.students],
-          ['Questions', counts.questions],
-          ['Quizzes sent', counts.quizzesSent],
+          ['Classes', counts?.classes ?? '—'],
+          ['Students', counts?.students ?? '—'],
+          ['Questions', counts?.questions ?? '—'],
+          ['Quizzes sent', counts?.quizzesSent ?? '—'],
         ].map(([label, val]) => (
           <div key={label} style={{ background: 'var(--surface2)', padding: '14px 8px', textAlign: 'center' }}>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)' }}>{val}</div>

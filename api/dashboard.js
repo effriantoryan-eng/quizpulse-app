@@ -38,6 +38,51 @@ async function countQuery(container, where, params) {
   return resources[0] || 0;
 }
 
+// Misconceptions are the heaviest, most throttle-prone part of the dashboard (MISCONCEPTION_SCAN
+// full analytics loads). Scan the quizzes concurrently, and make the whole thing best-effort — if
+// Cosmos is slow or throttles mid-scan, the dashboard degrades to no misconceptions instead of
+// failing the entire page load. ponytail: this is the one section allowed to come back empty.
+async function computeMisconceptions(sentQuizzes, teacherId, context) {
+  try {
+    const scanned = await Promise.all(
+      sentQuizzes.slice(0, MISCONCEPTION_SCAN).map(async q => {
+        const loaded = await loadQuizAnalytics(q.id, teacherId);
+        const breakdown = buildQuestionBreakdown(loaded.questions, loaded.responses);
+        return breakdown
+          .filter(qb => qb.confidentButIncorrect > 0)
+          .map(qb => ({ quizId: q.id, quizName: q.name, questionText: qb.text, confidentButIncorrect: qb.confidentButIncorrect }));
+      })
+    );
+    return scanned.flat().sort((a, b) => b.confidentButIncorrect - a.confidentButIncorrect);
+  } catch (err) {
+    context.warn('dashboard misconceptions degraded:', err.message);
+    return [];
+  }
+}
+
+async function computeCounts(tidParam, realQuizzesWhere) {
+  const [classes, students, questions, quizzesSent] = await Promise.all([
+    countQuery(classesContainer, realQuizzesWhere, tidParam),
+    classesContainer.items.query({
+      query: `SELECT VALUE SUM(c.studentCount) FROM c WHERE ${realQuizzesWhere}`,
+      parameters: tidParam,
+    }).fetchAll().then(r => r.resources[0] || 0),
+    countQuery(questionsContainer, 'c.teacherId = @tid', tidParam),
+    countQuery(quizzesContainer, `c.teacherId = @tid AND c.status = 'sent' AND ${EXCLUDE_DEMO_FRAGMENT}`, tidParam),
+  ]);
+  return { classes, students, questions, quizzesSent };
+}
+
+async function loadTeacherName(tidParam) {
+  try {
+    const { resources } = await teachersContainer.items.query({
+      query: 'SELECT c.name FROM c WHERE c.id = @tid',
+      parameters: tidParam,
+    }).fetchAll();
+    return resources[0]?.name || null;
+  } catch { return null; } // name is cosmetic
+}
+
 // GET /api/dashboard — teacher home summary. Every query is scoped by the caller's teacherId
 // (from the validated JWT), which is the isolation boundary — a teacher only ever sees their own
 // quizzes, classes and counts. No resource-ID input, so no assertScope is needed.
@@ -72,71 +117,40 @@ app.http('dashboard', {
       const isOpen = q => !q.closedAt || new Date(q.closedAt).getTime() > now;
       const openQuizzes = sentQuizzes.filter(isOpen);
       const closedQuizzes = sentQuizzes.filter(q => !isOpen(q)).slice(0, RECENT_RESULTS_LIMIT);
-
-      const activeQuizzes = await Promise.all(openQuizzes.map(async q => ({
-        quizId: q.id,
-        name: q.name,
-        classSize: q.classSize || 0,
-        totalResponses: await countResponses(q.id),
-        closedAt: q.closedAt || null,
-        isDemo: q.isDemo === true,
-      })));
-
-      const recentResults = await Promise.all(closedQuizzes.map(async q => {
-        const totalResponses = await countResponses(q.id);
-        const classSize = q.classSize || 0;
-        return {
-          quizId: q.id,
-          name: q.name,
-          classSize,
-          totalResponses,
-          responseRate: classSize > 0 ? Math.round((totalResponses / classSize) * 100) : null,
-          closedAt: q.closedAt || null,
-          isDemo: q.isDemo === true,
-        };
-      }));
-
-      // Misconceptions: scan the most-recent sent quizzes for confident-but-wrong questions.
-      const misconceptions = [];
-      for (const q of sentQuizzes.slice(0, MISCONCEPTION_SCAN)) {
-        const loaded = await loadQuizAnalytics(q.id, teacherId);
-        const breakdown = buildQuestionBreakdown(loaded.questions, loaded.responses);
-        for (const qb of breakdown) {
-          if (qb.confidentButIncorrect > 0) {
-            misconceptions.push({ quizId: q.id, quizName: q.name, questionText: qb.text, confidentButIncorrect: qb.confidentButIncorrect });
-          }
-        }
-      }
-      misconceptions.sort((a, b) => b.confidentButIncorrect - a.confidentButIncorrect);
-
-      // Pending approvals across all the teacher's classes (join_requests carries teacherId).
-      const pendingRequestCount = await countQuery(
-        joinRequestsContainer,
-        "c.teacherId = @tid AND (c.status = 'pending' OR c.status = 'queued')",
-        tidParam,
-      );
-
-      // At-a-glance counts — exclude demo so they read as the real classroom.
       const realQuizzesWhere = `c.teacherId = @tid AND ${EXCLUDE_DEMO_FRAGMENT}`;
-      const [classes, students, questions, quizzesSent] = await Promise.all([
-        countQuery(classesContainer, realQuizzesWhere, tidParam),
-        classesContainer.items.query({
-          query: `SELECT VALUE SUM(c.studentCount) FROM c WHERE ${realQuizzesWhere}`,
-          parameters: tidParam,
-        }).fetchAll().then(r => r.resources[0] || 0),
-        countQuery(questionsContainer, 'c.teacherId = @tid', tidParam),
-        countQuery(quizzesContainer, `c.teacherId = @tid AND c.status = 'sent' AND ${EXCLUDE_DEMO_FRAGMENT}`, tidParam),
-      ]);
 
-      // Teacher display name (best-effort; falls back to null).
-      let teacherName = null;
-      try {
-        const { resources } = await teachersContainer.items.query({
-          query: 'SELECT c.name FROM c WHERE c.id = @tid',
-          parameters: tidParam,
-        }).fetchAll();
-        teacherName = resources[0]?.name || null;
-      } catch { /* name is cosmetic */ }
+      // Every section below is independent of the others — run them concurrently instead of a serial
+      // waterfall, which was the bulk of the dashboard's latency (each awaited the previous). The
+      // misconception scan and name lookup are best-effort (see helpers) so a slow/throttled Cosmos
+      // call degrades that section to empty rather than failing the whole request.
+      const [activeQuizzes, recentResults, misconceptions, pendingRequestCount, counts, teacherName] =
+        await Promise.all([
+          Promise.all(openQuizzes.map(async q => ({
+            quizId: q.id,
+            name: q.name,
+            classSize: q.classSize || 0,
+            totalResponses: await countResponses(q.id),
+            closedAt: q.closedAt || null,
+            isDemo: q.isDemo === true,
+          }))),
+          Promise.all(closedQuizzes.map(async q => {
+            const totalResponses = await countResponses(q.id);
+            const classSize = q.classSize || 0;
+            return {
+              quizId: q.id,
+              name: q.name,
+              classSize,
+              totalResponses,
+              responseRate: classSize > 0 ? Math.round((totalResponses / classSize) * 100) : null,
+              closedAt: q.closedAt || null,
+              isDemo: q.isDemo === true,
+            };
+          })),
+          computeMisconceptions(sentQuizzes, teacherId, context),
+          countQuery(joinRequestsContainer, "c.teacherId = @tid AND (c.status = 'pending' OR c.status = 'queued')", tidParam),
+          computeCounts(tidParam, realQuizzesWhere),
+          loadTeacherName(tidParam),
+        ]);
 
       return respond(200, {
         teacherName,
@@ -144,7 +158,7 @@ app.http('dashboard', {
         recentResults,
         pendingRequestCount,
         misconceptions: misconceptions.slice(0, MISCONCEPTION_LIMIT),
-        counts: { classes, students, questions, quizzesSent },
+        counts,
       }, teacherId);
     } catch (err) {
       context.error('dashboard error:', err.message);
