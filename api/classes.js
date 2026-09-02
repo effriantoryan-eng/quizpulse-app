@@ -1,6 +1,6 @@
 const { app } = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
-const { rateLimit, getClientIp } = require('./rateLimit');
+const { rateLimit } = require('./rateLimit');
 const { logRequest } = require('./logger');
 const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
@@ -36,7 +36,7 @@ app.http('classesGet', {
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
 
-      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
@@ -79,7 +79,7 @@ app.http('classesCreate', {
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
 
-      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
@@ -181,7 +181,7 @@ app.http('classesCreateShells', {
       if (auth.error) return respond(auth.status, { error: auth.error });
       const { teacherId } = auth;
 
-      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
@@ -242,7 +242,7 @@ app.http('classesUpdate', {
       const { teacherId } = auth;
       const caller = getCallerScope(auth.claims);
 
-      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
@@ -310,7 +310,7 @@ app.http('classesRegenerateCode', {
       const { teacherId } = auth;
       const caller = getCallerScope(auth.claims);
 
-      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
@@ -360,7 +360,7 @@ app.http('classesRemoveStudent', {
       const { teacherId } = auth;
       const caller = getCallerScope(auth.claims);
 
-      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 
@@ -438,7 +438,7 @@ app.http('classesDelete', {
       const { teacherId } = auth;
       const caller = getCallerScope(auth.claims);
 
-      if (!rateLimit(`classes:${getClientIp(request)}`, 30, 60000)) {
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
         return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
       }
 

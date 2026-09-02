@@ -38,16 +38,36 @@ export function installAuthenticatedFetch(apiBase) {
   if (typeof window === 'undefined' || window.__quizpulseFetchPatched) return
   window.__quizpulseFetchPatched = true
   const originalFetch = window.fetch.bind(window)
+  // Cold starts (Consumption plan scales to zero) and brief Cosmos throttles make the first API
+  // hit after idle fail or 5xx. Retry idempotent GETs with backoff so a blip self-heals instead of
+  // surfacing as "couldn't load" — pages do a single fetch with no retry of their own.
+  const RETRIABLE = new Set([429, 500, 502, 503, 504])
   window.fetch = async (input, init = {}) => {
     const url = typeof input === 'string' ? input : input?.url
-    if (url && url.startsWith(apiBase)) {
-      const token = await getApiToken()
-      if (token) {
-        const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined))
-        headers.set('Authorization', `Bearer ${token}`)
-        init = { ...init, headers }
+    if (!url || !url.startsWith(apiBase)) return originalFetch(input, init)
+
+    const token = await getApiToken()
+    if (token) {
+      const headers = new Headers(init.headers || (typeof input !== 'string' ? input.headers : undefined))
+      headers.set('Authorization', `Bearer ${token}`)
+      init = { ...init, headers }
+    }
+
+    const method = (init.method || (typeof input !== 'string' ? input.method : '') || 'GET').toUpperCase()
+    if (method !== 'GET') return originalFetch(input, init) // never silently replay a mutation
+
+    let lastErr
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 400 * attempt + Math.random() * 200))
+      try {
+        const res = await originalFetch(input, init)
+        if (attempt < 2 && RETRIABLE.has(res.status)) continue
+        return res
+      } catch (err) {
+        lastErr = err
+        if (attempt >= 2) throw err
       }
     }
-    return originalFetch(input, init)
+    throw lastErr // unreachable: attempt 2 always returns or throws
   }
 }
