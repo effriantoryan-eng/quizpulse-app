@@ -15,17 +15,12 @@ export const HUBS = [
     ],
   },
   {
-    id: 'questions', label: 'Questions', icon: 'bank', path: '/teacher/bank',
+    id: 'quizzes', label: 'Quiz wizard', icon: 'quizzes', path: '/teacher/quizzes',
     tabs: [
+      { label: 'History', path: '/teacher/quizzes' },
+      { label: 'Build & Send', path: '/teacher/build', match: ['/teacher/send'] },
       { label: 'Question Bank', path: '/teacher/bank' },
       { label: 'New Question', path: '/teacher/create' },
-    ],
-  },
-  {
-    id: 'quizzes', label: 'Quizzes', icon: 'quizzes', path: '/teacher/build',
-    tabs: [
-      { label: 'Build & Send', path: '/teacher/build', match: ['/teacher/send'] },
-      { label: 'History', path: '/teacher/quizzes' },
     ],
   },
   {

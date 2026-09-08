@@ -17,7 +17,7 @@ export default function HomeCalendar({ quizzes }) {
   return (
     <div style={{ border: 'var(--bw) solid var(--border)', padding: '16px', marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <div className="bp-label" style={{ margin: 0 }}>Calendar</div>
+        <div className="bp-label" style={{ margin: 0 }}>{today.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}</div>
         <div className="seg home-calendar-seg">
           <button type="button" className={`seg-opt${view === 'week' ? ' active' : ''}`} onClick={() => setView('week')}>Week</button>
           <button type="button" className={`seg-opt home-calendar-month-opt${view === 'month' ? ' active' : ''}`} onClick={() => setView('month')}>Month</button>

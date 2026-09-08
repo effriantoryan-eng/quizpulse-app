@@ -135,7 +135,9 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
           {q.generatedBy === 'ai' && <AiBadge />}
           {q.yearLevel && <span style={{ fontSize: '11px', color: '#888' }}>Year {q.yearLevel}</span>}
           {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: 'var(--primary)' }}>▲ {q.upvoteCount}</span>}
-          {q.usageCount > 0 && <span style={{ fontSize: '11px', color: '#aaa' }}>{q.usageCount} uses</span>}
+          {q.usageCount > 0
+            ? <span style={{ fontSize: '11px', color: '#aaa' }}>In use · {q.usageCount} {q.usageCount === 1 ? 'quiz' : 'quizzes'}</span>
+            : onToggleSelect && <span style={{ fontSize: '11px', color: '#aaa' }}>Unused</span>}
         </div>
       </div>
       {showActions && (
@@ -214,6 +216,8 @@ function QuestionBank() {
   const [hintVisible, dismissHint, showHint] = useHint('bank')
   const [questions, setQuestions] = useState([])
   const [filter, setFilter] = useState('All')
+  const [mySearch, setMySearch] = useState('')
+  const [myStatus, setMyStatus] = useState('All')
   const [selected, setSelected] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -294,7 +298,12 @@ function QuestionBank() {
   }
 
   const topics = ['All', ...new Set(questions.map(q => q.topic))]
-  const filtered = filter === 'All' ? questions : questions.filter(q => q.topic === filter)
+  const searchTerm = mySearch.trim().toLowerCase()
+  const inUse = q => (q.usageCount || 0) > 0
+  const filtered = questions
+    .filter(q => filter === 'All' || q.topic === filter)
+    .filter(q => myStatus === 'All' || (myStatus === 'In use' ? inUse(q) : !inUse(q)))
+    .filter(q => !searchTerm || (q.text || '').toLowerCase().includes(searchTerm))
 
   function toggleSelect(id) {
     setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
@@ -473,6 +482,13 @@ function QuestionBank() {
         </div>
       ) : (
         <>
+          <input
+            type="text"
+            value={mySearch}
+            onChange={e => setMySearch(e.target.value)}
+            placeholder="Search your questions…"
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '14px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px' }}
+          />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {topics.map(t => (
@@ -490,8 +506,29 @@ function QuestionBank() {
                   {t} ({t === 'All' ? questions.length : questions.filter(q => q.topic === t).length})
                 </button>
               ))}
+              {['In use', 'Unused'].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setMyStatus(myStatus === s ? 'All' : s)}
+                  style={{
+                    padding: '5px 12px', borderRadius: '20px', border: '1px solid',
+                    borderColor: myStatus === s ? 'var(--primary)' : '#ddd',
+                    background: myStatus === s ? 'var(--primary)' : 'white',
+                    color: myStatus === s ? 'white' : '#555',
+                    cursor: 'pointer', fontSize: '12px', fontWeight: myStatus === s ? '500' : '400',
+                  }}
+                >
+                  {s} ({questions.filter(q => s === 'In use' ? inUse(q) : !inUse(q)).length})
+                </button>
+              ))}
             </div>
           </div>
+
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '14px' }}>
+              No questions match your search.
+            </div>
+          )}
 
           {filtered.map(q => (
             <QuestionCard
