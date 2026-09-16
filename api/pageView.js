@@ -16,7 +16,12 @@ function getContainer() {
   return _container;
 }
 
-const ALLOWED_EVENT_TYPES = ['view', 'pwa_install'];
+const ALLOWED_EVENT_TYPES = ['view', 'pwa_install', 'push_prompted', 'push_granted', 'push_denied', 'install_accepted', 'install_dismissed'];
+// Consent/install events — fingerprint fields are stripped regardless of route (B1, v4.9.0).
+const CONSENT_EVENT_TYPES = new Set(['push_prompted', 'push_granted', 'push_denied', 'install_accepted', 'install_dismissed']);
+// Coarse platform values accepted on consent/install events only (review D4, user-approved).
+// Three buckets can't identify a device; enables the iOS vs Android denial-rate split.
+const ALLOWED_PLATFORMS = new Set(['ios', 'android', 'desktop']);
 const MAX_QUIZ_ID_LENGTH = 100;
 
 // Pure: validates + shapes a pageview doc from a raw request body. Returns { error } on
@@ -52,7 +57,20 @@ function buildPageViewDoc(body) {
   // startsWith('/quiz/') covers the /quiz/review + /quiz/practice student sub-routes (v4.8) so
   // their beacons get the same fingerprint-stripping as /quiz itself — and any future /quiz/*
   // route is student-private by default.
+  //
+  // v4.9.0 extension (review B1): consent/install events (push_*/install_*) also strip
+  // fingerprint fields regardless of route — they fire on student routes (/join, /student/class)
+  // where device identity is linkable to quiz identity, same posture as /quiz itself.
   const isStudentRoute = classifiedPage === '/quiz' || classifiedPage.startsWith('/quiz/') || classifiedPage === '/student/class';
+  const isConsentEvent = CONSENT_EVENT_TYPES.has(resolvedEventType);
+  const stripFingerprint = isStudentRoute || isConsentEvent;
+
+  // Deliberate exception (review D4, user-approved): consent/install events keep a coarse
+  // `platform` field ('ios'|'android'|'desktop' only). Three buckets can't identify a device,
+  // but enable the highest-value cut: iOS vs Android notification denial rates. Never stored
+  // for plain 'view' events — only for consent/install types.
+  const { platform } = body || {};
+  const resolvedPlatform = isConsentEvent && ALLOWED_PLATFORMS.has(platform) ? platform : null;
 
   const doc = {
     page:         classifiedPage,
@@ -60,12 +78,13 @@ function buildPageViewDoc(body) {
     teacherId:    typeof teacherId  === 'string' ? teacherId.slice(0, 100)  : 'anonymous',
     sessionId:    typeof sessionId  === 'string' ? sessionId.slice(0, 100)  : null,
     quizId:       isStudentRoute && typeof quizId === 'string' ? quizId.slice(0, MAX_QUIZ_ID_LENGTH) : null,
-    referrer:     isStudentRoute ? null : (typeof referrer   === 'string' ? referrer.slice(0, 500)   : null),
-    userAgent:    isStudentRoute ? null : (typeof userAgent  === 'string' ? userAgent.slice(0, 500)  : null),
-    language:     isStudentRoute ? null : (typeof language   === 'string' ? language.slice(0, 20)    : null),
-    timezone:     isStudentRoute ? null : (typeof timezone   === 'string' ? timezone.slice(0, 100)   : null),
-    screenWidth:  isStudentRoute ? null : (typeof screenWidth  === 'number' ? screenWidth  : null),
-    screenHeight: isStudentRoute ? null : (typeof screenHeight === 'number' ? screenHeight : null),
+    referrer:     stripFingerprint ? null : (typeof referrer   === 'string' ? referrer.slice(0, 500)   : null),
+    userAgent:    stripFingerprint ? null : (typeof userAgent  === 'string' ? userAgent.slice(0, 500)  : null),
+    language:     stripFingerprint ? null : (typeof language   === 'string' ? language.slice(0, 20)    : null),
+    timezone:     stripFingerprint ? null : (typeof timezone   === 'string' ? timezone.slice(0, 100)   : null),
+    screenWidth:  stripFingerprint ? null : (typeof screenWidth  === 'number' ? screenWidth  : null),
+    screenHeight: stripFingerprint ? null : (typeof screenHeight === 'number' ? screenHeight : null),
+    platform:     resolvedPlatform,
   };
 
   return { doc };

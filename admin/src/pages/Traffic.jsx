@@ -157,6 +157,46 @@ export default function Traffic() {
             </div>
           </div>
 
+          {t.consent && (
+            <div style={groupStyle}>
+              <h2 style={headingStyle}>Consent &amp; install telemetry</h2>
+              <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 12 }}>
+                Consent data since v4.9.0 only · install-prompt outcomes exclude iOS (no native prompt on iOS)
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 16 }}>
+                {['push_prompted', 'push_granted', 'push_denied', 'install_accepted', 'install_dismissed'].map(k => (
+                  <div key={k} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 4, padding: '8px 10px' }}>
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{k.replace(/_/g, ' ')}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700 }}>{t.consent.counts[k] ?? 0}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 24, marginBottom: 12 }}>
+                <div>
+                  <span style={{ fontSize: 12, color: '#64748b' }}>Push grant rate: </span>
+                  <span style={{ fontWeight: 600 }}>{t.consent.grantRate !== null ? `${t.consent.grantRate.toFixed(1)}%` : '—'}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: 12, color: '#64748b' }}>Install accept rate: </span>
+                  <span style={{ fontWeight: 600 }}>{t.consent.acceptRate !== null ? `${t.consent.acceptRate.toFixed(1)}%` : '—'}</span>
+                </div>
+              </div>
+              {t.consent.byPlatform && (
+                <div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>By platform (push_granted)</div>
+                  {['ios', 'android', 'desktop'].map(p => (
+                    <BarRow
+                      key={p}
+                      label={p}
+                      value={t.consent.byPlatform[p]?.push_granted ?? 0}
+                      max={Math.max(...['ios', 'android', 'desktop'].map(q => t.consent.byPlatform[q]?.push_granted ?? 0), 1)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             <div style={groupStyle}>
               <h2 style={headingStyle}>Audience</h2>

@@ -57,6 +57,12 @@ export const listTeachers = (params = {}) =>
 export const setTeacherRole = (id, role) =>
   apiJson(`/manage/teachers/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) })
 
+export const getTeacherOverview = (id, params = {}) =>
+  apiJson(`/manage/teachers/${id}/overview?${new URLSearchParams(params)}`)
+
+export const getTeacherQuizAnalytics = (id, quizId) =>
+  apiJson(`/manage/teachers/${id}/quizzes/${quizId}/analytics`)
+
 // Metrics
 export const getMetrics = (range = 'today') =>
   apiJson(`/manage/metrics?range=${range}`)

@@ -59,6 +59,7 @@ const logoutStyle = {
 const NAV_LINKS = [
   { to: '/schools', label: 'Schools' },
   { to: '/institutions', label: 'Institutions' },
+  { to: '/teachers', label: 'Teachers' },
   { to: '/monitoring', label: 'Monitoring' },
   { to: '/traffic', label: 'Traffic' },
   { to: '/audit', label: 'Audit Log' },
