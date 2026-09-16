@@ -59,11 +59,14 @@ describe('GET /api/manage/teachers/{id}/overview — auth gates', () => {
     expect(res.status).toBe(401);
   });
 
-  it_int('teacher-audience token (wrong aud) → 401', async () => {
+  it_int('teacher-audience token (wrong aud) → 404 (no admin role derived, same 404-on-mismatch convention)', async () => {
     const res = await fetch(`${FUNC_URL}/manage/teachers/${TEACHER_A}/overview`, {
       headers: teacherHeaders(TEACHER_A),
     });
-    expect(res.status).toBe(401);
+    // A teacher JWT is a valid signed token — authenticateAdmin decodes it, getCallerScope derives
+    // role='teacher', then requireRole(READ_ALL_ROLES) returns 404 per house convention.
+    // 404-on-mismatch is the rule for all auth failures on admin endpoints; never 403/401.
+    expect(res.status).toBe(404);
   });
 
   it_int('admin token with plain teacher role → 404 (requireRole enforces READ_ALL_ROLES)', async () => {
