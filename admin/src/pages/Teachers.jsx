@@ -61,12 +61,12 @@ export default function Teachers() {
           placeholder="Search by name, email, or id…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ padding: '6px 10px', fontSize: 13, border: '1px solid #cbd5e1', borderRadius: 4, width: 280 }}
+          style={{ padding: '6px 10px', fontSize: 13, border: '1px solid #cbd5e1', borderRadius: 4, flex: '1 1 200px', minWidth: 0 }}
         />
         <select
           value={schoolFilter}
           onChange={e => setSchoolFilter(e.target.value)}
-          style={{ padding: '6px 10px', fontSize: 13, border: '1px solid #cbd5e1', borderRadius: 4 }}
+          style={{ padding: '6px 10px', fontSize: 13, border: '1px solid #cbd5e1', borderRadius: 4, flex: '0 1 200px', minWidth: 0 }}
         >
           <option value="">All schools</option>
           {schools.map(s => (
@@ -89,50 +89,50 @@ export default function Teachers() {
       )}
 
       {teachers.length > 0 && (
-        <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Name</th>
-                <th style={thStyle}>Email</th>
-                <th style={thStyle}>Role</th>
-                <th style={thStyle}>School</th>
-                <th style={thStyle}>Joined</th>
-                <th style={thStyle}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {teachers.map(t => (
-                <tr key={t.id} style={{ cursor: 'default' }}>
-                  <td style={tdStyle}>{t.name || <span style={{ color: '#94a3b8' }}>—</span>}</td>
-                  <td style={tdStyle}>{t.email || <span style={{ color: '#94a3b8' }}>—</span>}</td>
-                  <td style={tdStyle}>
-                    <span style={{
-                      fontSize: 11, padding: '2px 6px', borderRadius: 3,
-                      background: t.role === 'owner' ? '#fef3c7' : t.role === 'support' ? '#ede9fe' : '#f1f5f9',
-                      color: t.role === 'owner' ? '#92400e' : t.role === 'support' ? '#5b21b6' : '#475569',
-                    }}>
-                      {t.role || 'teacher'}
-                    </span>
-                  </td>
-                  <td style={tdStyle}>{t.schoolId ? t.schoolId.slice(0, 8) + '…' : <span style={{ color: '#94a3b8' }}>—</span>}</td>
-                  <td style={tdStyle}>{t.createdAt ? t.createdAt.slice(0, 10) : '—'}</td>
-                  <td style={tdStyle}>
-                    <button
-                      onClick={() => navigate(`/teachers/${t.teacherId}`)}
-                      style={{
-                        padding: '3px 10px', fontSize: 12, borderRadius: 4, cursor: 'pointer',
-                        background: '#fff', border: '1px solid #cbd5e1', color: '#475569',
-                      }}
-                    >
-                      View data ›
-                    </button>
-                  </td>
+        <>
+          {/* Desktop table — hidden below 640px via the card list below */}
+          <div className="teachers-table-wrap" style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflowX: 'auto' }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Name</th>
+                  <th style={thStyle}>Email</th>
+                  <th style={thStyle}>Role</th>
+                  <th style={thStyle}>School</th>
+                  <th style={thStyle}>Joined</th>
+                  <th style={thStyle}></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {teachers.map(t => (
+                  <tr key={t.id}>
+                    <td style={tdStyle}>{t.name || <span style={{ color: '#94a3b8' }}>—</span>}</td>
+                    <td style={{ ...tdStyle, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email || <span style={{ color: '#94a3b8' }}>—</span>}</td>
+                    <td style={tdStyle}>
+                      <span style={{
+                        fontSize: 11, padding: '2px 6px', borderRadius: 3,
+                        background: t.role === 'owner' ? '#fef3c7' : t.role === 'support' ? '#ede9fe' : '#f1f5f9',
+                        color: t.role === 'owner' ? '#92400e' : t.role === 'support' ? '#5b21b6' : '#475569',
+                      }}>
+                        {t.role || 'teacher'}
+                      </span>
+                    </td>
+                    <td style={{ ...tdStyle, color: '#94a3b8', fontSize: 11 }}>{t.schoolId ? t.schoolId.slice(0, 8) + '…' : '—'}</td>
+                    <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>{t.createdAt ? t.createdAt.slice(0, 10) : '—'}</td>
+                    <td style={tdStyle}>
+                      <button
+                        onClick={() => navigate(`/teachers/${t.teacherId}`)}
+                        style={{ padding: '3px 10px', fontSize: 12, borderRadius: 4, cursor: 'pointer', background: '#fff', border: '1px solid #cbd5e1', color: '#475569', whiteSpace: 'nowrap' }}
+                      >
+                        View data ›
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {total > LIMIT && (
