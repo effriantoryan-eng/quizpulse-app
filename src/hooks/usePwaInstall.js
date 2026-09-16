@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 
 // Pure platform detection — exported for unit testing without a DOM.
 // Returns "ios" for iOS Safari, "native" when the browser fired a beforeinstallprompt
-// (Chrome/Edge/Android), or "unsupported" otherwise (e.g. desktop Firefox, which has no
-// programmatic install).
+// (Chrome/Edge/Android), "samsung" for Samsung Internet without a prompt (manual guide),
+// or "unsupported" otherwise (e.g. desktop Firefox, which has no programmatic install).
 export function detectPlatform({ userAgent = '', hasMSStream = false, hasInstallPrompt = false } = {}) {
   if (hasInstallPrompt) return 'native'
   if (/iPad|iPhone|iPod/.test(userAgent) && !hasMSStream) return 'ios'
+  if (/SamsungBrowser/.test(userAgent)) return 'samsung'
   return 'unsupported'
 }
 
@@ -33,13 +34,22 @@ export function usePwaInstall() {
   )
 
   useEffect(() => {
+    // Adopt an event the early index.html capture already caught before React mounted —
+    // without this the button never shows on Android, where the event fires during the
+    // async MSAL boot, before this listener is attached.
+    if (typeof window !== 'undefined' && window.__qpInstallPrompt) {
+      setDeferredPrompt(window.__qpInstallPrompt)
+      setCanInstall(true)
+    }
     function onBeforeInstallPrompt(e) {
       // Stop Chrome's default mini-infobar so we can present our own button.
       e.preventDefault()
+      window.__qpInstallPrompt = e
       setDeferredPrompt(e)
       setCanInstall(true)
     }
     function onAppInstalled() {
+      window.__qpInstallPrompt = null
       setIsInstalled(true)
       setCanInstall(false)
       setDeferredPrompt(null)
@@ -64,6 +74,7 @@ export function usePwaInstall() {
     deferredPrompt.prompt()
     const choice = await deferredPrompt.userChoice
     // The event can only be used once.
+    window.__qpInstallPrompt = null
     setDeferredPrompt(null)
     setCanInstall(false)
     return choice

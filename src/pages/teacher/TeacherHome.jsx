@@ -5,6 +5,7 @@ import PromoSlot from '../../components/PromoSlot'
 import GettingStartedChecklist from '../../components/GettingStartedChecklist'
 import HomeCalendar from '../../components/home/HomeCalendar'
 import { buildAlsoWaitingCards } from '../../data/alsoWaiting'
+import InstallButton from '../../components/InstallButton'
 
 const POLL_INTERVAL_MS = 8000
 
@@ -300,6 +301,10 @@ export default function TeacherHome() {
       {gettingStarted && !gettingStarted.dismissed && gettingStarted.released && (
         <GettingStartedChecklist gettingStarted={gettingStarted} variant="strip" onChange={setGettingStarted} />
       )}
+
+      <div style={{ marginTop: '32px' }}>
+        <InstallButton />
+      </div>
     </div>
   )
 }
