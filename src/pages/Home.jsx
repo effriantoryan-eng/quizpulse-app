@@ -36,6 +36,7 @@ export default function Home() {
           <span style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text)' }}>QuizPulse</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {/* hidden: Plans link
           <button
             data-testid="plans-link"
             onClick={() => navigate('/pricing')}
@@ -46,6 +47,7 @@ export default function Home() {
           >
             Plans
           </button>
+          */}
           <button
             data-testid="preview-gallery-link"
             onClick={() => navigate('/demo')}
@@ -146,7 +148,7 @@ export default function Home() {
       {/* Add-to-phone — secondary weight, centered, below the two cards. */}
       <InstallButton align="center" />
 
-      {/* Plans — the same tier cards as /pricing, rendered inline. */}
+      {/* hidden: Plans section
       <div style={{ marginTop: '72px', paddingTop: '48px', borderTop: '1px solid var(--border)' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
@@ -159,6 +161,7 @@ export default function Home() {
         </div>
         <PricingTiers />
       </div>
+      */}
     </div>
   )
 }

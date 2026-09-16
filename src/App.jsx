@@ -101,7 +101,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/demo" element={<DemoGallery />} />
-      <Route path="/pricing" element={<Pricing />} />
+      {/* hidden: <Route path="/pricing" element={<Pricing />} /> */}
       <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
       <Route path="/onboarding/profile" element={<RequireTeacher><OnboardingProfile /></RequireTeacher>} />
