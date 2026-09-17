@@ -138,6 +138,10 @@ function SendQuiz() {
 
   useEffect(() => { fetchClasses() }, [])
 
+  // D2.5 — any change to when the quiz goes out re-requires the explicit "Send anyway"
+  // confirmation. Must run unconditionally (before the early returns below) — Rules of Hooks.
+  useEffect(() => { setArmedAfterHours(false) }, [mode, scheduledFor, spacedRepeatsInput])
+
   if (incomingQuizId && loadingQuiz) {
     return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
   }
@@ -272,9 +276,6 @@ function SendQuiz() {
     return moments
   }
   const anyAfterHours = sendMoments().some(m => isOutsideSchoolHours(m))
-
-  // Any change to when the quiz goes out re-requires the explicit "Send anyway" confirmation.
-  useEffect(() => { setArmedAfterHours(false) }, [mode, scheduledFor, spacedRepeatsInput])
 
   // First click on an after-hours send only arms the warning; the second (on "Send anyway") sends.
   function handleSendClick() {
