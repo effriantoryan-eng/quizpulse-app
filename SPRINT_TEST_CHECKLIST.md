@@ -428,3 +428,50 @@ unrecognised binary 400, 11th upload in a day 429.
   any pilot activation.
 - E2E walk (Playwright, real auth) — same "Requires creds" precedent as prior sprints.
 - SWA linked-backend proxy verification for the 15MB upload endpoint (see above).
+
+---
+
+# v4.9.1 — R1 Stop the leaks
+
+Report: `tests/reports/v4.9.1-report.html` (unit suite, 541/541 pass).
+
+## Unit — `tests/unit/api/studentDataCleanup.test.js` (fake containers, no Cosmos)
+
+| # | What is tested | How | Expected | Status |
+|---|---|---|---|---|
+| 1 | A removed device's response is de-identified | Fake quiz targeting class C; response by device D; run `deidentifyResponses` | A copy with a random id and studentId null exists; the original id is gone | ✅ PASS |
+| 2 | The new id is not derived from the device | Run twice on separate fakes with the same quizId + deviceId | The two copies' ids differ, and neither equals or contains sha256(quizId:deviceId) | ✅ PASS |
+| 3 | A device still approved elsewhere is skipped | Quiz targets C1 and C2; D approved in C2; clean C1 | Response untouched; skipped = 1 | ✅ PASS |
+| 4 | A retry after a crash is idempotent | Seed an original with deidPendingId plus the copy (crash between create and delete); rerun | The create 409 is tolerated, the original deleted, exactly one response remains | ✅ PASS |
+| 5 | Subscription delete is scoped | Subs for (C,D1), (C,D2), (C2,D1); `deleteSubscriptions(C, D1)` | Only (C,D1) removed | ✅ PASS |
+| 6 | Send selection drops unapproved devices | `selectEligibleSubscriptions` with an approved D1 and a removed D2 | eligible = [D1]; stale = [D2] | ✅ PASS |
+| 7 | Reject sets expiry | Apply the reject path's document mutation (`applyRejection`) | status 'rejected', ttl 604800 | ✅ PASS |
+
+(+3 extra unit cases: delete-all-subscriptions-for-class, delete-all-join-requests-for-class, a subscription for a class with no approved set is stale.)
+
+## Integration — `tests/integration/api/r1-stop-the-leaks.test.js`
+
+Run 2026-09-17 against `func start` + `quizpulse-int-test-db` (RUN_INTEGRATION=true, a throwaway VAPID keypair for the send path). **8/8 pass.** (Provisioning note: the test account was missing the `subscriptions` container — created with pk `/classId`, matching production, before the run; same category as the `population_benchmark` gap in `memory/local-qa-setup`.)
+
+| # | What is tested | How | Expected | Status |
+|---|---|---|---|---|
+| 1 | Class delete cascades | Create class → join → approve → subscribe → seed sent quiz → seed response → DELETE /api/classes/{id} | 200; join_requests and subscriptions for classId = 0; the quiz's response count unchanged, with studentId null; class no longer listed | ✅ PASS |
+| 2 | Class delete is retry-safe | Delete only the subscriptions via SDK (a partial cascade), then call DELETE again | 200; no duplicate responses; class gone | ✅ PASS |
+| 3 | Remove student cleans up | Two approved students; remove one | That device's subscription gone and its response de-identified; the other student untouched; studentCount decremented | ✅ PASS |
+| 4 | Removed student is not notified | Remove a student, then POST /api/send-notification to that class | total counts only the remaining approved device; the removed device's subscription doc absent | ✅ PASS |
+| 5 | Cross-tenant class delete denied | Teacher B deletes Teacher A's class | 404; A's class, join requests, subscriptions and responses unchanged | ✅ PASS |
+| 6 | Cross-tenant student removal denied | Teacher B calls DELETE /api/classes/{A's class}/students/{jr} | 404; join request still approved | ✅ PASS |
+| 7 | Usage log retired | GET /api/usageLog with an owner token | 404 | ✅ PASS |
+| 8 | Cleanup script end to end | Seed an orphaned join request, subscription and (separate-device) linked response; dry run, --apply, dry run | First dry run reports them; --apply fixes them; the final dry run reports 0 | ✅ PASS |
+
+> Integration test #8 caught a real fixed-point bug in the cleanup script: category (c) had counted an approved join request in a *dead* class as a live enrolment, so a single `--apply` pass didn't fully converge. Fixed — a dead-class approved JR no longer counts as a live enrolment.
+
+## End-to-end — manual walk
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | Teacher removal journey | Confirm text as specified; the student sees "You're no longer in this class"; the send-notification response excludes that device | ⏳ NOT-RUN (manual/staging) |
+| 2 | Class delete journey | Confirm text as specified; results still show answer counts; non-responders list no longer names removed students | ⏳ NOT-RUN (manual/staging) |
+
+E2E is a manual browser walk (the Playwright suite targets staging). The confirm-text strings are verified verbatim in source (`Classes.jsx` handleDelete, `ClassRoster.jsx` removeStudent), and the underlying behavior each row checks — send excludes the removed device, cascade de-identifies responses, non-responders exclude removed students — is proven by integration tests #1/#3/#4 above. The live browser walk (and the "You're no longer in this class" student screen) is left for a manual pass / staging Playwright, consistent with prior sprints' "Requires creds" precedent.
+

@@ -390,6 +390,52 @@ Built per `C:\Users\Ryan\Doc\Quizpulse\QuizPulse_Sprint_Plan_v490.md` (CEO/Desig
   all 5 event types counted, grant rate math, accept rate math, per-platform bucketing, unknown
   platform falls to "unknown", legacy doc with no platform → "unknown".
 
+**v4.9.1 (R1 — Stop the leaks) is [IN PROGRESS] on `release/v4.9.1-stop-the-leaks` (cut from `main`
+after v4.9.0 tagged) — code + tests complete, `v4.9.1-rc1` tagged; production deploy is the
+human-gated remainder (see below).** First of five remediation sprints (R1–R5) from the 2026-09-17
+aesthetic+legal audit (`docs/audits/AUDIT_aesthetic_legal_2026-09-17.md`, Part B: B1/B4). No new
+user-facing feature — every task makes an existing action do what it already claims. Built per
+`C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R1_Stop_the_leaks.md`, decisions D1.1–D1.4 at
+their defaults. Built as staged per-task commits directly on the release branch (the v4.5–v4.8
+single-session convention).
+- **`api/shared/studentDataCleanup.js`** (NEW) — deps-injected, idempotent helpers reused by the
+  cascade / remove-student / send-time-approval / orphan-script paths: `deleteSubscriptions`,
+  `deleteJoinRequests`, `deidentifyResponses` (+ `deidentifyOneResponse`). De-identification
+  re-creates each response under a **fresh random id** (never derived from `sha256(quizId:deviceId)`)
+  with `studentId: null` + `deidentifiedAt`, via a patch(`deidPendingId`)→create→delete sequence
+  that tolerates 409/404 so a retried cascade never duplicates. Skips a response whose device is
+  still approved in ANOTHER of the quiz's target classes (excludes the class being cleaned — it's
+  deleted last).
+- **Class-delete cascade** (`api/classes.js` `classesDelete`) — collects join-request deviceIds →
+  de-identifies responses → deletes subscriptions → deletes join requests → deletes the class LAST
+  (retry-safe). Demo classes have no join requests → no-op. Confirm text in `Classes.jsx` now states
+  names + notification sign-ups are removed and answers stay without names.
+- **Remove-student cleanup** (`classesRemoveStudent`) — deletes that device's subscription +
+  de-identifies its responses BEFORE deleting the join request. `analytics.js` CSV export prints
+  "Removed student" for a null `studentId`, never the raw id. `ClassRoster.jsx` confirm text updated.
+- **Send-time approval** (`sendNotification.js`) — pure exported `selectEligibleSubscriptions(subs,
+  approvedByClass)`; only (classId, deviceId) pairs with an approved join request are notified, every
+  other subscription is pruned like a dead endpoint (cleans existing orphans on first send). Counts
+  eligible only. Covers manual send + `scheduledQuizSend`. Demo branch untouched.
+- **Rejected-request retention** (`joinRequests.js` `applyRejection`) — a rejected join request gets
+  `ttl: 604800` (7 days). Effective only once the container's `DefaultTimeToLive` is enabled (`-1`) —
+  `docs/azure/R1_JOIN_REQUESTS_TTL.md` has the `az` commands for prod + test.
+- **Usage log retired** (D1.3) — deleted `api/adminLog.js` + `src/pages/AdminLog.jsx`, the
+  `/admin/log` route, and every live reference. `GET /api/usageLog` now 404s.
+- **Orphan-cleanup script** (`api/scripts/cleanupOrphanedStudentData.js`, D1.4) — founder-run only,
+  dry-run default, `--apply` to mutate; prints the Cosmos HOST + per-category counts. Cleans data
+  orphaned by pre-R1 deletes.
+- **Tests:** 541/541 unit pass (`studentDataCleanup.test.js` new, 10 cases). `r1-stop-the-leaks.test.js`
+  integration run 2026-09-17 against `quizpulse-int-test-db` — **8/8 pass** (that run also created the
+  `subscriptions` container the test account was missing, pk `/classId`, and caught a fixed-point bug
+  in the cleanup script — a dead-class approved JR was wrongly counted as a live enrolment; fixed).
+  E2E is a manual/staging walk — confirm strings verified in source, behavior proven by integration.
+- **`STUDENT_DATA.md`** rewritten so every sentence matches shipped code (strip routes, retention,
+  who-can-see-it, deletion-on-request).
+- **Deploy (human-gated, per the plan's GIT/DEPLOY):** publish the API from Node 22 → run the cleanup
+  script dry-run against production and get the counts signed off → `--apply` → enable `join_requests`
+  TTL → merge release → develop → main → tag `v4.9.1`.
+
 ---
 
 ## Tech stack
@@ -582,6 +628,7 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 14 | v4.7.0 | Design overhaul (Modernist) — global token remap, Home calendar + attention cards, student QR-join + "Coming up", completion confidence summary (deployed) |
 | 15 | v4.8.0 | Student quiz history & own-answer review — persist-on-submit, `/quiz/review` + `/quiz/practice`, confidence-trend strip, tappable answered cards (client-only; one pageView privacy line) |
 | 16 | v4.9.0 | Admin teacher-data drill-down + consent & install telemetry — `api/manageTeacherData.js` (overview + per-quiz analytics, fail-closed audit, GROUP BY response counts), admin Teachers/TeacherData pages, 5 new pageView eventTypes, coarse platform field, `aggregateConsentFunnel`, admin Traffic consent strip (IN PROGRESS) |
+| 17 | v4.9.1 | R1 Stop the leaks (remediation) — class-delete cascade + remove-student cleanup (de-identify responses, delete subscriptions/join requests), send-time approval re-check, 7-day TTL on rejected requests, retire `/admin/log` + `GET /api/usageLog`, founder-run orphan-cleanup script, `STUDENT_DATA.md` truth pass (IN PROGRESS — rc1 tagged, deploy human-gated) |
 
 ### Rules
 
@@ -703,7 +750,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
   all today) — add an exclusion fragment mirroring `excludeDemo.js` if a question-count metric is
   ever built, so starter-pack seeds don't skew it.
 - `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId?, confidenceResponseCount? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, resolved server-side from the teacher's own record at send time — never client-supplied) are **[CURRENT — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum). `confidenceResponseCount` (int) is **[CURRENT — v4.2.0]**, a denormalised counter incremented via an atomic Cosmos `incr` patch at response-submit time (both `api/responses.js` and `api/shared/runSimulation.js`) — read only by `introEligibility.js`'s `analytics_intro`/`misconception_intro` milestones; a legacy quiz with no field is treated as 0.
-- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId?, deidentifiedAt?, deidPendingId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **[CURRENT — v4.9.1]** a de-identified response (class delete / remove-student / orphan cleanup) carries **`studentId: null` + `deidentifiedAt`**: its per-question counts still contribute to the teacher's results, but nothing links it to a device. The new doc's `id` is a **fresh random UUID**, never derived from the original `sha256(quizId:deviceId)` (a derived id would be recomputable from the device ID). `deidPendingId` is a **transient** marker set on the original just before its copy is created, so a retried cleanup is idempotent (`api/shared/studentDataCleanup.js`); it is dropped from the copy. **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt, profile?, featureIntros? } (pk `/id`) — `profile` (`{subjects[], yearLevels[], classCount, registrationStatus}`, all optional/independent) and `featureIntros` (`{[key]: {shownAt?, dismissedAt?}}` for the nine keys in `api/shared/featureIntros.js`) are **[CURRENT — v4.2.0]**, additive; a legacy teacher doc with neither field is treated as `profile:{}`/`featureIntros:{}` everywhere (`GET /api/me`, `introEligibility.js`, the SendQuiz topic prefilter). **[CURRENT — v4.6.0]** a tenth, synthetic `featureIntros.getting_started` key —
   `{ releasedAt?, dismissedAt?, skippedSteps?: string[] }` — holds the Getting Started checklist's
   ONE-WAY release/dismiss moment and per-step skipped markers (`api/shared/gettingStarted.js`).
@@ -730,7 +777,11 @@ attribution on old responses is accepted).
 ### [PLANNED] new/changed containers
 
 - **`join_requests`** [Sprint 2] (pk `/classId`) — { id, classId, schoolId, teacherId,
-  studentName, deviceId, status: "pending|approved|rejected|queued", matchedName, matchScore, createdAt }
+  studentName, deviceId, status: "pending|approved|rejected|queued", matchedName, matchScore, createdAt, ttl? }
+  — **[CURRENT — v4.9.1]** a **rejected** request is stamped with `ttl: 604800` (7 days) so it
+  auto-expires (`api/joinRequests.js` `applyRejection`). Per-item TTL only takes effect once the
+  container's `DefaultTimeToLive` is enabled to `-1` (docs/azure/R1_JOIN_REQUESTS_TTL.md); legacy
+  rejected requests with no `ttl` are cleaned by `api/scripts/cleanupOrphanedStudentData.js`.
 - **`subscriptions`** ~~[Sprint 3]~~ **[CURRENT — Sprint 3 complete]** (pk `/classId`) — { id, classId, deviceId, endpoint, keys: { p256dh, auth }, createdAt, updatedAt }
 - **`question_upvotes`** ~~[Sprint 6]~~ **[CURRENT — Sprint 6]** (pk `/questionId`) — { id, questionId, teacherId, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_UPVOTES`. Provisioning: `docs/azure/SPRINT6_CONTAINERS_SETUP.md`.
 - **`question_reports`** [CURRENT — Sprint 6] (pk `/questionId`) — { id, questionId, teacherId, reason, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_REPORTS`. Max 20 reports/teacher/day; visible to support/platform_admin via `GET /api/questions/reports`.
@@ -1502,6 +1553,7 @@ at the repo root — read that file before touching any styling, not this summar
 | questions/starter-seed rate | 10 req/min/IP | v4.6.0 |
 | manage/teachers/{id}/overview + /analytics rate | 60 req/min, keyed by caller.teacherId (not IP) | v4.9.0 |
 | Quizzes returned per admin overview call | 200 (pageable via offset param) | v4.9.0 |
+| Rejected join request retention (per-item TTL) | 7 days (604800s; requires container DefaultTimeToLive -1) | v4.9.1 |
 
 ---
 
@@ -1698,12 +1750,30 @@ dashboard, funnel strip, breakdowns). Live at
 | Admin teacher-data drill-down (`GET /api/manage/teachers/{id}/overview` + `/quizzes/{quizId}/analytics`, `api/manageTeacherData.js`) | [IN PROGRESS — v4.9.0 code-complete, tests written, not yet tagged/deployed] |
 | Admin Teachers list + TeacherData drill-down pages (`admin/src/pages/Teachers.jsx` + `TeacherData.jsx`) | [IN PROGRESS — v4.9.0 code-complete] |
 | Consent & install telemetry (5 new pageView eventTypes, platform field, `aggregateConsentFunnel`, admin Traffic consent strip) | [IN PROGRESS — v4.9.0 code-complete, tests written, not yet tagged/deployed] |
+| Class-delete cascade + remove-student cleanup (`api/shared/studentDataCleanup.js`, de-identify responses, delete subscriptions/join requests) | [IN PROGRESS — v4.9.1 code+tests complete, rc1 tagged, deploy human-gated] |
+| Send-time approval re-check (`selectEligibleSubscriptions`, removed students never notified, stale subs pruned) | [IN PROGRESS — v4.9.1 code+tests complete] |
+| Rejected-request 7-day TTL (`applyRejection`), retire `/admin/log` + `GET /api/usageLog`, orphan-cleanup script | [IN PROGRESS — v4.9.1 code+tests complete; TTL enablement + cleanup `--apply` are deploy steps] |
 | Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0 features sprint (distinct from the shipped v4.8.0 above)] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
 ---
 
 ## Known issues [CURRENT]
+
+### Open
+
+- **v4.9.1 (R1) — code + tests done, `v4.9.1-rc1` tagged; production deploy is human-gated.**
+  Remaining, in order (see the v4.9.1 blurb near the top and the plan's GIT/DEPLOY): publish the API
+  from Node 22 → run `node api/scripts/cleanupOrphanedStudentData.js` (dry run) against **production**,
+  paste the per-category counts into the release PR for sign-off → re-run with `--apply` once approved
+  → enable `join_requests` TTL (`docs/azure/R1_JOIN_REQUESTS_TTL.md`, `--ttl -1` on prod + test) →
+  merge release → develop → main → tag `v4.9.1`. The rejected-request `ttl` is inert until that TTL
+  step runs. The E2E manual walk (2 rows in `SPRINT_TEST_CHECKLIST.md`) is unrun — behavior is proven
+  by the 8/8 integration suite; the live browser walk is a manual/staging step.
+- **Test infra:** the `quizpulse-int-test-db` account was missing the `subscriptions` container
+  (it predated full provisioning, same as the `population_benchmark` gap noted in
+  `memory/local-qa-setup`). Created 2026-09-17 with pk `/classId` so the R1 integration suite (and
+  any future push/subscribe integration test) can run. Production already has it.
 
 ### Resolved
 
