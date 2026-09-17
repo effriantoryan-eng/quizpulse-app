@@ -9,12 +9,58 @@ const KEY = 'quizpulse_approved_classes' // [{ classId, className }]
 // real fix; this is the browser-storage bridge until then.
 const PENDING_KEY = 'quizpulse_pending_classes' // [{ classId, className, requestId, status }]
 
+// Per-class notification off-list (v4.11.0 R2). A local record of the classes this device has turned
+// notifications OFF for — separate from leaving, which removes the class entirely. Array of classIds.
+const NOTIF_OFF_KEY = 'quizpulse_notifications_off'
+
 export function getApprovedClasses() {
   try {
     const raw = localStorage.getItem(KEY)
     return raw ? JSON.parse(raw) : []
   } catch {
     return []
+  }
+}
+
+// Remove one class from this device's approved list (used when the student leaves a class).
+export function removeApprovedClass(classId) {
+  try {
+    const remaining = getApprovedClasses().filter(c => c.classId !== classId)
+    localStorage.setItem(KEY, JSON.stringify(remaining))
+  } catch {
+    // storage blocked — the class stays listed locally; harmless (the server already removed it)
+  }
+}
+
+export function getNotificationsOff() {
+  try {
+    const raw = localStorage.getItem(NOTIF_OFF_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+export function isNotificationsOff(classId) {
+  return getNotificationsOff().includes(classId)
+}
+
+export function addNotificationsOff(classId) {
+  try {
+    const set = new Set(getNotificationsOff())
+    set.add(classId)
+    localStorage.setItem(NOTIF_OFF_KEY, JSON.stringify([...set]))
+  } catch {
+    // storage blocked — notifications stay on; the student can retry
+  }
+}
+
+export function removeNotificationsOff(classId) {
+  try {
+    const remaining = getNotificationsOff().filter(c => c !== classId)
+    localStorage.setItem(NOTIF_OFF_KEY, JSON.stringify(remaining))
+  } catch {
+    // storage blocked — no-op
   }
 }
 

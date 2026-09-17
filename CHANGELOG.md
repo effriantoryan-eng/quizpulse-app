@@ -2,6 +2,58 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [Unreleased]
+
+Fixed:
+- **Install-prompt capture was blocked in production by CSP** (regression from v4.9.0). The early
+  `beforeinstallprompt` capture was an inline `<script>` in `index.html`; production's
+  `script-src 'self'` (`staticwebapp.config.json`) refuses inline scripts, so Chromium blocked it
+  (confirmed in production 2026-09-17). On Android Chrome, when the prompt fired before React
+  mounted, the "Add to your phone" button could fail to appear and the v4.9.0
+  `install_accepted`/`install_dismissed` beacons never fired. Local `npm run dev` has no CSP,
+  which is why it passed testing. Moved the snippet unchanged to
+  `public/install-prompt-capture.js`, loaded as a same-origin classic script in `<head>`. CSP
+  stays strict — no `'unsafe-inline'`, nonce, or hash. **Frontend-only; no API redeploy needed.**
+
+## [v4.11.0] — R2: Erasure and notification opt-out
+
+Second of the 2026-09-17 audit remediation sprints. Backfills the erasure and opt-out paths the
+privacy documentation already promised. Students can leave a class and turn notifications off inside
+the app; teachers can delete their own account; the platform owner has an audited tool to erase one
+device's records or a whole teacher account on request; and Send warns before notifying students
+outside school hours. No new user-facing feature beyond these — every change makes the product do
+what its docs already said.
+
+Added:
+- **Student "Leave this class" and per-class notification on/off** on `/student/class`. Leaving runs
+  the same removal a teacher does (name + sign-up deleted, answers de-identified), clears the
+  device's local records for the class, and unsubscribes the browser when the last class goes.
+  New anonymous endpoints `POST /api/student/leave-class` (5/hr/device, 120/hr/IP) and
+  `POST /api/unsubscribe` (20/hr/device), both uniform and idempotent (no existence leak).
+- **Rotated push subscription re-sync** on the class page (D2.4): a changed browser endpoint is
+  re-posted for every approved, not-turned-off class.
+- **Teacher self-service account deletion** — `DELETE /api/me { confirm: 'DELETE' }` behind step-up
+  re-auth (3/hr/teacher), plus a `/teacher/account` page and a sidebar "Account" link. Cascades
+  classes, quizzes and every answer, questions, upvotes/reports, drafts and sources, and the school
+  if unvalidated and unshared. Teacher doc deleted last (retry-safe); fail-closed audit before any
+  delete.
+- **Owner erasure tool** — `GET /api/manage/erasure/candidates` (60/hr), `POST /api/manage/erasure/device`
+  and `POST /api/manage/teachers/{id}/delete` (10/hr), owner-only with step-up re-auth and
+  fail-closed audit; an admin-portal **Erasure** page; and `docs/privacy/ERASURE_RUNBOOK.md`. Device
+  erasure hard-deletes responses, subscriptions, join requests and page views across every class the
+  device joined.
+- **After-hours send warning** (D2.5): Send shows a plain warning and requires an explicit "Send
+  anyway" when the send, schedule, or any spaced repeat falls outside weekdays 07:00–18:00 in the
+  teacher's local time. Warn, not block (the data model has no school timezone).
+
+Changed:
+- Shared `api/shared/studentDataCleanup.js` (R1) gains `removeStudentFromClass` (now the ONE
+  implementation behind teacher removal, student leave and owner erasure), `eraseDevice` and
+  `deleteTeacherAccount`. `classes.js` `classesRemoveStudent` delegates to the shared helper.
+- The Entra sign-in account is NOT deleted automatically (D2.3) — a manual runbook step, recorded as
+  `identityDeletion: 'manual-pending'` on the completed audit entry.
+- `STUDENT_DATA.md` deletion section rewritten to the real routes and the runbook link.
+
 ## [v4.9.1] — R1: Stop the leaks
 
 First of the 2026-09-17 audit remediation sprints. No new user-facing feature — every change makes

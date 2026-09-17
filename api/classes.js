@@ -7,7 +7,7 @@ const { getTeacher } = require('./teacher');
 const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
 const { selectDemoStudents, DEMO_STUDENT_COUNT } = require('./shared/demoNames');
 const { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, generateJoinCode, createRealClass } = require('./shared/createClass');
-const { deleteSubscriptions, deleteJoinRequests, deidentifyResponses } = require('./shared/studentDataCleanup');
+const { deleteSubscriptions, deleteJoinRequests, deidentifyResponses, removeStudentFromClass } = require('./shared/studentDataCleanup');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -397,35 +397,16 @@ app.http('classesRemoveStudent', {
         return respond(404, { error: 'Student not found or not approved' }, teacherId);
       }
 
-      // R1: clean up this device's data BEFORE deleting the join request, so a retry after a
-      // mid-cleanup failure still finds the (approved) request and re-runs the idempotent cleanup.
-      // deidentifyResponses skips answers still tied to a live enrolment in another class.
-      const subsDeleted = await deleteSubscriptions({ subscriptionsContainer }, { classId, deviceId: joinReq.deviceId });
-      const { deidentified, skipped } = await deidentifyResponses(
-        { quizzesContainer, responsesContainer, joinRequestsContainer },
-        { teacherId, classId, deviceIds: [joinReq.deviceId] },
+      // R2: the whole mutation (R1 cleanup before the join-request delete, studentCount decrement,
+      // queue promotion) lives in the ONE shared helper used by teacher removal, student self-leave
+      // and owner erasure — auth/scope/approved-check above stay here.
+      const { subscriptions, deidentified, skipped, promoted } = await removeStudentFromClass(
+        { classesContainer, joinRequestsContainer, subscriptionsContainer, quizzesContainer, responsesContainer },
+        { classId, joinRequestId: studentId },
       );
       context.log(
-        `removed student ${studentId} from class ${classId} — subscriptions=${subsDeleted}, responses deidentified=${deidentified} skipped=${skipped}`,
+        `removed student ${studentId} from class ${classId} — subscriptions=${subscriptions}, responses deidentified=${deidentified} skipped=${skipped}, promoted=${promoted}`,
       );
-
-      // Delete the join request (remove the student)
-      await joinRequestsContainer.item(studentId, classId).delete();
-
-      // Decrement studentCount (floor at 0)
-      existing.studentCount = Math.max(0, (existing.studentCount || 0) - 1);
-      await classesContainer.item(classId, teacherId).replace(existing);
-
-      // Promote the oldest queued request to pending
-      const { resources: queued } = await joinRequestsContainer.items.query({
-        query: "SELECT * FROM c WHERE c.classId = @cid AND c.status = 'queued' ORDER BY c.createdAt ASC OFFSET 0 LIMIT 1",
-        parameters: [{ name: '@cid', value: classId }],
-      }).fetchAll();
-      if (queued.length > 0) {
-        const promote = queued[0];
-        promote.status = 'pending';
-        await joinRequestsContainer.item(promote.id, classId).replace(promote);
-      }
 
       return respond(200, { removed: true, id: studentId }, teacherId);
     } catch (err) {

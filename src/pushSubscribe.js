@@ -64,7 +64,13 @@ export async function autoSubscribe(classId, deviceId) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ classId, deviceId, subscription: subscription.toJSON() }),
     })
-    return subRes.ok ? 'subscribed' : 'error'
+    if (subRes.ok) {
+      // Remember the endpoint so the class page's D2.4 resync can tell a rotated subscription from
+      // an unchanged one (a rotation gets a new endpoint and needs re-posting).
+      try { localStorage.setItem(PUSH_ENDPOINT_KEY, subscription.endpoint) } catch {}
+      return 'subscribed'
+    }
+    return 'error'
   } catch (err) {
     if (err && err.name === 'NotAllowedError') {
       // willPrompt is in scope here — beacon only when the call actually asked for permission.
@@ -72,5 +78,68 @@ export async function autoSubscribe(classId, deviceId) {
       return 'denied'
     }
     return 'error'
+  }
+}
+
+const PUSH_ENDPOINT_KEY = 'quizpulse_push_endpoint'
+
+// Browser-level push unsubscribe (the PushManager subscription is device-wide, shared across every
+// class). Clears the stored endpoint. Never throws.
+export async function unsubscribeBrowserPush() {
+  try {
+    if (!('serviceWorker' in navigator)) return
+    const reg = await navigator.serviceWorker.ready
+    const sub = await reg.pushManager.getSubscription()
+    if (sub) await sub.unsubscribe()
+  } catch {
+    // ignore — browser has no subscription, or SW unavailable
+  }
+  try { localStorage.removeItem(PUSH_ENDPOINT_KEY) } catch {}
+}
+
+// Turn off notifications for ONE class: drop this class's server-side subscription record, and when
+// this was the last class still receiving push, also unsubscribe the browser device-wide (so the OS
+// stops delivering). Never throws (same contract as autoSubscribe).
+export async function unsubscribeFromClass(classId, deviceId, { lastSubscribedClass = false } = {}) {
+  try {
+    await fetch(`${API_BASE}/unsubscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ classId, deviceId }),
+    })
+  } catch {
+    // network hiccup — the class is still marked off locally; a later attempt re-posts nothing new
+  }
+  if (lastSubscribedClass) await unsubscribeBrowserPush()
+}
+
+// D2.4 — re-sync a rotated push subscription. The service worker has no device/class identity of its
+// own, so the class page compares the browser's current endpoint against the last one we sent and, if
+// it changed, re-posts it for every approved class the student hasn't turned off. Never throws.
+export async function resyncPushSubscription(deviceId, approvedClasses, offClassIds = []) {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+    const reg = await navigator.serviceWorker.ready
+    const sub = await reg.pushManager.getSubscription()
+    if (!sub) return
+    let stored = null
+    try { stored = localStorage.getItem(PUSH_ENDPOINT_KEY) } catch {}
+    if (stored === sub.endpoint) return // unchanged — nothing to do
+
+    for (const cls of approvedClasses || []) {
+      if (offClassIds.includes(cls.classId)) continue
+      try {
+        await fetch(`${API_BASE}/subscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ classId: cls.classId, deviceId, subscription: sub.toJSON() }),
+        })
+      } catch {
+        // one class failing shouldn't stop the rest
+      }
+    }
+    try { localStorage.setItem(PUSH_ENDPOINT_KEY, sub.endpoint) } catch {}
+  } catch {
+    // never throw — resync is best-effort self-healing
   }
 }

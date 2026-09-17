@@ -14,6 +14,7 @@ import Monitoring from './pages/Monitoring.jsx'
 import Traffic from './pages/Traffic.jsx'
 import AuditLog from './pages/AuditLog.jsx'
 import RoleManagement from './pages/RoleManagement.jsx'
+import Erasure from './pages/Erasure.jsx'
 
 const layoutStyle = {
   minHeight: '100vh',
@@ -55,6 +56,7 @@ function AdminShell() {
           <Route path="/traffic" element={<Traffic />} />
           <Route path="/audit" element={<AuditLog />} />
           <Route path="/roles" element={<RoleManagement />} />
+          <Route path="/erasure" element={<Erasure />} />
           <Route path="*" element={<Navigate to="/schools" replace />} />
         </Routes>
       </main>

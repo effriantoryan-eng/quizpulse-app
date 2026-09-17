@@ -475,3 +475,87 @@ Run 2026-09-17 against `func start` + `quizpulse-int-test-db` (RUN_INTEGRATION=t
 
 E2E is a manual browser walk (the Playwright suite targets staging). The confirm-text strings are verified verbatim in source (`Classes.jsx` handleDelete, `ClassRoster.jsx` removeStudent), and the underlying behavior each row checks — send excludes the removed device, cascade de-identifies responses, non-responders exclude removed students — is proven by integration tests #1/#3/#4 above. The live browser walk (and the "You're no longer in this class" student screen) is left for a manual pass / staging Playwright, consistent with prior sprints' "Requires creds" precedent.
 
+---
+
+# v4.11.0 — R2 Erasure and opt-out
+
+Report: `tests/reports/v4.11.0-report.html`. Unit suite **560/560 pass** (19 new across
+`studentDataCleanup.test.js`, `studentPrivacy.test.js`, `accountDeletion.test.js`,
+`manageErasure.test.js`, `schoolHours.test.js`).
+
+## Unit (offline, fake containers / mirrored logic)
+
+| # | What is tested | How | Expected | Status |
+|---|---|---|---|---|
+| 1 | Student removal has one implementation | `removeStudentFromClass` on fakes, recording op order | Cleanup runs before the join-request delete; studentCount decremented (floor 0); oldest queued promoted | ✅ PASS |
+| 2 | Device erasure reaches every container | `eraseDevice` with the device in join_requests (approved + rejected), subscriptions, responses, pageviews | Every doc deleted, no studentId-null copy left; approved class decremented; counts returned | ✅ PASS |
+| 3 | Account deletion deletes the teacher doc last | `deleteTeacherAccount` on fakes, recording order | Teacher doc is the final delete; responses deleted before their quizzes | ✅ PASS |
+| 4 | Account deletion is retry-safe | Throw midway, then rerun | The second run completes; no errors from already-deleted docs | ✅ PASS |
+| 5 | School handling | One unvalidated w/ other teachers, one alone, one validated | Only the lone unvalidated school is deleted | ✅ PASS |
+| 6 | Upvote counts stay consistent | Teacher upvoted a question (count 1) and one whose question is gone | Count → 0; the missing question is tolerated | ✅ PASS |
+| 7 | Account deletion is fail-closed | `runAccountDeletion` with a writeAudit that throws on 'requested' | Rejects (→500); `deleteTeacherAccount` never called | ✅ PASS |
+| 8 | Erasure is fail-closed | `runErasure` with a writeAudit that throws on 'requested' | Rejects (→500); `erase` never called | ✅ PASS |
+| 9 | School-hours boundaries | `isOutsideSchoolHours` for Mon 06:59, 07:00, 17:59, 18:00, Sat 10:00 | true, false, false, true, true | ✅ PASS |
+| 10 | Leave-class rate limit | Sixth call for one deviceId within the hour (captured handler) | 429 | ✅ PASS |
+
+(+ device-happy-path / teacher-manual-pending / swallowed-completed-audit cases on the two fail-closed cores; a floor-0 and a missing-join-request no-op case on `removeStudentFromClass`.)
+
+## Integration — `tests/integration/api/v4.11.0-erasure-opt-out.test.js` (15 cases)
+
+Run 2026-09-17 against `func start` + `quizpulse-int-test-db` (`RUN_INTEGRATION=true
+B2C_ALLOW_UNVERIFIED_DEV=true`, `AUTH_CLIENT_ID`/`ADMIN_AUTH_CLIENT_ID` set, confirmed via the func
+boot log printing the `quizpulse-int-test-db` host before any test ran — never production, per
+CLAUDE.md Testing). **15/15 pass.** (HTTP-observable assertions; the deep data-state — studentId
+null, per-container counts, teacher-doc-last ordering — is proven exactly by the unit suite above.)
+Host stopped immediately after the run, per the same close-out step R1 used.
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | Student leaves a class | 200; a second leave 404s (join request gone) | ✅ PASS |
+| 2 | Leave with a device that isn't enrolled | 404; uniform, no existence leak | ✅ PASS |
+| 3 | Missing fields on leave | 400 | ✅ PASS |
+| 4 | Turn notifications off (unsubscribe ×2) | 200 both; the join request stays approved (re-subscribe 201) | ✅ PASS |
+| 5 | Account deletion — no token | 401 | ✅ PASS |
+| 6 | Account deletion needs recent sign-in | Stale auth_time → 401 reauthRequired; class untouched | ✅ PASS |
+| 7 | Account deletion needs the confirm word | Fresh, confirm 'delete' → 400; class untouched | ✅ PASS |
+| 8 | Account deletion removes everything | Fresh, confirm 'DELETE' → 200; classes gone; GET /api/me onboarded:false | ✅ PASS |
+| 9 | Cross-tenant: account deletion is self-only | A deletes; B's classes unchanged | ✅ PASS |
+| 10 | Erasure — no token | 401 | ✅ PASS |
+| 11 | Teacher token can't reach erasure | Teacher-audience token on manage/erasure/device → 401 | ✅ PASS |
+| 12 | Role gate on erasure | support + platform_admin on each erasure route → 404 | ✅ PASS |
+| 13 | Owner candidates lookup | 200 with the student row (name, status, deviceId) | ✅ PASS |
+| 14 | Owner device erasure | Stale → 401 reauthRequired; missing requestRef → 400; fresh → 200 counts; then gone from candidates | ✅ PASS |
+| 15 | Owner deletes a teacher account | Fresh → 200 counts; overview then 404 | ✅ PASS |
+
+## End-to-end — manual walk
+
+Run 2026-09-18, local (`npm run dev` + `func start` against `quizpulse-int-test-db` + Azurite,
+teacher dev-auth bypass) with the Browser pane driving the actual UI where one exists. The admin
+portal has no dev-auth bypass (same documented gap as v4.4.0's Traffic page, Known issue #14), so
+row 3's owner-erasure walk drives the real API directly with minted dev-mode admin tokens instead
+of clicking through `admin/src/pages/Erasure.jsx` — every status code, gate and audit entry is the
+real production code path, only the admin UI's own click-through is unexercised. All services
+stopped immediately after the run.
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | Student opt-out journey | No push while off; push resumes after turning on; after leaving, the class disappears locally and its status 404s | ✅ PASS — real `<button>`s confirmed; SW registration soft-fails in this sandboxed browser (no crash, expected — can't grant Notification permission headlessly); `window.confirm()` declined correctly blocked the leave (0 network calls) and accepted correctly fired `POST /api/student/leave-class → 200`, page instantly showed "No class found on this device", server `studentCount` confirmed decremented to 0 |
+| 2 | Teacher account deletion journey | Re-auth prompt → type DELETE → deleted → signed out; signing in again lands on onboarding | ✅ PASS — `/teacher/account` renders exactly as specced; clicking Delete with a stale dev-bypass token showed "For your security, please sign in again…" and `DELETE /api/me → 401`; completed via a disposable teacher (onboarded, seeded a real class) with a fresh `auth_time`: `DELETE /api/me → 200 {deleted:true}`, `GET /api/me` after → `{onboarded:false}`, `GET /api/classes` → `[]`, both `account.deletion.requested`/`account.deleted` audit entries present with real counts + `identityDeletion:'manual-pending'` |
+| 3 | Owner erasure journey | Erasure page → teacher → class → erase one student with a requestRef; result counts shown; audit log lists requested + completed | ✅ PASS (API-level — see note above) — candidates lookup returned the real student row; missing `requestRef` → 400; a genuinely stale `auth_time` → `401 reauthRequired` and confirmed NOTHING was erased (candidate still present); fresh `auth_time` → `200` with real counts, candidate gone from the list, both `privacy.erasure.requested`/`completed` audit entries present; support/platform_admin roles → 404 on every erasure route; owner-deletes-a-teacher-account route also verified (200 with counts, overview 404s after) |
+| 4 | After-hours warning | Schedule for Saturday 10:00 shows the warning + needs "Send anyway"; Monday 09:00 doesn't | ✅ PASS — "Send now" at the real local time (Fri 06:30, before 07:00) showed the warning immediately; first click armed it ("Send anyway →", zero network calls); second click fired the real send (500 from an unrelated local VAPID-config gap, not R2 — see note below); Schedule mode: 2026-09-19 (Sat) 10:00 → warning shown; 2026-09-21 (Mon) 09:00 → warning gone |
+
+**Bug found and fixed via this walk:** `SendQuiz.jsx` crashed with "Rendered more hooks than
+during the previous render" on any `?quizId=` load — the Task 5 `useEffect` was placed after two
+existing early returns (loading guard, no-quiz guard), so it ran conditionally. Moved above them;
+560/560 unit tests still pass; re-verified live, renders and gates correctly (commit `88abba0`).
+
+**Unrelated gap noted, not an R2 defect:** the real send during row 4 500'd with
+`No key set vapidDetails.publicKey` — this local dev environment has no VAPID keys configured (a
+pre-existing local-setup requirement, unrelated to any R2 code); the after-hours gate itself (warn,
+arm, second-click-sends) is fully proven independent of this.
+
+**Gate status:** unit ✅ (10/10 contract rows + extras, 560/560); integration ✅ (15/15,
+2026-09-17); E2E ✅ (4/4, 2026-09-18 — row 3's admin-UI click-through specifically unexercised, same
+class of gap as Known issue #14). The deploy is the one remaining step — see the R2 blurb in
+CLAUDE.md.
+

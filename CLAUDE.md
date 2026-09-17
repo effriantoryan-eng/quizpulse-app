@@ -436,6 +436,60 @@ single-session convention).
   script dry-run against production and get the counts signed off → `--apply` → enable `join_requests`
   TTL → merge release → develop → main → tag `v4.9.1`.
 
+**v4.11.0 (R2 — Erasure and notification opt-out) is [IN PROGRESS] on
+`release/v4.11-erasure-opt-out` (cut from `main` after v4.9.1) — all 5 tasks code-complete;
+unit (560/560), integration (15/15, 2026-09-17) and the manual E2E walk (4/4, 2026-09-18, all
+against `quizpulse-int-test-db`) pass; deploy is the one remaining human-gated step.** Second
+of the R1–R5 remediation sprints (2026-09-17 audit, Part B: B1/B4).
+Built per `C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R2_Erasure_and_opt-out.md`, decisions
+D2.1–D2.6 at their defaults, as staged per-task feature branches merged into the release branch
+(gstack autopilot plan review run first — codex unavailable, so subagent-only; 1 taste decision on
+the DELETE-route registration, 5 execution-note findings, all folded in).
+- **Task 1 — shared erasure helpers** (`api/shared/studentDataCleanup.js`, extends R1):
+  `removeStudentFromClass` is now the ONE implementation behind teacher removal, student leave and
+  owner erasure (`classes.js` `classesRemoveStudent` delegates to it). `eraseDevice` HARD-deletes
+  responses FIRST (before de-identification could strand them as `studentId:null` copies), then
+  subscriptions, approved-then-remaining join requests, and the device's `pageviews` partition
+  (pk `/teacherId` holds the device UUID). `deleteTeacherAccount` cascades quizzes+responses,
+  classes (R1 cascade), questions, `question_upvotes` (with an advisory `upvoteCount` −1), reports,
+  sources, drafts, an unvalidated+unshared school, teacher doc LAST. Never touches `audit_log`.
+- **Task 2 — student leave + opt-out** (`api/studentPrivacy.js`, anonymous, `studentQuizzes.js`
+  posture): `POST /api/student/leave-class` + `POST /api/unsubscribe`. Frontend:
+  `unsubscribeFromClass`/`unsubscribeBrowserPush`/`resyncPushSubscription` (D2.4 rotation re-sync;
+  `autoSubscribe` now stores `quizpulse_push_endpoint`), a local `quizpulse_notifications_off`
+  off-list, and per-class Turn off/on notifications + Leave this class on `/student/class`.
+- **Task 3 — teacher account deletion** (`api/accountDeletion.js`): `DELETE /api/me { confirm:'DELETE' }`
+  behind step-up re-auth + confirm word; fail-closed exported `runAccountDeletion` core; a
+  `/teacher/account` page (route added to `pageViewAllowlist.js` + `useDocumentTitle.js`) and a
+  sidebar "Account" link. **Registered as a second DELETE function on route `me`** alongside the GET
+  `teacherMe` — the plan's default; **confirmed working at `func start`** (both `teacherMe` and
+  `accountDelete` boot and register cleanly on route `me`, unlike the `admin/` route-segment
+  collision elsewhere in this app), so the method-branch fallback is documented only, not needed.
+- **Task 4 — owner erasure tool** (`api/manageErasure.js`, owner-only): `GET /manage/erasure/candidates`,
+  `POST /manage/erasure/device`, `POST /manage/teachers/{id}/delete`; fail-closed exported
+  `runErasure` core; admin `Erasure.jsx` page + nav link + `api.js` wrappers; runbook at
+  `docs/privacy/ERASURE_RUNBOOK.md`.
+- **Task 5 — after-hours warning** (`src/data/schoolHours.js` + `SendQuiz.jsx`): D2.5 — warn (never
+  block) when the send, schedule or any spaced repeat is outside weekdays 07:00–18:00 local; requires
+  an explicit "Send anyway" second click. No server change. **Live E2E walk (2026-09-18) found and
+  fixed a real bug**: the D2.5 `useEffect` was placed after two existing early returns in
+  `SendQuiz.jsx` (the loading guard, the no-quiz guard), so it ran conditionally — a Rules-of-Hooks
+  violation ("Rendered more hooks than during the previous render") that crashed any `?quizId=`
+  load. Moved above the early returns; re-verified live (commit `88abba0`).
+- **The Entra sign-in account is NOT auto-deleted** (D2.3) — a manual runbook step, recorded as
+  `identityDeletion: 'manual-pending'` on the completed audit entry.
+- **Tests:** 560/560 unit pass (`tests/reports/v4.11.0-report.html`). 15/15 integration pass —
+  `tests/integration/api/v4.11.0-erasure-opt-out.test.js` run 2026-09-17 against
+  `quizpulse-int-test-db` (`RUN_INTEGRATION=true B2C_ALLOW_UNVERIFIED_DEV=true`, `func start`
+  pointed at the test Cosmos, confirmed via the boot log before any test ran; host stopped
+  immediately after — never production). **Manual E2E walk (4/4) run 2026-09-18**, also local
+  against the test Cosmos (teacher dev-auth bypass driven live in the browser pane; owner-erasure
+  driven at the API level with minted dev-mode admin tokens, since the admin portal has no
+  dev-auth bypass — same documented gap as v4.4.0's Known issue #14). Full detail in
+  `SPRINT_TEST_CHECKLIST.md`'s v4.11.0 section.
+- **Deploy (human-gated):** publish the API (Node 22) → deploy the admin portal (as v4.9.0's admin
+  pages were) → merge release → develop → main → tag `v4.11.0`.
+
 ---
 
 ## Tech stack
@@ -629,6 +683,7 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 15 | v4.8.0 | Student quiz history & own-answer review — persist-on-submit, `/quiz/review` + `/quiz/practice`, confidence-trend strip, tappable answered cards (client-only; one pageView privacy line) |
 | 16 | v4.9.0 | Admin teacher-data drill-down + consent & install telemetry — `api/manageTeacherData.js` (overview + per-quiz analytics, fail-closed audit, GROUP BY response counts), admin Teachers/TeacherData pages, 5 new pageView eventTypes, coarse platform field, `aggregateConsentFunnel`, admin Traffic consent strip (IN PROGRESS) |
 | 17 | v4.9.1 | R1 Stop the leaks (remediation) — class-delete cascade + remove-student cleanup (de-identify responses, delete subscriptions/join requests), send-time approval re-check, 7-day TTL on rejected requests, retire `/admin/log` + `GET /api/usageLog`, founder-run orphan-cleanup script, `STUDENT_DATA.md` truth pass (IN PROGRESS — rc1 tagged, deploy human-gated) |
+| 18 | v4.11.0 | R2 Erasure and opt-out (remediation) — student leave-class + notification off/on + rotated-subscription resync, teacher self-service account deletion (`DELETE /api/me`), owner erasure tool (device or teacher account) + runbook, after-hours send warning; three shared erasure helpers on `studentDataCleanup.js` (IN PROGRESS — code + unit tests complete, integration written-but-unrun, deploy human-gated) |
 
 ### Rules
 
@@ -750,7 +805,7 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
   all today) — add an exclusion fragment mirroring `excludeDemo.js` if a question-count metric is
   ever built, so starter-pack seeds don't skew it.
 - `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId?, confidenceResponseCount? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, resolved server-side from the teacher's own record at send time — never client-supplied) are **[CURRENT — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum). `confidenceResponseCount` (int) is **[CURRENT — v4.2.0]**, a denormalised counter incremented via an atomic Cosmos `incr` patch at response-submit time (both `api/responses.js` and `api/shared/runSimulation.js`) — read only by `introEligibility.js`'s `analytics_intro`/`misconception_intro` milestones; a legacy quiz with no field is treated as 0.
-- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId?, deidentifiedAt?, deidPendingId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **[CURRENT — v4.9.1]** a de-identified response (class delete / remove-student / orphan cleanup) carries **`studentId: null` + `deidentifiedAt`**: its per-question counts still contribute to the teacher's results, but nothing links it to a device. The new doc's `id` is a **fresh random UUID**, never derived from the original `sha256(quizId:deviceId)` (a derived id would be recomputable from the device ID). `deidPendingId` is a **transient** marker set on the original just before its copy is created, so a retried cleanup is idempotent (`api/shared/studentDataCleanup.js`); it is dropped from the copy. **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
+- `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId?, deidentifiedAt?, deidPendingId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **[CURRENT — v4.9.1]** a de-identified response (class delete / remove-student / orphan cleanup) carries **`studentId: null` + `deidentifiedAt`**: its per-question counts still contribute to the teacher's results, but nothing links it to a device. The new doc's `id` is a **fresh random UUID**, never derived from the original `sha256(quizId:deviceId)` (a derived id would be recomputable from the device ID). `deidPendingId` is a **transient** marker set on the original just before its copy is created, so a retried cleanup is idempotent (`api/shared/studentDataCleanup.js`); it is dropped from the copy. **[CURRENT — v4.11.0]** an **explicit erasure** — a student device erasure (`eraseDevice`) or a teacher account deletion (`deleteTeacherAccount`) — **HARD-deletes** the response instead of de-identifying it (de-identification is for a removal/cascade; an erasure request means the data goes entirely). `eraseDevice` deletes responses FIRST, before any de-identifying step could sever the `studentId` link and hide them. **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
 - `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt, profile?, featureIntros? } (pk `/id`) — `profile` (`{subjects[], yearLevels[], classCount, registrationStatus}`, all optional/independent) and `featureIntros` (`{[key]: {shownAt?, dismissedAt?}}` for the nine keys in `api/shared/featureIntros.js`) are **[CURRENT — v4.2.0]**, additive; a legacy teacher doc with neither field is treated as `profile:{}`/`featureIntros:{}` everywhere (`GET /api/me`, `introEligibility.js`, the SendQuiz topic prefilter). **[CURRENT — v4.6.0]** a tenth, synthetic `featureIntros.getting_started` key —
   `{ releasedAt?, dismissedAt?, skippedSteps?: string[] }` — holds the Getting Started checklist's
   ONE-WAY release/dismiss moment and per-step skipped markers (`api/shared/gettingStarted.js`).
@@ -1009,7 +1064,15 @@ etc.) MUST call `assertScope` from `api/shared/authz.js` before reading or mutat
   isn't the caller's; 404 reveals nothing. Every ownership/role check — `classes.js`,
   `questions.js`, `quizzes.js`, `joinRequests.js`, `namelist.js`, `analytics.js`,
   `sendNotification.js`, `teacherRole.js`, `schoolAdmin.js`, `institutions.js`,
-  `metrics.js`, `logsExport.js` — follows this. If you add a new one, match it.
+  `metrics.js`, `logsExport.js`, `manageErasure.js` — follows this. If you add a new one, match it.
+- **[CURRENT — v4.11.0] The owner erasure tool (`api/manageErasure.js`) is the most privileged
+  surface in the app.** All three routes gate `authenticateAdmin → getCallerScope →
+  requireRole([ROLES.OWNER]) → 404-on-mismatch → rate-limit by `caller.teacherId``; the two
+  destructive routes (`POST /manage/erasure/device`, `POST /manage/teachers/{id}/delete`) additionally
+  `assertStepUp` and write a **fail-closed** `privacy.erasure.requested` audit BEFORE deleting
+  anything (its testable core is `runErasure`). Teacher self-service deletion (`DELETE /api/me`,
+  `api/accountDeletion.js`) uses the same fail-closed pattern (`runAccountDeletion`) behind
+  `authenticateTeacher` + `assertStepUp` + a `confirm: 'DELETE'` word.
 - **List/GET endpoints scope the Cosmos query itself** (`WHERE c.teacherId = @callerId`) — never
   fetch broadly and filter in code.
 - **The `role` field is never settable from a teacher-facing endpoint.** The only way to change it
@@ -1554,6 +1617,11 @@ at the repo root — read that file before touching any styling, not this summar
 | manage/teachers/{id}/overview + /analytics rate | 60 req/min, keyed by caller.teacherId (not IP) | v4.9.0 |
 | Quizzes returned per admin overview call | 200 (pageable via offset param) | v4.9.0 |
 | Rejected join request retention (per-item TTL) | 7 days (604800s; requires container DefaultTimeToLive -1) | v4.9.1 |
+| student/leave-class rate | 5/hr/device + 120/hr/IP (a school network is many students on one IP) | v4.11.0 |
+| unsubscribe rate | 20/hr/device (same shape as subscribe) | v4.11.0 |
+| DELETE /api/me (account deletion) rate | 3/hr/teacher (behind step-up re-auth + confirm word) | v4.11.0 |
+| manage/erasure lookup rate | 60/hr/owner (candidates) | v4.11.0 |
+| manage/erasure mutation rate | 10/hr/owner (device erasure + teacher deletion share the bucket; behind step-up) | v4.11.0 |
 
 ---
 
@@ -1653,9 +1721,19 @@ rate, failed auth — stubbed) · **Spending** (month cost vs $100 budget, per-s
 stubbed).
 
 **Admin frontend exists** (`admin/` — see `admin/CLAUDE.md`): `admin/src/pages/Monitoring.jsx`
-(metrics + log export) and `admin/src/pages/Traffic.jsx` (**[CURRENT — v4.4.0]** — page-view
-dashboard, funnel strip, breakdowns). Live at
+(metrics + log export), `admin/src/pages/Traffic.jsx` (**[CURRENT — v4.4.0]** — page-view
+dashboard, funnel strip, breakdowns), and `admin/src/pages/Erasure.jsx` (**[CURRENT — v4.11.0]** —
+owner-only device/teacher erasure with step-up re-auth). Live at
 `https://ambitious-sand-054490e00.7.azurestaticapps.net` — see Known issue #12.
+
+**Owner erasure endpoints [CURRENT — v4.11.0]** (`api/manageErasure.js`, owner-only, step-up on
+mutations): `GET /api/manage/erasure/candidates?classId=` (60/hr — a class's join requests, for
+picking a device; fail-closed `privacy.erasure.lookup` audit), `POST /api/manage/erasure/device`
+(10/hr — hard-erase one device across responses/subscriptions/join_requests/pageviews), and
+`POST /api/manage/teachers/{id}/delete` (10/hr — erase a whole teacher account on request). Both
+mutations write fail-closed `privacy.erasure.requested`/`completed` audit entries; a teacher
+deletion records `identityDeletion: 'manual-pending'` (the Entra sign-in account is a manual runbook
+step — `docs/privacy/ERASURE_RUNBOOK.md`).
 
 ---
 
@@ -1753,6 +1831,11 @@ dashboard, funnel strip, breakdowns). Live at
 | Class-delete cascade + remove-student cleanup (`api/shared/studentDataCleanup.js`, de-identify responses, delete subscriptions/join requests) | [IN PROGRESS — v4.9.1 code+tests complete, rc1 tagged, deploy human-gated] |
 | Send-time approval re-check (`selectEligibleSubscriptions`, removed students never notified, stale subs pruned) | [IN PROGRESS — v4.9.1 code+tests complete] |
 | Rejected-request 7-day TTL (`applyRejection`), retire `/admin/log` + `GET /api/usageLog`, orphan-cleanup script | [IN PROGRESS — v4.9.1 code+tests complete; TTL enablement + cleanup `--apply` are deploy steps] |
+| Shared erasure helpers (`removeStudentFromClass`/`eraseDevice`/`deleteTeacherAccount` on `studentDataCleanup.js`; `classesRemoveStudent` delegates) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| Student leave-class + per-class notification off/on + rotated-subscription resync (`api/studentPrivacy.js`, `/student/class` buttons, `pushSubscribe.js`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| Teacher self-service account deletion (`DELETE /api/me`, `/teacher/account`, fail-closed `runAccountDeletion`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| Owner erasure tool (`api/manageErasure.js` device/teacher erasure + candidates, admin `Erasure.jsx`, `ERASURE_RUNBOOK.md`, fail-closed `runErasure`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| After-hours send warning (`src/data/schoolHours.js`, SendQuiz "Send anyway", D2.5 warn-not-block) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
 | Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0 features sprint (distinct from the shipped v4.8.0 above)] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
