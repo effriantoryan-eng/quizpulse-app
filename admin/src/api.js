@@ -63,6 +63,16 @@ export const getTeacherOverview = (id, params = {}) =>
 export const getTeacherQuizAnalytics = (id, quizId) =>
   apiJson(`/manage/teachers/${id}/quizzes/${quizId}/analytics`)
 
+// Erasure (owner-only, step-up re-auth)
+export const getErasureCandidates = (classId) =>
+  apiJson(`/manage/erasure/candidates?classId=${encodeURIComponent(classId)}`)
+
+export const eraseDevice = (deviceId, requestRef) =>
+  apiJson('/manage/erasure/device', { method: 'POST', body: JSON.stringify({ deviceId, requestRef }) })
+
+export const eraseTeacher = (teacherId, requestRef) =>
+  apiJson(`/manage/teachers/${teacherId}/delete`, { method: 'POST', body: JSON.stringify({ requestRef }) })
+
 // Metrics
 export const getMetrics = (range = 'today') =>
   apiJson(`/manage/metrics?range=${range}`)
