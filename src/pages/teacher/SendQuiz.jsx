@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
 import matchTopics from '../../data/topicPrefilter'
+import { isOutsideSchoolHours } from '../../data/schoolHours'
 
 // Copyable manual escape hatch for a flaky push — a teacher can paste this into a group chat
 // or a slide when a student's notification doesn't arrive.
@@ -89,6 +90,7 @@ function SendQuiz() {
   const [sentResult, setSentResult] = useState(null) // { quizId, scheduled }
   const [error, setError] = useState(null)
   const [mode, setMode] = useState('now') // 'now' | 'schedule'
+  const [armedAfterHours, setArmedAfterHours] = useState(false) // D2.5 — one confirmed "Send anyway"
   const [durationMinutes, setDurationMinutes] = useState(30)
   const [scheduledFor, setScheduledFor] = useState('')
   const [topicTag, setTopicTag] = useState('')
@@ -251,6 +253,33 @@ function SendQuiz() {
       setSending(false)
       setSendingMsg('')
     }
+  }
+
+  // D2.5 — every moment this send would notify students: the base send (now, or the scheduled time)
+  // plus each spaced repeat (same clock time N days later). setDate keeps the wall-clock time across
+  // month/DST boundaries. Recomputed each render so it tracks the schedule/repeat inputs live.
+  function sendMoments() {
+    const base = mode === 'schedule' && scheduledFor ? new Date(scheduledFor) : new Date()
+    if (isNaN(base.getTime())) return []
+    const moments = [base]
+    for (const n of spacedRepeatsInput.split(',').map(s => s.trim()).filter(Boolean).map(Number)) {
+      if (Number.isInteger(n) && n >= 1 && n <= 365) {
+        const d = new Date(base)
+        d.setDate(d.getDate() + n)
+        moments.push(d)
+      }
+    }
+    return moments
+  }
+  const anyAfterHours = sendMoments().some(m => isOutsideSchoolHours(m))
+
+  // Any change to when the quiz goes out re-requires the explicit "Send anyway" confirmation.
+  useEffect(() => { setArmedAfterHours(false) }, [mode, scheduledFor, spacedRepeatsInput])
+
+  // First click on an after-hours send only arms the warning; the second (on "Send anyway") sends.
+  function handleSendClick() {
+    if (anyAfterHours && !armedAfterHours) { setArmedAfterHours(true); return }
+    handleSend()
   }
 
   return (
@@ -539,6 +568,12 @@ function SendQuiz() {
             </div>
           )}
 
+          {anyAfterHours && (
+            <div data-testid="after-hours-warning" role="status" style={{ padding: '10px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', color: 'var(--text)', marginBottom: '16px' }}>
+              Students may get this notification outside school hours.
+            </div>
+          )}
+
           <button
             disabled={selectedClasses.length === 0 || sending}
             style={{
@@ -548,13 +583,15 @@ function SendQuiz() {
               fontSize: '15px', fontWeight: '500',
               cursor: selectedClasses.length === 0 || sending ? 'not-allowed' : 'pointer',
             }}
-            onClick={handleSend}
+            onClick={handleSendClick}
           >
             {sending
               ? 'Working…'
-              : mode === 'schedule'
-                ? `Schedule for ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`
-                : `Send to ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`}
+              : anyAfterHours && armedAfterHours
+                ? 'Send anyway →'
+                : mode === 'schedule'
+                  ? `Schedule for ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`
+                  : `Send to ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`}
           </button>
 
           <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', marginTop: '10px' }}>
