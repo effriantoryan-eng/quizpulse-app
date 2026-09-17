@@ -437,9 +437,10 @@ single-session convention).
   TTL → merge release → develop → main → tag `v4.9.1`.
 
 **v4.11.0 (R2 — Erasure and notification opt-out) is [IN PROGRESS] on
-`release/v4.11-erasure-opt-out` (cut from `main` after v4.9.1) — all 5 tasks code + unit tests
-complete; the integration suite is written but unrun, and the manual E2E walk + deploy are the
-human-gated remainder.** Second of the R1–R5 remediation sprints (2026-09-17 audit, Part B: B1/B4).
+`release/v4.11-erasure-opt-out` (cut from `main` after v4.9.1) — all 5 tasks code-complete;
+unit (560/560) and integration (15/15, 2026-09-17 against `quizpulse-int-test-db`) both pass; the
+manual E2E walk + deploy are the remaining human-gated steps.** Second of the R1–R5 remediation
+sprints (2026-09-17 audit, Part B: B1/B4).
 Built per `C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R2_Erasure_and_opt-out.md`, decisions
 D2.1–D2.6 at their defaults, as staged per-task feature branches merged into the release branch
 (gstack autopilot plan review run first — codex unavailable, so subagent-only; 1 taste decision on
@@ -461,8 +462,9 @@ the DELETE-route registration, 5 execution-note findings, all folded in).
   behind step-up re-auth + confirm word; fail-closed exported `runAccountDeletion` core; a
   `/teacher/account` page (route added to `pageViewAllowlist.js` + `useDocumentTitle.js`) and a
   sidebar "Account" link. **Registered as a second DELETE function on route `me`** alongside the GET
-  `teacherMe` — the plan's default; the method-branch fallback stays available if the host ever
-  refuses (verify at `func start`).
+  `teacherMe` — the plan's default; **confirmed working at `func start`** (both `teacherMe` and
+  `accountDelete` boot and register cleanly on route `me`, unlike the `admin/` route-segment
+  collision elsewhere in this app), so the method-branch fallback is documented only, not needed.
 - **Task 4 — owner erasure tool** (`api/manageErasure.js`, owner-only): `GET /manage/erasure/candidates`,
   `POST /manage/erasure/device`, `POST /manage/teachers/{id}/delete`; fail-closed exported
   `runErasure` core; admin `Erasure.jsx` page + nav link + `api.js` wrappers; runbook at
@@ -472,11 +474,11 @@ the DELETE-route registration, 5 execution-note findings, all folded in).
   an explicit "Send anyway" second click. No server change.
 - **The Entra sign-in account is NOT auto-deleted** (D2.3) — a manual runbook step, recorded as
   `identityDeletion: 'manual-pending'` on the completed audit entry.
-- **Tests:** 560/560 unit pass (`tests/reports/v4.11.0-report.html`); 15 integration cases in
-  `tests/integration/api/v4.11.0-erasure-opt-out.test.js` (HTTP-observable; deep data-state is
-  unit-proven) — **written, NOT YET RUN** against `quizpulse-int-test-db`
-  (`RUN_INTEGRATION=true B2C_ALLOW_UNVERIFIED_DEV=true`, `func start` on the test Cosmos). E2E is a
-  manual walk.
+- **Tests:** 560/560 unit pass (`tests/reports/v4.11.0-report.html`). 15/15 integration pass —
+  `tests/integration/api/v4.11.0-erasure-opt-out.test.js` run 2026-09-17 against
+  `quizpulse-int-test-db` (`RUN_INTEGRATION=true B2C_ALLOW_UNVERIFIED_DEV=true`, `func start`
+  pointed at the test Cosmos, confirmed via the boot log before any test ran; host stopped
+  immediately after — never production). E2E is a manual walk, still unrun.
 - **Deploy (human-gated):** publish the API (Node 22) → deploy the admin portal (as v4.9.0's admin
   pages were) → merge release → develop → main → tag `v4.11.0`.
 
@@ -1821,11 +1823,11 @@ step — `docs/privacy/ERASURE_RUNBOOK.md`).
 | Class-delete cascade + remove-student cleanup (`api/shared/studentDataCleanup.js`, de-identify responses, delete subscriptions/join requests) | [IN PROGRESS — v4.9.1 code+tests complete, rc1 tagged, deploy human-gated] |
 | Send-time approval re-check (`selectEligibleSubscriptions`, removed students never notified, stale subs pruned) | [IN PROGRESS — v4.9.1 code+tests complete] |
 | Rejected-request 7-day TTL (`applyRejection`), retire `/admin/log` + `GET /api/usageLog`, orphan-cleanup script | [IN PROGRESS — v4.9.1 code+tests complete; TTL enablement + cleanup `--apply` are deploy steps] |
-| Shared erasure helpers (`removeStudentFromClass`/`eraseDevice`/`deleteTeacherAccount` on `studentDataCleanup.js`; `classesRemoveStudent` delegates) | [IN PROGRESS — v4.11.0 code + unit tests complete] |
-| Student leave-class + per-class notification off/on + rotated-subscription resync (`api/studentPrivacy.js`, `/student/class` buttons, `pushSubscribe.js`) | [IN PROGRESS — v4.11.0 code + unit tests complete] |
-| Teacher self-service account deletion (`DELETE /api/me`, `/teacher/account`, fail-closed `runAccountDeletion`) | [IN PROGRESS — v4.11.0 code + unit tests complete] |
-| Owner erasure tool (`api/manageErasure.js` device/teacher erasure + candidates, admin `Erasure.jsx`, `ERASURE_RUNBOOK.md`, fail-closed `runErasure`) | [IN PROGRESS — v4.11.0 code + unit tests complete] |
-| After-hours send warning (`src/data/schoolHours.js`, SendQuiz "Send anyway", D2.5 warn-not-block) | [IN PROGRESS — v4.11.0 code + unit tests complete] |
+| Shared erasure helpers (`removeStudentFromClass`/`eraseDevice`/`deleteTeacherAccount` on `studentDataCleanup.js`; `classesRemoveStudent` delegates) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| Student leave-class + per-class notification off/on + rotated-subscription resync (`api/studentPrivacy.js`, `/student/class` buttons, `pushSubscribe.js`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| Teacher self-service account deletion (`DELETE /api/me`, `/teacher/account`, fail-closed `runAccountDeletion`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| Owner erasure tool (`api/manageErasure.js` device/teacher erasure + candidates, admin `Erasure.jsx`, `ERASURE_RUNBOOK.md`, fail-closed `runErasure`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| After-hours send warning (`src/data/schoolHours.js`, SendQuiz "Send anyway", D2.5 warn-not-block) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
 | Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0 features sprint (distinct from the shipped v4.8.0 above)] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 

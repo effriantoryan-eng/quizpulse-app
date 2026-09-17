@@ -502,30 +502,30 @@ Report: `tests/reports/v4.11.0-report.html`. Unit suite **560/560 pass** (19 new
 
 ## Integration — `tests/integration/api/v4.11.0-erasure-opt-out.test.js` (15 cases)
 
-Written; **NOT-RUN** — needs a `func start` host pointed at `quizpulse-int-test-db` (never
-production — CLAUDE.md Testing), with `RUN_INTEGRATION=true B2C_ALLOW_UNVERIFIED_DEV=true` and
-`AUTH_CLIENT_ID` / `ADMIN_AUTH_CLIENT_ID` set. Run:
-`RUN_INTEGRATION=true npm test -- tests/integration/api/v4.11.0-erasure-opt-out.test.js`.
-(HTTP-observable assertions; the deep data-state — studentId null, per-container counts,
-teacher-doc-last ordering — is proven exactly by the unit suite above.)
+Run 2026-09-17 against `func start` + `quizpulse-int-test-db` (`RUN_INTEGRATION=true
+B2C_ALLOW_UNVERIFIED_DEV=true`, `AUTH_CLIENT_ID`/`ADMIN_AUTH_CLIENT_ID` set, confirmed via the func
+boot log printing the `quizpulse-int-test-db` host before any test ran — never production, per
+CLAUDE.md Testing). **15/15 pass.** (HTTP-observable assertions; the deep data-state — studentId
+null, per-container counts, teacher-doc-last ordering — is proven exactly by the unit suite above.)
+Host stopped immediately after the run, per the same close-out step R1 used.
 
 | # | What is tested | Expected | Status |
 |---|---|---|---|
-| 1 | Student leaves a class | 200; a second leave 404s (join request gone) | ⏳ NOT-RUN |
-| 2 | Leave with a device that isn't enrolled | 404; uniform, no existence leak | ⏳ NOT-RUN |
-| 3 | Missing fields on leave | 400 | ⏳ NOT-RUN |
-| 4 | Turn notifications off (unsubscribe ×2) | 200 both; the join request stays approved (re-subscribe 201) | ⏳ NOT-RUN |
-| 5 | Account deletion — no token | 401 | ⏳ NOT-RUN |
-| 6 | Account deletion needs recent sign-in | Stale auth_time → 401 reauthRequired; class untouched | ⏳ NOT-RUN |
-| 7 | Account deletion needs the confirm word | Fresh, confirm 'delete' → 400; class untouched | ⏳ NOT-RUN |
-| 8 | Account deletion removes everything | Fresh, confirm 'DELETE' → 200; classes gone; GET /api/me onboarded:false | ⏳ NOT-RUN |
-| 9 | Cross-tenant: account deletion is self-only | A deletes; B's classes unchanged | ⏳ NOT-RUN |
-| 10 | Erasure — no token | 401 | ⏳ NOT-RUN |
-| 11 | Teacher token can't reach erasure | Teacher-audience token on manage/erasure/device → 401 | ⏳ NOT-RUN |
-| 12 | Role gate on erasure | support + platform_admin on each erasure route → 404 | ⏳ NOT-RUN |
-| 13 | Owner candidates lookup | 200 with the student row (name, status, deviceId) | ⏳ NOT-RUN |
-| 14 | Owner device erasure | Stale → 401 reauthRequired; missing requestRef → 400; fresh → 200 counts; then gone from candidates | ⏳ NOT-RUN |
-| 15 | Owner deletes a teacher account | Fresh → 200 counts; overview then 404 | ⏳ NOT-RUN |
+| 1 | Student leaves a class | 200; a second leave 404s (join request gone) | ✅ PASS |
+| 2 | Leave with a device that isn't enrolled | 404; uniform, no existence leak | ✅ PASS |
+| 3 | Missing fields on leave | 400 | ✅ PASS |
+| 4 | Turn notifications off (unsubscribe ×2) | 200 both; the join request stays approved (re-subscribe 201) | ✅ PASS |
+| 5 | Account deletion — no token | 401 | ✅ PASS |
+| 6 | Account deletion needs recent sign-in | Stale auth_time → 401 reauthRequired; class untouched | ✅ PASS |
+| 7 | Account deletion needs the confirm word | Fresh, confirm 'delete' → 400; class untouched | ✅ PASS |
+| 8 | Account deletion removes everything | Fresh, confirm 'DELETE' → 200; classes gone; GET /api/me onboarded:false | ✅ PASS |
+| 9 | Cross-tenant: account deletion is self-only | A deletes; B's classes unchanged | ✅ PASS |
+| 10 | Erasure — no token | 401 | ✅ PASS |
+| 11 | Teacher token can't reach erasure | Teacher-audience token on manage/erasure/device → 401 | ✅ PASS |
+| 12 | Role gate on erasure | support + platform_admin on each erasure route → 404 | ✅ PASS |
+| 13 | Owner candidates lookup | 200 with the student row (name, status, deviceId) | ✅ PASS |
+| 14 | Owner device erasure | Stale → 401 reauthRequired; missing requestRef → 400; fresh → 200 counts; then gone from candidates | ✅ PASS |
+| 15 | Owner deletes a teacher account | Fresh → 200 counts; overview then 404 | ✅ PASS |
 
 ## End-to-end — manual walk (preview tools / admin portal locally)
 
@@ -536,7 +536,7 @@ teacher-doc-last ordering — is proven exactly by the unit suite above.)
 | 3 | Owner erasure journey | Erasure page → teacher → class → erase one student with a requestRef; result counts shown; audit log lists requested + completed | ⏳ NOT-RUN (manual) |
 | 4 | After-hours warning | Schedule for Saturday 10:00 shows the warning + needs "Send anyway"; Monday 09:00 doesn't | ⏳ NOT-RUN (manual) |
 
-**Gate status:** unit ✅ (10/10 contract rows + extras); integration written but unrun; E2E manual
-unrun. The integration run and the manual E2E walk are the human-gated remainder, alongside the
-deploy — see the R2 blurb in CLAUDE.md.
+**Gate status:** unit ✅ (10/10 contract rows + extras, 560/560); integration ✅ (15/15,
+2026-09-17); E2E manual unrun. The manual E2E walk and the deploy are the remaining human-gated
+steps — see the R2 blurb in CLAUDE.md.
 
