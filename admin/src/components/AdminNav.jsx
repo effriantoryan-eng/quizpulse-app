@@ -74,6 +74,7 @@ const NAV_LINKS = [
   { to: '/traffic', label: 'Traffic' },
   { to: '/audit', label: 'Audit Log' },
   { to: '/roles', label: 'Roles' },
+  { to: '/erasure', label: 'Erasure' },
 ]
 
 export default function AdminNav({ sessionWarning }) {

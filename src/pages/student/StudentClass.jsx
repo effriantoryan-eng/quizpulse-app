@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
 import ClassJoinQR from '../../components/ClassJoinQR'
-import { getApprovedClasses, getPendingClasses, reconcileApprovals } from '../../studentClasses'
+import {
+  getApprovedClasses, getPendingClasses, reconcileApprovals, removeApprovedClass,
+  getNotificationsOff, isNotificationsOff, addNotificationsOff, removeNotificationsOff,
+} from '../../studentClasses'
+import { autoSubscribe, unsubscribeFromClass, unsubscribeBrowserPush, resyncPushSubscription } from '../../pushSubscribe'
 import { submittedKey, gatherSubmittedPayloads } from '../../data/submittedAnswers'
 import { confidenceTrend } from '../../data/confidenceTally'
 
@@ -72,9 +76,67 @@ function QuizCard({ quiz, navigate }) {
   )
 }
 
-function ClassSection({ cls, navigate }) {
+function ClassSection({ cls, navigate, onLeft }) {
   const [quizzes, setQuizzes] = useState(null)
   const [error, setError] = useState(null)
+  const [notifOff, setNotifOff] = useState(() => isNotificationsOff(cls.classId))
+  const [busy, setBusy] = useState(false)
+
+  // Notifications are "on" only when the browser has granted permission AND this class isn't on the
+  // local off-list. A denied/default device shows "Turn on notifications" — tapping it runs the same
+  // soft auto-subscribe as approval (it may prompt, and never throws).
+  const permGranted = typeof Notification !== 'undefined' && Notification.permission === 'granted'
+  const notifOn = permGranted && !notifOff
+
+  async function toggleNotifications() {
+    const deviceId = getDeviceId()
+    setBusy(true)
+    try {
+      if (notifOn) {
+        // Turning off. If this leaves no class still receiving push, drop the browser subscription too.
+        const off = new Set(getNotificationsOff()); off.add(cls.classId)
+        const stillOn = getApprovedClasses().filter(c => c.classId !== cls.classId && !off.has(c.classId))
+        await unsubscribeFromClass(cls.classId, deviceId, { lastSubscribedClass: stillOn.length === 0 })
+        addNotificationsOff(cls.classId)
+        setNotifOff(true)
+      } else {
+        await autoSubscribe(cls.classId, deviceId)
+        removeNotificationsOff(cls.classId)
+        setNotifOff(false)
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function leave() {
+    const confirmed = window.confirm(
+      `Leave ${cls.className || 'this class'}? Your teacher won't see your name any more, and you'll stop getting check-ins.`
+    )
+    if (!confirmed) return
+    const deviceId = getDeviceId()
+    setBusy(true)
+    let ok = false
+    try {
+      const res = await fetch(`${API_BASE}/student/leave-class`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId, classId: cls.classId }),
+      })
+      ok = res.status === 200 || res.status === 404 // 404 = already not enrolled — treat as done
+    } catch {
+      ok = false
+    }
+    if (!ok) { setBusy(false); return } // transient failure — keep the class, the student can retry
+
+    // Clear this device's local traces for the class: approved record, off-list entry, saved answers.
+    const stillOn = getApprovedClasses().filter(c => c.classId !== cls.classId && !isNotificationsOff(c.classId))
+    removeApprovedClass(cls.classId)
+    removeNotificationsOff(cls.classId)
+    for (const q of (quizzes || [])) { try { localStorage.removeItem(submittedKey(q.id)) } catch {} }
+    if (permGranted && stillOn.length === 0) await unsubscribeBrowserPush()
+    onLeft(cls.classId) // unmounts this section
+  }
 
   const load = useCallback(async () => {
     setError(null)
@@ -157,6 +219,17 @@ function ClassSection({ cls, navigate }) {
           ))}
         </>
       )}
+
+      {error !== 'unavailable' && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: 'var(--bw) solid var(--border)' }}>
+          <button type="button" onClick={toggleNotifications} disabled={busy} className="btn btn-secondary" style={{ fontSize: '13px' }}>
+            {notifOn ? 'Turn off notifications' : 'Turn on notifications'}
+          </button>
+          <button type="button" onClick={leave} disabled={busy} className="btn btn-secondary" style={{ fontSize: '13px', color: 'var(--danger)' }}>
+            Leave this class
+          </button>
+        </div>
+      )}
     </div>
   )
 
@@ -197,6 +270,12 @@ function StudentClass() {
     return () => { cancelled = true }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // D2.4 — re-sync a rotated push subscription on open. Best-effort, never blocks render.
+  useEffect(() => {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+    resyncPushSubscription(getDeviceId(), getApprovedClasses(), getNotificationsOff())
+  }, [])
+
   if (reconciling) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
@@ -232,7 +311,12 @@ function StudentClass() {
         </div>
       )}
       {classes.map(cls => (
-        <ClassSection key={cls.classId} cls={cls} navigate={navigate} />
+        <ClassSection
+          key={cls.classId}
+          cls={cls}
+          navigate={navigate}
+          onLeft={(classId) => setClasses(cs => cs.filter(c => c.classId !== classId))}
+        />
       ))}
       <div style={{ marginTop: '8px' }}>
         <InstallButton description="Add QuizPulse to your phone so your teacher's check-ins reach your lock screen." />

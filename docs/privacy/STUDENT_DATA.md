@@ -35,9 +35,10 @@ nothing else does.
 - Page-visit beacons (`pageviews`) auto-delete after **180 days** (Cosmos container TTL).
 - A **rejected** join request auto-deletes after **7 days** (Cosmos per-item TTL) — long enough for
   the student to see "Not approved", then gone.
-- When a teacher **deletes a class** or **removes a student**, that student's name and notification
-  sign-up are deleted, and their quiz answers are kept in the teacher's results with no link back to
-  the device (de-identified).
+- When a teacher **deletes a class** or **removes a student**, or a **student leaves a class**, that
+  student's name and notification sign-up are deleted, and their quiz answers are kept in the
+  teacher's results with no link back to the device (de-identified). On an explicit **erasure
+  request** (or a **teacher account deletion**), the answers are hard-deleted, not just de-identified.
 - Otherwise, an active student's quiz answers and push subscription persist while their class does.
 - Uploaded source documents (for AI-generated quizzes) are **never stored** — only extracted text
   chunks, and those expire after 90 days. The original file is discarded immediately after
@@ -62,17 +63,27 @@ per-question. It is not used for any other purpose.
 
 ## Deletion on request
 
-A teacher can do two things directly today:
+Several routes exist, and each does exactly what it says:
 
-- **Delete a class** — removes every student's name and notification sign-up for that class, and
-  de-identifies their answers (the counts stay in the teacher's results, with no link to the device).
-- **Remove a single student** — deletes that student's notification sign-up and de-identifies their
-  answers, same as above.
+- **A student can leave a class** — on their class-home page. Deletes their name and notification
+  sign-up for that class and de-identifies their answers (the counts stay in the teacher's results,
+  with no link to the device), the same as a teacher removal.
+- **A student can turn notifications off** for a class — on the same page. Deletes that class's
+  notification sign-up; they can turn it back on any time.
+- **A teacher can delete a class or remove a single student** — as above, for that class.
+- **A teacher can delete their whole account** — Your account → Delete my account. After a fresh
+  sign-in and typing DELETE, this permanently removes their classes and students' names, their
+  quizzes and every answer, their questions, drafts and uploaded materials, and their school if it is
+  unvalidated and belongs to no other teacher.
+- **A student (via their teacher or school) can request erasure of one device's records** across the
+  whole platform — quiz answers, notification sign-up, join requests and page-visit beacons. The
+  platform owner runs this from an audited, owner-only tool. Contact your teacher or the school, who
+  will pass the request on.
 
-There is no self-service tool yet to erase one student's records across the whole platform. Until
-one ships, a student (via their teacher) can request individual erasure by contacting
-[admin@quizpulse.app](mailto:admin@quizpulse.app) with the class name and approximate join date; it
-is handled manually, so we don't promise a fixed turnaround.
+Every account deletion and device erasure requires a recent sign-in and is written to an
+append-only audit trail **before** anything is removed. The step-by-step procedure the owner
+follows — including the manual removal of a teacher's sign-in account — is in
+[`docs/privacy/ERASURE_RUNBOOK.md`](ERASURE_RUNBOOK.md).
 
 ## AI-generated quizzes (when enabled)
 
