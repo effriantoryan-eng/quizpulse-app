@@ -18,11 +18,13 @@ nothing else does.
 | Student name | `join_requests` only | Typed once by the student when asking to join a class; a teacher approves or rejects it. Optionally matched (not identified) against a teacher-entered name list. |
 | Quiz answers + confidence | `responses` | Which option was picked, a 3-level confidence rating (Sure / Pretty sure / Guessing), and response time. No open text. |
 | Push notification endpoint | `subscriptions` | Only if the student opts in to notifications on their device. Auto-removed if delivery starts failing (stale subscription pruning). |
-| Minimal page-visit beacons | `pageviews` | On student-facing routes (`/quiz`, `/join`, `/student/class`), only `{page, deviceId, sessionId, quizId, visitedAt}` are recorded. Browser fingerprint fields — user agent, screen size, language, timezone, referrer — are stripped server-side before write, regardless of what the browser sends. |
+| Minimal page-visit beacons | `pageviews` | On the quiz-taking and class-home routes (`/quiz`, `/quiz/*`, `/student/class`), browser fingerprint fields — user agent, screen size, language, timezone, referrer — are stripped server-side before write, regardless of what the browser sends; only `{page, deviceId, sessionId, quizId, visitedAt}` remain. **The `/join` page and the public pages (`/`, `/demo`, `/login`) do not strip these fields yet** — a planned change (R3) will bring them in line. |
 
 ## What is deliberately NOT collected
 
-- No browser fingerprint on any student-facing route (enforced server-side, not just client-side).
+- No browser fingerprint on the quiz-taking and class-home routes (`/quiz`, `/quiz/*`,
+  `/student/class`), enforced server-side, not just client-side. (The `/join` page still records
+  these fields today; R3 will strip them there too.)
 - No location data.
 - No student name beyond what they type into a join request (which a teacher can reject).
 - No email, phone number, or other contact detail.
@@ -31,8 +33,12 @@ nothing else does.
 ## Retention
 
 - Page-visit beacons (`pageviews`) auto-delete after **180 days** (Cosmos container TTL).
-- Quiz responses, join requests, and push subscriptions have no automatic expiry today — they
-  persist as long as the teacher's class does. Deletion on request (see below) removes them.
+- A **rejected** join request auto-deletes after **7 days** (Cosmos per-item TTL) — long enough for
+  the student to see "Not approved", then gone.
+- When a teacher **deletes a class** or **removes a student**, that student's name and notification
+  sign-up are deleted, and their quiz answers are kept in the teacher's results with no link back to
+  the device (de-identified).
+- Otherwise, an active student's quiz answers and push subscription persist while their class does.
 - Uploaded source documents (for AI-generated quizzes) are **never stored** — only extracted text
   chunks, and those expire after 90 days. The original file is discarded immediately after
   extraction.
@@ -44,8 +50,8 @@ nothing else does.
   teacher requesting another teacher's data gets "not found," not "forbidden," so the platform
   never confirms whether the resource even exists).
 - Platform admins (a small, fixed set of accounts) can see aggregated, cross-teacher counts for
-  operating the platform (traffic volume, error rates) — response-level student data is not part
-  of that view.
+  operating the platform (traffic volume, error rates) and a cohort-level drill-down of a single
+  teacher's own class results — never individual student names or per-response rows.
 - No student data is ever sold, shared with advertisers, or used to profile students individually.
 
 ## Legal basis / purpose
@@ -56,9 +62,17 @@ per-question. It is not used for any other purpose.
 
 ## Deletion on request
 
-A teacher can delete a class, which removes its join requests and responses. A student (via their
-teacher) can request their individual join request and responses be deleted; contact
-[admin@quizpulse.app](mailto:admin@quizpulse.app) with the class name and approximate join date.
+A teacher can do two things directly today:
+
+- **Delete a class** — removes every student's name and notification sign-up for that class, and
+  de-identifies their answers (the counts stay in the teacher's results, with no link to the device).
+- **Remove a single student** — deletes that student's notification sign-up and de-identifies their
+  answers, same as above.
+
+There is no self-service tool yet to erase one student's records across the whole platform. Until
+one ships, a student (via their teacher) can request individual erasure by contacting
+[admin@quizpulse.app](mailto:admin@quizpulse.app) with the class name and approximate join date; it
+is handled manually, so we don't promise a fixed turnaround.
 
 ## AI-generated quizzes (when enabled)
 
