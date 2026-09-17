@@ -44,10 +44,15 @@ async function main({ apply = process.argv.includes('--apply') } = {}) {
   const { resources: joinReqs } = await joinRequestsContainer.items
     .query('SELECT c.id, c.classId, c.deviceId, c.status, c.ttl, c.createdAt FROM c').fetchAll();
   const approvedPair = new Set();               // "classId::deviceId" for approved enrolments
-  const approvedClassesByDevice = new Map();    // deviceId -> Set(classId) of approved enrolments
+  const approvedClassesByDevice = new Map();    // deviceId -> Set(LIVE classId) of approved enrolments
   for (const j of joinReqs) {
     if (j.status !== 'approved') continue;
     approvedPair.add(`${j.classId}::${j.deviceId}`);
+    // Only an approved JR in a LIVE class counts as a live enrolment for category (c). A JR in a
+    // dead class is itself deleted by category (a) in this same run, so it must not keep a response
+    // alive — otherwise one --apply pass wouldn't reach a fixed point (the response would orphan
+    // only after its JR was gone, needing a second run).
+    if (!classIds.has(j.classId)) continue;
     if (!approvedClassesByDevice.has(j.deviceId)) approvedClassesByDevice.set(j.deviceId, new Set());
     approvedClassesByDevice.get(j.deviceId).add(j.classId);
   }
