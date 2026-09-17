@@ -49,3 +49,6 @@ dist-ssr
 *.sw?
 .gstack/
 AzuriteConfig
+
+# Local design handoff scratch (not tracked)
+docs/design/ALT_DESIGN_HANDOVER.md

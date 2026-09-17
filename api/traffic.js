@@ -10,6 +10,7 @@ const {
   getRangeStart,
   aggregateTraffic,
   computeFunnelRates,
+  aggregateConsentFunnel,
 } = require('./shared/trafficAggregate');
 
 // Lazy container init — mirrors api/metrics.js's getContainers() pattern (keeps
@@ -108,7 +109,7 @@ app.http('manageTraffic', {
       // ponytail: full-range scan + in-code aggregation; move to pre-aggregated daily rollup
       // docs if the container outgrows pilot scale.
       const { resources: docs } = await containers.pageviewsContainer.items.query({
-        query: `SELECT c.page, c.eventType, c.teacherId, c.sessionId, c.screenWidth, c.userAgent, c.quizId, c.visitedAt
+        query: `SELECT c.page, c.eventType, c.teacherId, c.sessionId, c.screenWidth, c.userAgent, c.quizId, c.visitedAt, c.platform
                  FROM c WHERE c.visitedAt >= @rangeStart`,
         parameters: [{ name: '@rangeStart', value: rangeStart.toISOString() }],
       }).fetchAll();
@@ -118,7 +119,9 @@ app.http('manageTraffic', {
       const quizPageviews = docs.filter(d => d.page === '/quiz' && (!d.eventType || d.eventType === 'view'));
       const funnel = await computeFunnel({ rangeStart, quizPageviews, containers });
 
-      return respond(200, { range, retrievedAt: new Date().toISOString(), ...result, funnel }, caller.teacherId);
+      const consent = aggregateConsentFunnel(docs);
+
+      return respond(200, { range, retrievedAt: new Date().toISOString(), ...result, funnel, consent }, caller.teacherId);
     } catch (err) {
       context.error('manageTraffic error:', err.message);
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };

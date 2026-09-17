@@ -34,9 +34,47 @@ function isPwaInstallEvent(doc) {
   return doc.eventType === 'pwa_install';
 }
 
+function isConsentEvent(doc) {
+  return doc.eventType === 'push_prompted' || doc.eventType === 'push_granted' ||
+    doc.eventType === 'push_denied' || doc.eventType === 'install_accepted' || doc.eventType === 'install_dismissed';
+}
+
+// Aggregates consent/install events into a funnel with per-platform breakdown (review D4).
+// Returns null when there are no consent events at all (pre-v4.9.0 deploys).
+function aggregateConsentFunnel(docs) {
+  const consentDocs = docs.filter(isConsentEvent);
+  if (consentDocs.length === 0) return null;
+
+  const platforms = ['ios', 'android', 'desktop', null];
+
+  // Totals and per-platform bucketing
+  const counts = { push_prompted: 0, push_granted: 0, push_denied: 0, install_accepted: 0, install_dismissed: 0 };
+  const byPlatform = {};
+  for (const p of platforms) {
+    byPlatform[p === null ? 'unknown' : p] = { push_prompted: 0, push_granted: 0, push_denied: 0, install_accepted: 0, install_dismissed: 0 };
+  }
+
+  for (const doc of consentDocs) {
+    if (counts[doc.eventType] !== undefined) counts[doc.eventType]++;
+    const pKey = ALLOWED_PLATFORMS_AGG.has(doc.platform) ? doc.platform : 'unknown';
+    if (byPlatform[pKey] && byPlatform[pKey][doc.eventType] !== undefined) {
+      byPlatform[pKey][doc.eventType]++;
+    }
+  }
+
+  const grantRate = counts.push_prompted > 0 ? round2((counts.push_granted / counts.push_prompted) * 100) : null;
+  const acceptRate = (counts.install_accepted + counts.install_dismissed) > 0
+    ? round2((counts.install_accepted / (counts.install_accepted + counts.install_dismissed)) * 100)
+    : null;
+
+  return { counts, grantRate, acceptRate, byPlatform };
+}
+
+const ALLOWED_PLATFORMS_AGG = new Set(['ios', 'android', 'desktop']);
+
 // Path-prefix classification, exactly as documented in the sprint plan: /teacher* is teacher
-// traffic, /quiz is student traffic, everything else (including /join, /onboarding, /login,
-// /admin/log) buckets to public. This is a coarse traffic-source split, not an auth check.
+// traffic, /quiz is student traffic, everything else (including /join, /onboarding, /login)
+// buckets to public. This is a coarse traffic-source split, not an auth check.
 function classifyAudience(page) {
   if (typeof page !== 'string') return 'public';
   if (page.startsWith('/teacher')) return 'teacher';
@@ -144,9 +182,11 @@ module.exports = {
   getRangeStart,
   isViewEvent,
   isPwaInstallEvent,
+  isConsentEvent,
   classifyAudience,
   classifyDevice,
   classifyBrowser,
   aggregateTraffic,
   computeFunnelRates,
+  aggregateConsentFunnel,
 };

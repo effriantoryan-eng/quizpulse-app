@@ -5,6 +5,7 @@ import PromoSlot from '../../components/PromoSlot'
 import GettingStartedChecklist from '../../components/GettingStartedChecklist'
 import HomeCalendar from '../../components/home/HomeCalendar'
 import { buildAlsoWaitingCards } from '../../data/alsoWaiting'
+import InstallButton from '../../components/InstallButton'
 
 const POLL_INTERVAL_MS = 8000
 
@@ -272,6 +273,14 @@ export default function TeacherHome() {
         </>
       )}
 
+      {/* Always-available entry to the full quiz history (the SubNav "History" tab is easy to miss). */}
+      <button
+        onClick={() => navigate('/teacher/quizzes')}
+        style={{ ...card, width: '100%', textAlign: 'left', cursor: 'pointer', fontSize: '14px', fontWeight: 500, color: 'var(--primary)', marginTop: recentResults.length > 0 ? '10px' : '0' }}
+      >
+        View all quizzes →
+      </button>
+
       {/* At-a-glance counts */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2px', marginTop: '24px' }}>
         {[
@@ -292,6 +301,10 @@ export default function TeacherHome() {
       {gettingStarted && !gettingStarted.dismissed && gettingStarted.released && (
         <GettingStartedChecklist gettingStarted={gettingStarted} variant="strip" onChange={setGettingStarted} />
       )}
+
+      <div style={{ marginTop: '32px' }}>
+        <InstallButton />
+      </div>
     </div>
   )
 }

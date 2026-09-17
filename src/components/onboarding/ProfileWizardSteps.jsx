@@ -183,20 +183,40 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
 
       {error && <p style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '12px', fontWeight: 600 }}>{error}</p>}
 
-      <button
-        data-testid="wizard-next"
-        type="button"
-        disabled={saving}
-        onClick={next}
-        style={{
-          width: '100%', marginTop: '20px', padding: '12px',
-          background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-          borderRadius: '8px', fontSize: '14px', fontWeight: '500',
-          cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1,
-        }}
-      >
-        {saving ? 'Saving…' : stepIndex === steps.length - 1 ? 'Finish' : current.answered ? 'Next' : 'Skip'}
-      </button>
+      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        {/* Back only walks the profile sub-steps — step 1 (school name) is already committed
+            and the standalone /onboarding/profile entry has no step 1 to return to. */}
+        {stepIndex > 0 && (
+          <button
+            data-testid="wizard-back"
+            type="button"
+            disabled={saving}
+            onClick={() => setStepIndex(stepIndex - 1)}
+            style={{
+              padding: '12px 18px',
+              background: 'white', color: 'var(--text)', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
+              borderRadius: '8px', fontSize: '14px', fontWeight: '500',
+              cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1,
+            }}
+          >
+            Back
+          </button>
+        )}
+        <button
+          data-testid="wizard-next"
+          type="button"
+          disabled={saving}
+          onClick={next}
+          style={{
+            flex: 1, padding: '12px',
+            background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
+            borderRadius: '8px', fontSize: '14px', fontWeight: '500',
+            cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1,
+          }}
+        >
+          {saving ? 'Saving…' : stepIndex === steps.length - 1 ? 'Finish' : current.answered ? 'Next' : 'Skip'}
+        </button>
+      </div>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { getOnboarded, setOnboarded as markOnboarded } from './onboardingCache'
 import API_BASE from './api'
 import Home from './pages/Home'
+import Pricing from './pages/Pricing'
 import DemoGallery from './pages/DemoGallery'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
@@ -24,7 +25,6 @@ import TeacherHome from './pages/teacher/TeacherHome'
 import QuizHistory from './pages/teacher/QuizHistory'
 import SubNav from './components/SubNav'
 import DemoNav from './components/DemoNav'
-import AdminLog from './pages/AdminLog'
 import JoinClass from './pages/student/JoinClass'
 import TakeQuiz from './pages/student/TakeQuiz'
 import QuizReview from './pages/student/QuizReview'
@@ -100,6 +100,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/demo" element={<DemoGallery />} />
+      {/* hidden: <Route path="/pricing" element={<Pricing />} /> */}
       <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
       <Route path="/onboarding/profile" element={<RequireTeacher><OnboardingProfile /></RequireTeacher>} />
@@ -117,7 +118,6 @@ function AppRoutes() {
       <Route path="/teacher/generate" element={<RequireTeacher><GenerateQuiz /></RequireTeacher>} />
       <Route path="/teacher/drafts/:id" element={<RequireTeacher><ReviewDraft /></RequireTeacher>} />
       <Route path="/teacher/analytics/:quizId" element={<RequireTeacher><Analytics /></RequireTeacher>} />
-      <Route path="/admin/log" element={<RequireTeacher><AdminLog /></RequireTeacher>} />
       <Route path="/join" element={<JoinClass />} />
       <Route path="/quiz" element={<TakeQuiz />} />
       <Route path="/quiz/review" element={<QuizReview mode="review" />} />

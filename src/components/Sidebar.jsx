@@ -106,6 +106,22 @@ export default function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+            <button
+              className="sidebar-create-btn"
+              onClick={() => go('/teacher/build')}
+              style={{ padding: '10px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+            >
+              New quiz
+            </button>
+            <button
+              className="sidebar-create-btn"
+              onClick={() => go('/teacher/create')}
+              style={{ padding: '10px 14px', background: 'var(--surface)', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+            >
+              New question
+            </button>
+          </div>
           {NAV.map((item, i) => {
             if (item.group) return <span key={i} className="nav-group-label">{item.group}</span>
             const hub = activeHub(pathname)

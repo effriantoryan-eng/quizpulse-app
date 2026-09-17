@@ -8,6 +8,8 @@ import RequireAuth from './components/RequireAuth.jsx'
 import Schools from './pages/Schools.jsx'
 import MergeTool from './pages/MergeTool.jsx'
 import Institutions from './pages/Institutions.jsx'
+import Teachers from './pages/Teachers.jsx'
+import TeacherData from './pages/TeacherData.jsx'
 import Monitoring from './pages/Monitoring.jsx'
 import Traffic from './pages/Traffic.jsx'
 import AuditLog from './pages/AuditLog.jsx'
@@ -47,6 +49,8 @@ function AdminShell() {
           <Route path="/schools" element={<Schools />} />
           <Route path="/schools/merge" element={<MergeTool />} />
           <Route path="/institutions" element={<Institutions />} />
+          <Route path="/teachers" element={<Teachers />} />
+          <Route path="/teachers/:id" element={<TeacherData />} />
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/traffic" element={<Traffic />} />
           <Route path="/audit" element={<AuditLog />} />

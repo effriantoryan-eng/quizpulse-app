@@ -220,6 +220,12 @@ function ReviewDraft() {
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', paddingBottom: '100px' }}>
+      <button
+        onClick={() => navigate('/teacher/generate')}
+        style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: 0, marginBottom: '16px' }}
+      >
+        ← Back to upload
+      </button>
       <div role="status" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', background: '#E8F1FB', border: '1px solid #2C6BAA', borderRadius: '8px', marginBottom: '16px' }}>
         <AiBadge />
         <span style={{ fontSize: '13px', color: '#123A5C' }}>

@@ -15,6 +15,8 @@ export default function QuizHistory() {
   const navigate = useNavigate()
   const [hintVisible, dismissHint, showHint] = useHint('history')
   const [quizzes, setQuizzes] = useState([])
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All')
   const [classNames, setClassNames] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -96,7 +98,42 @@ export default function QuizHistory() {
         />
       )}
 
-      {quizzes.length === 0 ? (
+      {quizzes.length > 0 && (
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search quizzes by name…"
+          style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '10px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px' }}
+        />
+      )}
+
+      {quizzes.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+          {['All', ...new Set(quizzes.map(q => q.status).filter(Boolean))].map(s => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              style={{
+                padding: '5px 12px', borderRadius: '20px', border: '1px solid', textTransform: 'capitalize',
+                borderColor: statusFilter === s ? 'var(--primary)' : '#ddd',
+                background: statusFilter === s ? 'var(--primary)' : 'white',
+                color: statusFilter === s ? 'white' : '#555',
+                cursor: 'pointer', fontSize: '12px', fontWeight: statusFilter === s ? 500 : 400,
+              }}
+            >
+              {s} ({s === 'All' ? quizzes.length : quizzes.filter(q => q.status === s).length})
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(() => {
+        const term = search.trim().toLowerCase()
+        const visible = quizzes
+          .filter(q => statusFilter === 'All' || q.status === statusFilter)
+          .filter(q => !term || (q.name || '').toLowerCase().includes(term))
+        return quizzes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', border: '1px dashed #ddd', borderRadius: '12px' }}>
           No quizzes sent yet.{' '}
           <span
@@ -106,9 +143,13 @@ export default function QuizHistory() {
             Build your first quiz
           </span>
         </div>
+      ) : visible.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '14px' }}>
+          No quizzes match your filters.
+        </div>
       ) : (
         <div>
-          {quizzes.map(quiz => {
+          {visible.map(quiz => {
             const classLabels = (quiz.classIds || [])
               .map(id => classNames[id] || 'Class no longer exists')
               .join(', ')
@@ -162,7 +203,8 @@ export default function QuizHistory() {
             )
           })}
         </div>
-      )}
+      )
+      })()}
     </div>
   )
 }

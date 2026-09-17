@@ -175,10 +175,14 @@ function BuildQuiz() {
         }}
       >
         <span style={{ fontSize: '20px' }}>🤖</span>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#123A5C' }}>Have a document? Draft a quiz from it</div>
           <div style={{ fontSize: '12px', color: '#2C6BAA' }}>Upload a PDF, Word doc, or text file and review AI-drafted questions.</div>
         </div>
+        <span style={{
+          flexShrink: 0, padding: '8px 14px', background: '#2C6BAA', color: 'white',
+          borderRadius: '8px', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap',
+        }}>Upload &amp; draft →</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>

@@ -19,7 +19,7 @@ backend rejects teacher-app tokens on admin endpoints and vice versa.
 | Layer | Technology |
 |---|---|
 | Frontend | React + Vite (SPA, React Router v6) |
-| Hosting | Azure SWA (Standard tier, linked to the same Function App) |
+| Hosting | Azure SWA (Free tier — NO linked backend; calls the Function App by absolute URL) |
 | Auth | Microsoft Entra External ID — admin CIAM app registration |
 | Backend | Shared Function App (`quizpulse-app-api-av5z18`) — `/api/manage/*` endpoints only |
 
@@ -158,9 +158,12 @@ npm run build      # output: admin/dist/
 az staticwebapp deploy --name <admin-swa-name> --resource-group quizpulse-app-rg --source ./dist
 ```
 
-The admin SWA is linked to the same Function App as the teacher SWA (Standard tier backend
-link). No separate API deployment is needed — changes to the Function App deploy via the
-normal API deploy procedure described in the root `CLAUDE.md`.
+The admin SWA is **Free tier with NO linked backend** — a Function App can link to only one
+SWA, and that's the teacher SWA. The admin app therefore calls the Function App by absolute URL
+(`https://quizpulse-app-api-av5z18.azurewebsites.net/api`, see `admin/src/api.js`), not the
+relative `/api`. No separate API deployment is needed — changes to the Function App deploy via
+the normal API deploy procedure described in the root `CLAUDE.md`. Do NOT re-upgrade to Standard
+expecting a backend link to work; it can't.
 
 After provisioning the admin SWA:
 1. Replace `ADMIN_SWA_ORIGIN_PLACEHOLDER` in `api/host.json` with the actual SWA hostname.

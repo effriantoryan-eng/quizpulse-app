@@ -14,6 +14,22 @@ const database = client.database(process.env.COSMOS_DATABASE);
 const subscriptionsContainer = database.container(process.env.COSMOS_CONTAINER_SUBSCRIPTIONS || 'subscriptions');
 const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes');
 const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
+const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
+
+// Pure, exported for unit testing (studentDataCleanup.test.js). Splits a class's subscriptions into
+// those whose (classId, deviceId) pair is still an approved enrolment (eligible to be notified) and
+// everything else (a removed student or an orphan) — the latter are pruned exactly like a dead
+// endpoint. approvedByClass is a Map<classId, Set<deviceId>>.
+function selectEligibleSubscriptions(subs, approvedByClass) {
+  const eligible = [];
+  const stale = [];
+  for (const sub of subs) {
+    const approved = approvedByClass.get(sub.classId);
+    if (approved && approved.has(sub.deviceId)) eligible.push(sub);
+    else stale.push(sub);
+  }
+  return { eligible, stale };
+}
 
 const MAX_BODY = 4 * 1024;
 const NOTIFICATION_PAYLOAD_MAX = 3 * 1024; // Security limits table — 3 KB max
@@ -95,11 +111,26 @@ async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount
     parameters: classIdParams,
   }).fetchAll();
 
+  // R1: re-check approval at send time. A subscription is only notified if its (classId, deviceId)
+  // is still an approved enrolment — a removed student's stale record can never be targeted. Build
+  // the approved set per target class, in-partition (≤40 devices/class). Every unapproved
+  // subscription is pruned exactly like a dead endpoint, so orphans left in production get cleaned
+  // up the first time their class is sent to.
+  const approvedByClass = new Map();
+  for (const cid of classIds) {
+    const { resources: approvedRows } = await joinRequestsContainer.items.query({
+      query: "SELECT c.deviceId FROM c WHERE c.classId = @cid AND c.status = 'approved'",
+      parameters: [{ name: '@cid', value: cid }],
+    }).fetchAll();
+    approvedByClass.set(cid, new Set(approvedRows.map((r) => r.deviceId)));
+  }
+  const { eligible, stale: unapproved } = selectEligibleSubscriptions(subs, approvedByClass);
+
   let sent = 0;
-  const stale = [];
+  const stale = unapproved.map((sub) => ({ id: sub.id, classId: sub.classId }));
 
   await Promise.all(
-    subs.map(async (sub) => {
+    eligible.map(async (sub) => {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: sub.keys },
@@ -121,22 +152,22 @@ async function sendNotificationForQuiz(quiz, context, { quizTitle, questionCount
       subscriptionsContainer.item(id, classId).delete().catch(() => {}),
     ),
   );
-  if (stale.length) context.log(`Pruned ${stale.length} stale subscription(s)`);
+  if (stale.length) context.log(`Pruned ${stale.length} stale subscription(s) (${unapproved.length} unapproved)`);
 
   quiz.notificationSentAt = new Date().toISOString();
   // pushSuccessCount/pushFailCount (v4.4.0) — advisory, same semantics as confidenceResponseCount
   // (CLAUDE.md v4.2.0): the pushes already went out to devices, so a persistence hiccup here must
-  // never surface as a failed send.
+  // never surface as a failed send. Count eligible subscriptions only.
   quiz.pushSuccessCount = sent;
-  quiz.pushFailCount = subs.length - sent;
+  quiz.pushFailCount = eligible.length - sent;
   try {
     await quizzesContainer.items.upsert(quiz);
   } catch (err) {
     context.warn(`failed to persist notificationSentAt/push counts for quiz ${quiz.id}: ${err?.message}`);
   }
 
-  context.log(`Notification sent to ${sent}/${subs.length} subscriber(s) for quiz ${quiz.id}`);
-  return { sent, total: subs.length };
+  context.log(`Notification sent to ${sent}/${eligible.length} eligible subscriber(s) for quiz ${quiz.id}`);
+  return { sent, total: eligible.length };
 }
 
 // POST /api/send-notification — push a quiz notification to all approved subscribers
@@ -197,4 +228,4 @@ app.http('sendNotification', {
   },
 });
 
-module.exports = { sendNotificationForQuiz };
+module.exports = { sendNotificationForQuiz, selectEligibleSubscriptions };

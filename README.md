@@ -10,7 +10,12 @@ live analytics. No link sharing required — delivery is push-first.
 Sign in with your Microsoft or Google account. New teachers complete a one-time onboarding to
 associate a school before accessing the dashboard.
 
-**Current version:** v4.5.0 (beta)
+**Admin portal:** https://ambitious-sand-054490e00.7.azurestaticapps.net
+
+Operator tooling — school management, merge tool, traffic monitor, audit log, role management.
+Requires a separate admin CIAM account.
+
+**Current version:** v4.9.0 (beta)
 
 ---
 
@@ -46,6 +51,11 @@ associate a school before accessing the dashboard.
 | AI quiz generation (mock provider) — document upload → draft → review → send, spaced repeats | ✅ |
 | Traffic monitor — page-view analytics, admin dashboard, notification funnel, PWA-install tracking | ✅ |
 | Student class home — persistent post-approval page, auto-subscribe, teacher share-link | ✅ |
+| First-run activation — demo chain, Getting Started checklist, starter questions, misconception-biased simulation | ✅ |
+| Design overhaul (Modernist) — Archivo, one accent, Home calendar, student QR-join, confidence summary | ✅ |
+| Student quiz history — own-answer review, self-practice, confidence-trend strip | ✅ |
+| Admin teacher-data drill-down — overview + per-quiz analytics, fail-closed audit, PII-safe | ✅ |
+| Consent & install telemetry — push grant/deny, install accept/dismiss, per-platform breakdown | ✅ |
 
 ---
 
@@ -112,7 +122,7 @@ func azure functionapp publish quizpulse-app-api-av5z18
 ## Running tests
 
 ```powershell
-# Unit tests (no stack required) — 430/430 passing
+# Unit tests (no stack required) — 531/531 passing
 npx jest --config jest.config.cjs tests/unit/
 
 # Integration tests (requires func start + Azurite + Cosmos emulator)
@@ -148,3 +158,7 @@ npx playwright test
 | v4.3.0 | AI quiz generation (mock provider) — upload → draft → review → send | ✅ shipped |
 | v4.4.0 | Traffic monitor — page-view analytics, admin dashboard, notification funnel | ✅ shipped |
 | v4.5.0 | Student class home — post-approval access, auto-subscribe, teacher share-link | ✅ shipped |
+| v4.6.0 | First-run activation — demo chain, Getting Started checklist, starter questions | ✅ shipped |
+| v4.7.0 | Design overhaul (Modernist) — Home calendar, student QR-join, confidence summary | ✅ shipped |
+| v4.8.0 | Student quiz history — own-answer review, self-practice, confidence-trend strip | ✅ shipped |
+| v4.9.0 | Admin teacher-data drill-down + consent & install telemetry | ✅ shipped |

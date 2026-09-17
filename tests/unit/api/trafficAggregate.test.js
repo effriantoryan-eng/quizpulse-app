@@ -5,6 +5,7 @@ const {
   classifyBrowser,
   aggregateTraffic,
   computeFunnelRates,
+  aggregateConsentFunnel,
   RANGE_DAYS,
 } = require('../../../api/shared/trafficAggregate');
 
@@ -46,7 +47,7 @@ describe('classifyAudience', () => {
     expect(classifyAudience('/')).toBe('public');
     expect(classifyAudience('/join')).toBe('public');
     expect(classifyAudience('/onboarding')).toBe('public');
-    expect(classifyAudience('/admin/log')).toBe('public');
+    expect(classifyAudience('/login')).toBe('public');
   });
 
   test('non-string input is public (defensive default)', () => {
@@ -210,5 +211,123 @@ describe('computeFunnelRates — zero-division safety', () => {
     expect(rates.notificationsSent).toBe(10);
     expect(rates.quizOpens).toBe(5);
     expect(rates.responsesSubmitted).toBe(3);
+  });
+});
+
+// ─── v4.9.0 — aggregateConsentFunnel ─────────────────────────────────────────
+
+function makeConsentDoc(eventType, platform, extra = {}) {
+  return { eventType, platform, teacherId: `d-${Math.random()}`, sessionId: 's1', visitedAt: '2026-09-16T10:00:00.000Z', ...extra };
+}
+
+describe('aggregateConsentFunnel — null when no consent events', () => {
+  test('returns null on empty input', () => {
+    expect(aggregateConsentFunnel([])).toBeNull();
+  });
+
+  test('returns null when all docs are view/pwa_install (no consent events)', () => {
+    const docs = [
+      { eventType: 'view', page: '/' },
+      { eventType: 'pwa_install', page: '/' },
+    ];
+    expect(aggregateConsentFunnel(docs)).toBeNull();
+  });
+});
+
+describe('aggregateConsentFunnel — all 5 event types are counted', () => {
+  test('each event type increments its own counter', () => {
+    const docs = [
+      makeConsentDoc('push_prompted', 'ios'),
+      makeConsentDoc('push_granted', 'ios'),
+      makeConsentDoc('push_denied', 'android'),
+      makeConsentDoc('install_accepted', 'desktop'),
+      makeConsentDoc('install_dismissed', 'desktop'),
+    ];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.counts.push_prompted).toBe(1);
+    expect(result.counts.push_granted).toBe(1);
+    expect(result.counts.push_denied).toBe(1);
+    expect(result.counts.install_accepted).toBe(1);
+    expect(result.counts.install_dismissed).toBe(1);
+  });
+
+  test('view/pwa_install docs mixed in are NOT counted as consent events', () => {
+    const docs = [
+      makeConsentDoc('push_prompted', 'ios'),
+      { eventType: 'view', page: '/teacher/home' },
+      { eventType: 'pwa_install', page: '/' },
+    ];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.counts.push_prompted).toBe(1);
+    // totals across all 5 consent types must be exactly 1
+    const total = Object.values(result.counts).reduce((a, b) => a + b, 0);
+    expect(total).toBe(1);
+  });
+});
+
+describe('aggregateConsentFunnel — grant rate math', () => {
+  test('grantRate = push_granted / push_prompted × 100', () => {
+    const docs = [
+      makeConsentDoc('push_prompted', 'ios'),
+      makeConsentDoc('push_prompted', 'android'),
+      makeConsentDoc('push_granted', 'ios'),
+    ];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.grantRate).toBe(50);
+  });
+
+  test('grantRate is null when push_prompted count is 0', () => {
+    const docs = [makeConsentDoc('push_granted', 'ios')];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.grantRate).toBeNull();
+  });
+});
+
+describe('aggregateConsentFunnel — accept rate math', () => {
+  test('acceptRate = install_accepted / (accepted + dismissed) × 100', () => {
+    const docs = [
+      makeConsentDoc('install_accepted', 'android'),
+      makeConsentDoc('install_accepted', 'android'),
+      makeConsentDoc('install_dismissed', 'android'),
+    ];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.acceptRate).toBeCloseTo(66.67, 1);
+  });
+
+  test('acceptRate is null when no install events at all', () => {
+    const docs = [makeConsentDoc('push_prompted', 'ios')];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.acceptRate).toBeNull();
+  });
+});
+
+describe('aggregateConsentFunnel — per-platform bucketing', () => {
+  test('ios/android/desktop each get their own bucket', () => {
+    const docs = [
+      makeConsentDoc('push_granted', 'ios'),
+      makeConsentDoc('push_granted', 'ios'),
+      makeConsentDoc('push_granted', 'android'),
+      makeConsentDoc('push_granted', 'desktop'),
+    ];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.byPlatform.ios.push_granted).toBe(2);
+    expect(result.byPlatform.android.push_granted).toBe(1);
+    expect(result.byPlatform.desktop.push_granted).toBe(1);
+  });
+
+  test('unknown/null platform falls into the "unknown" bucket', () => {
+    const docs = [
+      makeConsentDoc('push_prompted', null),
+      makeConsentDoc('push_prompted', undefined),
+      makeConsentDoc('push_prompted', 'fridge'),
+    ];
+    const result = aggregateConsentFunnel(docs);
+    expect(result.byPlatform.unknown.push_prompted).toBe(3);
+  });
+
+  test('legacy docs with no platform field also fall into "unknown"', () => {
+    const doc = { eventType: 'push_granted', teacherId: 'd1', sessionId: 's1', visitedAt: '2026-09-16T10:00:00.000Z' };
+    const result = aggregateConsentFunnel([doc]);
+    expect(result.byPlatform.unknown.push_granted).toBe(1);
   });
 });

@@ -7,6 +7,7 @@ const { validateProfile, isProfileComplete } = require('./shared/profileSchema')
 const { isValidIntroKey } = require('./shared/featureIntros');
 const { computeEligibleIntros } = require('./shared/introEligibility');
 const { GETTING_STARTED_STEPS, computeGettingStarted } = require('./shared/gettingStarted');
+const { tierOf } = require('./shared/entitlements');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -118,6 +119,7 @@ app.http('teacherMe', {
           onboarded: true,
           teacher,
           school,
+          tier: tierOf(teacher), // normalised (legacy docs with no field read as 'free')
           profile,
           profileComplete: isProfileComplete(profile),
           featureIntros,
@@ -271,6 +273,7 @@ app.http('onboarding', {
         email: (Array.isArray(claims.emails) ? claims.emails[0] : claims.email) || claims.preferred_username || null,
         idp: claims.idp || 'local',
         role: 'teacher',
+        tier: 'free', // subscription tier — orthogonal to role; set by hand until billing exists
         createdAt: now,
       };
       await teachers.items.create(teacher);
