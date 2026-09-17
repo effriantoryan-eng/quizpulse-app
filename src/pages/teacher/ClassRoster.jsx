@@ -57,7 +57,7 @@ function ClassRoster() {
   }
 
   async function removeStudent(studentId, studentName) {
-    if (!window.confirm(`Remove ${studentName} from this class?`)) return
+    if (!window.confirm(`Remove ${studentName} from this class? They'll stop getting notifications, and their answers stay in your results without their name.`)) return
     setRemovingId(studentId)
     try {
       const res = await fetch(`${API_BASE}/classes/${classId}/students/${studentId}`, { method: 'DELETE' })

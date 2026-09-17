@@ -384,8 +384,6 @@ app.http('classesRemoveStudent', {
         throw err;
       }
 
-      const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
-
       // Read the join request to verify it is approved and belongs to this class
       let joinReq;
       try {
@@ -398,6 +396,18 @@ app.http('classesRemoveStudent', {
       if (!joinReq || joinReq.classId !== classId || joinReq.status !== 'approved') {
         return respond(404, { error: 'Student not found or not approved' }, teacherId);
       }
+
+      // R1: clean up this device's data BEFORE deleting the join request, so a retry after a
+      // mid-cleanup failure still finds the (approved) request and re-runs the idempotent cleanup.
+      // deidentifyResponses skips answers still tied to a live enrolment in another class.
+      const subsDeleted = await deleteSubscriptions({ subscriptionsContainer }, { classId, deviceId: joinReq.deviceId });
+      const { deidentified, skipped } = await deidentifyResponses(
+        { quizzesContainer, responsesContainer, joinRequestsContainer },
+        { teacherId, classId, deviceIds: [joinReq.deviceId] },
+      );
+      context.log(
+        `removed student ${studentId} from class ${classId} — subscriptions=${subsDeleted}, responses deidentified=${deidentified} skipped=${skipped}`,
+      );
 
       // Delete the join request (remove the student)
       await joinRequestsContainer.item(studentId, classId).delete();
