@@ -47,7 +47,7 @@ describe('classifyAudience', () => {
     expect(classifyAudience('/')).toBe('public');
     expect(classifyAudience('/join')).toBe('public');
     expect(classifyAudience('/onboarding')).toBe('public');
-    expect(classifyAudience('/admin/log')).toBe('public');
+    expect(classifyAudience('/login')).toBe('public');
   });
 
   test('non-string input is public (defensive default)', () => {

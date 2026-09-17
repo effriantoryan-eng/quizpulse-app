@@ -73,8 +73,8 @@ function aggregateConsentFunnel(docs) {
 const ALLOWED_PLATFORMS_AGG = new Set(['ios', 'android', 'desktop']);
 
 // Path-prefix classification, exactly as documented in the sprint plan: /teacher* is teacher
-// traffic, /quiz is student traffic, everything else (including /join, /onboarding, /login,
-// /admin/log) buckets to public. This is a coarse traffic-source split, not an auth check.
+// traffic, /quiz is student traffic, everything else (including /join, /onboarding, /login)
+// buckets to public. This is a coarse traffic-source split, not an auth check.
 function classifyAudience(page) {
   if (typeof page !== 'string') return 'public';
   if (page.startsWith('/teacher')) return 'teacher';

@@ -957,7 +957,7 @@ etc.) MUST call `assertScope` from `api/shared/authz.js` before reading or mutat
 - **404-on-mismatch is the convention, full stop.** Returning 403 confirms a resource exists but
   isn't the caller's; 404 reveals nothing. Every ownership/role check — `classes.js`,
   `questions.js`, `quizzes.js`, `joinRequests.js`, `namelist.js`, `analytics.js`,
-  `sendNotification.js`, `teacherRole.js`, `adminLog.js`, `schoolAdmin.js`, `institutions.js`,
+  `sendNotification.js`, `teacherRole.js`, `schoolAdmin.js`, `institutions.js`,
   `metrics.js`, `logsExport.js` — follows this. If you add a new one, match it.
 - **List/GET endpoints scope the Cosmos query itself** (`WHERE c.teacherId = @callerId`) — never
   fetch broadly and filter in code.

@@ -25,7 +25,6 @@ import TeacherHome from './pages/teacher/TeacherHome'
 import QuizHistory from './pages/teacher/QuizHistory'
 import SubNav from './components/SubNav'
 import DemoNav from './components/DemoNav'
-import AdminLog from './pages/AdminLog'
 import JoinClass from './pages/student/JoinClass'
 import TakeQuiz from './pages/student/TakeQuiz'
 import QuizReview from './pages/student/QuizReview'
@@ -119,7 +118,6 @@ function AppRoutes() {
       <Route path="/teacher/generate" element={<RequireTeacher><GenerateQuiz /></RequireTeacher>} />
       <Route path="/teacher/drafts/:id" element={<RequireTeacher><ReviewDraft /></RequireTeacher>} />
       <Route path="/teacher/analytics/:quizId" element={<RequireTeacher><Analytics /></RequireTeacher>} />
-      <Route path="/admin/log" element={<RequireTeacher><AdminLog /></RequireTeacher>} />
       <Route path="/join" element={<JoinClass />} />
       <Route path="/quiz" element={<TakeQuiz />} />
       <Route path="/quiz/review" element={<QuizReview mode="review" />} />

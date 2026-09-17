@@ -21,7 +21,6 @@ const ALLOWED_PREFIXES = [
   '/teacher/generate',
   '/teacher/drafts',
   '/teacher/analytics',
-  '/admin/log',
   '/join',
   '/quiz',
   '/student/class',
