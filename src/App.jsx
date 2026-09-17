@@ -23,6 +23,7 @@ import GenerateQuiz from './pages/teacher/GenerateQuiz'
 import ReviewDraft from './pages/teacher/ReviewDraft'
 import TeacherHome from './pages/teacher/TeacherHome'
 import QuizHistory from './pages/teacher/QuizHistory'
+import Account from './pages/teacher/Account'
 import SubNav from './components/SubNav'
 import DemoNav from './components/DemoNav'
 import JoinClass from './pages/student/JoinClass'
@@ -126,6 +127,7 @@ function AppRoutes() {
       <Route path="/teacher/pending-requests" element={<RequireTeacher><PendingRequests /></RequireTeacher>} />
       <Route path="/teacher/roster" element={<RequireTeacher><ClassRoster /></RequireTeacher>} />
       <Route path="/teacher/classes/settings" element={<RequireTeacher><ClassSettings /></RequireTeacher>} />
+      <Route path="/teacher/account" element={<RequireTeacher><Account /></RequireTeacher>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

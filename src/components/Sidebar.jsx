@@ -147,6 +147,12 @@ export default function Sidebar() {
               <>
                 {user?.email && <span className="sidebar-email">{user.email}</span>}
                 <button
+                  className="sidebar-auth-btn"
+                  onClick={() => go('/teacher/account')}
+                >
+                  Account
+                </button>
+                <button
                   data-testid="logout"
                   className="sidebar-auth-btn signout"
                   onClick={() => logout()}
