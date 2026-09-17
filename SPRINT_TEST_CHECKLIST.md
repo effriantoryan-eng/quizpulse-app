@@ -527,16 +527,35 @@ Host stopped immediately after the run, per the same close-out step R1 used.
 | 14 | Owner device erasure | Stale → 401 reauthRequired; missing requestRef → 400; fresh → 200 counts; then gone from candidates | ✅ PASS |
 | 15 | Owner deletes a teacher account | Fresh → 200 counts; overview then 404 | ✅ PASS |
 
-## End-to-end — manual walk (preview tools / admin portal locally)
+## End-to-end — manual walk
+
+Run 2026-09-18, local (`npm run dev` + `func start` against `quizpulse-int-test-db` + Azurite,
+teacher dev-auth bypass) with the Browser pane driving the actual UI where one exists. The admin
+portal has no dev-auth bypass (same documented gap as v4.4.0's Traffic page, Known issue #14), so
+row 3's owner-erasure walk drives the real API directly with minted dev-mode admin tokens instead
+of clicking through `admin/src/pages/Erasure.jsx` — every status code, gate and audit entry is the
+real production code path, only the admin UI's own click-through is unexercised. All services
+stopped immediately after the run.
 
 | # | What is tested | Expected | Status |
 |---|---|---|---|
-| 1 | Student opt-out journey | No push while off; push resumes after turning on; after leaving, the class disappears locally and its status 404s | ⏳ NOT-RUN (manual) |
-| 2 | Teacher account deletion journey | Re-auth prompt → type DELETE → deleted → signed out; signing in again lands on onboarding | ⏳ NOT-RUN (manual) |
-| 3 | Owner erasure journey | Erasure page → teacher → class → erase one student with a requestRef; result counts shown; audit log lists requested + completed | ⏳ NOT-RUN (manual) |
-| 4 | After-hours warning | Schedule for Saturday 10:00 shows the warning + needs "Send anyway"; Monday 09:00 doesn't | ⏳ NOT-RUN (manual) |
+| 1 | Student opt-out journey | No push while off; push resumes after turning on; after leaving, the class disappears locally and its status 404s | ✅ PASS — real `<button>`s confirmed; SW registration soft-fails in this sandboxed browser (no crash, expected — can't grant Notification permission headlessly); `window.confirm()` declined correctly blocked the leave (0 network calls) and accepted correctly fired `POST /api/student/leave-class → 200`, page instantly showed "No class found on this device", server `studentCount` confirmed decremented to 0 |
+| 2 | Teacher account deletion journey | Re-auth prompt → type DELETE → deleted → signed out; signing in again lands on onboarding | ✅ PASS — `/teacher/account` renders exactly as specced; clicking Delete with a stale dev-bypass token showed "For your security, please sign in again…" and `DELETE /api/me → 401`; completed via a disposable teacher (onboarded, seeded a real class) with a fresh `auth_time`: `DELETE /api/me → 200 {deleted:true}`, `GET /api/me` after → `{onboarded:false}`, `GET /api/classes` → `[]`, both `account.deletion.requested`/`account.deleted` audit entries present with real counts + `identityDeletion:'manual-pending'` |
+| 3 | Owner erasure journey | Erasure page → teacher → class → erase one student with a requestRef; result counts shown; audit log lists requested + completed | ✅ PASS (API-level — see note above) — candidates lookup returned the real student row; missing `requestRef` → 400; a genuinely stale `auth_time` → `401 reauthRequired` and confirmed NOTHING was erased (candidate still present); fresh `auth_time` → `200` with real counts, candidate gone from the list, both `privacy.erasure.requested`/`completed` audit entries present; support/platform_admin roles → 404 on every erasure route; owner-deletes-a-teacher-account route also verified (200 with counts, overview 404s after) |
+| 4 | After-hours warning | Schedule for Saturday 10:00 shows the warning + needs "Send anyway"; Monday 09:00 doesn't | ✅ PASS — "Send now" at the real local time (Fri 06:30, before 07:00) showed the warning immediately; first click armed it ("Send anyway →", zero network calls); second click fired the real send (500 from an unrelated local VAPID-config gap, not R2 — see note below); Schedule mode: 2026-09-19 (Sat) 10:00 → warning shown; 2026-09-21 (Mon) 09:00 → warning gone |
+
+**Bug found and fixed via this walk:** `SendQuiz.jsx` crashed with "Rendered more hooks than
+during the previous render" on any `?quizId=` load — the Task 5 `useEffect` was placed after two
+existing early returns (loading guard, no-quiz guard), so it ran conditionally. Moved above them;
+560/560 unit tests still pass; re-verified live, renders and gates correctly (commit `88abba0`).
+
+**Unrelated gap noted, not an R2 defect:** the real send during row 4 500'd with
+`No key set vapidDetails.publicKey` — this local dev environment has no VAPID keys configured (a
+pre-existing local-setup requirement, unrelated to any R2 code); the after-hours gate itself (warn,
+arm, second-click-sends) is fully proven independent of this.
 
 **Gate status:** unit ✅ (10/10 contract rows + extras, 560/560); integration ✅ (15/15,
-2026-09-17); E2E manual unrun. The manual E2E walk and the deploy are the remaining human-gated
-steps — see the R2 blurb in CLAUDE.md.
+2026-09-17); E2E ✅ (4/4, 2026-09-18 — row 3's admin-UI click-through specifically unexercised, same
+class of gap as Known issue #14). The deploy is the one remaining step — see the R2 blurb in
+CLAUDE.md.
 

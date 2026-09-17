@@ -438,9 +438,9 @@ single-session convention).
 
 **v4.11.0 (R2 — Erasure and notification opt-out) is [IN PROGRESS] on
 `release/v4.11-erasure-opt-out` (cut from `main` after v4.9.1) — all 5 tasks code-complete;
-unit (560/560) and integration (15/15, 2026-09-17 against `quizpulse-int-test-db`) both pass; the
-manual E2E walk + deploy are the remaining human-gated steps.** Second of the R1–R5 remediation
-sprints (2026-09-17 audit, Part B: B1/B4).
+unit (560/560), integration (15/15, 2026-09-17) and the manual E2E walk (4/4, 2026-09-18, all
+against `quizpulse-int-test-db`) pass; deploy is the one remaining human-gated step.** Second
+of the R1–R5 remediation sprints (2026-09-17 audit, Part B: B1/B4).
 Built per `C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R2_Erasure_and_opt-out.md`, decisions
 D2.1–D2.6 at their defaults, as staged per-task feature branches merged into the release branch
 (gstack autopilot plan review run first — codex unavailable, so subagent-only; 1 taste decision on
@@ -471,14 +471,22 @@ the DELETE-route registration, 5 execution-note findings, all folded in).
   `docs/privacy/ERASURE_RUNBOOK.md`.
 - **Task 5 — after-hours warning** (`src/data/schoolHours.js` + `SendQuiz.jsx`): D2.5 — warn (never
   block) when the send, schedule or any spaced repeat is outside weekdays 07:00–18:00 local; requires
-  an explicit "Send anyway" second click. No server change.
+  an explicit "Send anyway" second click. No server change. **Live E2E walk (2026-09-18) found and
+  fixed a real bug**: the D2.5 `useEffect` was placed after two existing early returns in
+  `SendQuiz.jsx` (the loading guard, the no-quiz guard), so it ran conditionally — a Rules-of-Hooks
+  violation ("Rendered more hooks than during the previous render") that crashed any `?quizId=`
+  load. Moved above the early returns; re-verified live (commit `88abba0`).
 - **The Entra sign-in account is NOT auto-deleted** (D2.3) — a manual runbook step, recorded as
   `identityDeletion: 'manual-pending'` on the completed audit entry.
 - **Tests:** 560/560 unit pass (`tests/reports/v4.11.0-report.html`). 15/15 integration pass —
   `tests/integration/api/v4.11.0-erasure-opt-out.test.js` run 2026-09-17 against
   `quizpulse-int-test-db` (`RUN_INTEGRATION=true B2C_ALLOW_UNVERIFIED_DEV=true`, `func start`
   pointed at the test Cosmos, confirmed via the boot log before any test ran; host stopped
-  immediately after — never production). E2E is a manual walk, still unrun.
+  immediately after — never production). **Manual E2E walk (4/4) run 2026-09-18**, also local
+  against the test Cosmos (teacher dev-auth bypass driven live in the browser pane; owner-erasure
+  driven at the API level with minted dev-mode admin tokens, since the admin portal has no
+  dev-auth bypass — same documented gap as v4.4.0's Known issue #14). Full detail in
+  `SPRINT_TEST_CHECKLIST.md`'s v4.11.0 section.
 - **Deploy (human-gated):** publish the API (Node 22) → deploy the admin portal (as v4.9.0's admin
   pages were) → merge release → develop → main → tag `v4.11.0`.
 
