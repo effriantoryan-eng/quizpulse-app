@@ -2,6 +2,19 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [Unreleased]
+
+Fixed:
+- **Install-prompt capture was blocked in production by CSP** (regression from v4.9.0). The early
+  `beforeinstallprompt` capture was an inline `<script>` in `index.html`; production's
+  `script-src 'self'` (`staticwebapp.config.json`) refuses inline scripts, so Chromium blocked it
+  (confirmed in production 2026-09-17). On Android Chrome, when the prompt fired before React
+  mounted, the "Add to your phone" button could fail to appear and the v4.9.0
+  `install_accepted`/`install_dismissed` beacons never fired. Local `npm run dev` has no CSP,
+  which is why it passed testing. Moved the snippet unchanged to
+  `public/install-prompt-capture.js`, loaded as a same-origin classic script in `<head>`. CSP
+  stays strict — no `'unsafe-inline'`, nonce, or hash. **Frontend-only; no API redeploy needed.**
+
 ## [v4.8.0] — Student quiz history & own-answer review
 
 Closes the student post-quiz dead-end. A student can now see which quizzes they've done and
