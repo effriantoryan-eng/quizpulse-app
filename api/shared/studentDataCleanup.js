@@ -161,4 +161,7 @@ async function deidentifyResponses(
   return { deidentified, skipped };
 }
 
-module.exports = { deleteSubscriptions, deleteJoinRequests, deidentifyResponses };
+// deidentifyOneResponse is exported for the orphan-cleanup script (task 7), whose category (c)
+// selects responses per-response rather than per (classId, deviceIds), so it reuses this primitive
+// directly instead of deidentifyResponses.
+module.exports = { deleteSubscriptions, deleteJoinRequests, deidentifyResponses, deidentifyOneResponse };
