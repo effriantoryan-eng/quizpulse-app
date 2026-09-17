@@ -536,7 +536,7 @@ the DELETE-route registration, 5 execution-note findings, all folded in).
   not the raw .docx. Its APST/VTLM source text: `C:\Users\Ryan\Downloads\QuizPulse_VIT_Export_Research_Brief.docx`.
 - v4.4.0 sprint prompt: `C:\Users\Ryan\Doc\Quizpulse\CC_PROMPTS_v440.md` (no .docx — the prompt file is the source of truth)
 - Graphify knowledge graph: `graphify-out/` — committed so all AI assistants share the same codebase index
-  - `graphify-out/graph.json` — queryable JSON graph (1328 nodes, 2157 edges, as of 2026-08-17)
+  - `graphify-out/graph.json` — queryable JSON graph (1546 nodes, 2611 edges, as of 2026-09-17)
   - `graphify-out/GRAPH_REPORT.md` — architecture report
   - `graphify-out/graph.html` — interactive visualization
 

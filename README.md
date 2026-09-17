@@ -15,7 +15,7 @@ associate a school before accessing the dashboard.
 Operator tooling — school management, merge tool, traffic monitor, audit log, role management.
 Requires a separate admin CIAM account.
 
-**Current version:** v4.9.0 (beta)
+**Current version:** v4.11.0 (beta)
 
 ---
 
@@ -56,6 +56,13 @@ Requires a separate admin CIAM account.
 | Student quiz history — own-answer review, self-practice, confidence-trend strip | ✅ |
 | Admin teacher-data drill-down — overview + per-quiz analytics, fail-closed audit, PII-safe | ✅ |
 | Consent & install telemetry — push grant/deny, install accept/dismiss, per-platform breakdown | ✅ |
+| Class-delete cascade + remove-student cleanup — de-identify responses, delete subscriptions/join requests | ✅ |
+| Send-time approval re-check — removed students never notified, stale subscriptions pruned | ✅ |
+| Rejected-request retention (7-day TTL), retired usage-log dump | ✅ |
+| Student leave-class + per-class notification off/on + rotated-subscription resync | ✅ |
+| Teacher self-service account deletion (step-up re-auth + confirm word) | ✅ |
+| Owner erasure tool — erase one device or a whole teacher account on request, audited | ✅ |
+| After-hours send warning (warn, never block) | ✅ |
 
 ---
 
@@ -122,7 +129,7 @@ func azure functionapp publish quizpulse-app-api-av5z18
 ## Running tests
 
 ```powershell
-# Unit tests (no stack required) — 531/531 passing
+# Unit tests (no stack required) — 560/560 passing
 npx jest --config jest.config.cjs tests/unit/
 
 # Integration tests (requires func start + Azurite + Cosmos emulator)
@@ -162,3 +169,5 @@ npx playwright test
 | v4.7.0 | Design overhaul (Modernist) — Home calendar, student QR-join, confidence summary | ✅ shipped |
 | v4.8.0 | Student quiz history — own-answer review, self-practice, confidence-trend strip | ✅ shipped |
 | v4.9.0 | Admin teacher-data drill-down + consent & install telemetry | ✅ shipped |
+| v4.9.1 | R1 remediation — class-delete cascade, removed-student notify fix, retired usage-log dump | ✅ shipped |
+| v4.11.0 | R2 remediation — student leave/opt-out, teacher account deletion, owner erasure tool, after-hours warning | ✅ shipped |

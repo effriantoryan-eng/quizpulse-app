@@ -153,9 +153,12 @@ Same as the main app — see root `CLAUDE.md` "Coding conventions" section. Addi
 cd "C:\Users\Ryan\quizpulse - PWA\admin"
 npm run build      # output: admin/dist/
 
-# Deploy admin dist/ to the admin SWA
-# (replace <admin-swa-name> with the actual resource name)
-az staticwebapp deploy --name <admin-swa-name> --resource-group quizpulse-app-rg --source ./dist
+# Deploy admin dist/ to the admin SWA. `az staticwebapp deploy` does NOT exist on this
+# CLI (confirmed on az-cli 2.86.0, v4.11.0 deploy 2026-09-17 — `az staticwebapp` only has
+# create/delete/disconnect/list/reconnect/show/update, no `deploy`). Use the SWA CLI instead,
+# with a deployment token pulled fresh each time (never commit it):
+$token = az staticwebapp secrets list --name quizpulse-admin-av5z18 --resource-group quizpulse-app-rg --query "properties.apiKey" -o tsv
+npx --yes @azure/static-web-apps-cli deploy ./dist --deployment-token $token --env production
 ```
 
 The admin SWA is **Free tier with NO linked backend** — a Function App can link to only one
