@@ -12,7 +12,6 @@ const TITLES = [
   { path: '/teacher/send',      title: 'Send Quiz · QuizPulse' },
   { path: '/teacher/quizzes',   title: 'My Quizzes · QuizPulse' },
   { path: '/teacher/analytics', title: 'Quiz Analytics · QuizPulse' },
-  { path: '/admin/log',         title: 'Usage Log · QuizPulse' },
 ]
 
 function titleFor(pathname) {

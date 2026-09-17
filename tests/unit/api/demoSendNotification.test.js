@@ -47,6 +47,13 @@ jest.mock('@azure/cosmos', () => {
         }
         return { resource: doc };
       },
+      delete: async () => {
+        const arr = mockStore[name] || [];
+        const i = arr.findIndex((d) => d.id === id);
+        if (i < 0) { const e = new Error('not found'); e.code = 404; throw e; }
+        arr.splice(i, 1);
+        return {};
+      },
     }),
   });
   return {
@@ -65,6 +72,7 @@ process.env.COSMOS_CONTAINER_QUIZZES = 'quizzes';
 process.env.COSMOS_CONTAINER_RESPONSES = 'responses';
 process.env.COSMOS_CONTAINER_QUESTIONS = 'questions';
 process.env.COSMOS_CONTAINER_SUBSCRIPTIONS = 'subscriptions';
+process.env.COSMOS_CONTAINER_JOIN_REQUESTS = 'join_requests';
 
 const webpush = require('web-push');
 const { sendNotificationForQuiz } = require('../../../api/sendNotification');
@@ -78,6 +86,7 @@ beforeEach(() => {
   store.responses = [];
   store.questions = [];
   store.subscriptions = [];
+  store.join_requests = [];
 });
 
 describe('sendNotificationForQuiz — demo class branch', () => {
@@ -105,16 +114,32 @@ describe('sendNotificationForQuiz — demo class branch', () => {
     expect(persisted.confidenceResponseCount).toBe(24);
   });
 
-  test('non-demo quiz still pushes to subscribers (control)', async () => {
+  test('non-demo quiz still pushes to subscribers with an approved enrolment (control)', async () => {
     store.classes.push({ id: 'c-real', teacherId: 't1', isDemo: false });
     const quiz = { id: 'q-real', teacherId: 't1', classIds: ['c-real'], questionIds: ['qa'], status: 'sent' };
     store.quizzes.push(quiz);
-    store.subscriptions.push({ id: 'sub1', classId: 'c-real', endpoint: 'e', keys: { p256dh: 'x', auth: 'y' } });
+    // R1: the subscriber's device must hold an approved join request to be eligible at send time.
+    store.join_requests.push({ id: 'jr1', classId: 'c-real', deviceId: 'D1', status: 'approved' });
+    store.subscriptions.push({ id: 'sub1', classId: 'c-real', deviceId: 'D1', endpoint: 'e', keys: { p256dh: 'x', auth: 'y' } });
 
     const result = await sendNotificationForQuiz(quiz, ctx, { quizTitle: 'Real Quiz', questionCount: 1 });
 
     expect(webpush.sendNotification).toHaveBeenCalledTimes(1);
     expect(result.sent).toBe(1);
     expect(store.responses).toHaveLength(0); // no simulation on the real path
+  });
+
+  test('R1: a subscription for a removed student (no approved join request) is not notified and is pruned', async () => {
+    store.classes.push({ id: 'c-real', teacherId: 't1', isDemo: false });
+    const quiz = { id: 'q-real2', teacherId: 't1', classIds: ['c-real'], questionIds: ['qa'], status: 'sent' };
+    store.quizzes.push(quiz);
+    // No approved join request for D2 → the leftover subscription is stale.
+    store.subscriptions.push({ id: 'sub2', classId: 'c-real', deviceId: 'D2', endpoint: 'e', keys: { p256dh: 'x', auth: 'y' } });
+
+    const result = await sendNotificationForQuiz(quiz, ctx, { quizTitle: 'Real Quiz', questionCount: 1 });
+
+    expect(webpush.sendNotification).not.toHaveBeenCalled();
+    expect(result).toEqual({ sent: 0, total: 0 });
+    expect(store.subscriptions.find((s) => s.id === 'sub2')).toBeUndefined(); // pruned
   });
 });

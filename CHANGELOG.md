@@ -15,6 +15,47 @@ Fixed:
   `public/install-prompt-capture.js`, loaded as a same-origin classic script in `<head>`. CSP
   stays strict — no `'unsafe-inline'`, nonce, or hash. **Frontend-only; no API redeploy needed.**
 
+## [v4.9.1] — R1: Stop the leaks
+
+First of the 2026-09-17 audit remediation sprints. No new user-facing feature — every change makes
+an existing action do what it already claimed. Deleting a class or removing a student now actually
+removes the student's name and notification sign-up and de-identifies their answers (kept as counts,
+with no link to the device), instead of leaving the records orphaned. A removed student can no
+longer be sent the class's notifications. Rejected join requests no longer linger forever. And the
+raw platform-wide data dump that contradicted the privacy doc is gone.
+
+Fixed:
+- **Class delete now cascades.** `DELETE /api/classes/{id}` de-identifies the class's responses,
+  deletes its push subscriptions and join requests, then deletes the class last (retry-safe). Demo
+  classes are a no-op. De-identification re-creates each response under a fresh random id with
+  `studentId: null` — never an id derivable from the device.
+- **Remove-student cleans up.** Removing a student deletes that device's subscription and
+  de-identifies its responses (skipping answers still tied to a live enrolment in another class).
+  The analytics CSV export prints "Removed student", never a raw device id.
+- **Removed students are no longer notified.** Sends re-check approval per class at send time and
+  only notify subscriptions whose (class, device) is still approved; every other subscription is
+  pruned like a dead endpoint (this also cleans up pre-existing orphaned subscriptions on first
+  send). Covers manual send and the scheduled-send timer.
+
+Changed:
+- **Rejected join requests expire after 7 days** (per-item Cosmos TTL). Requires the
+  `join_requests` container's default TTL to be enabled once (`docs/azure/R1_JOIN_REQUESTS_TTL.md`);
+  until then the field is inert, so the code deploys safely first.
+- `docs/privacy/STUDENT_DATA.md` rewritten so every sentence matches shipped behaviour (which page
+  beacons are stripped, retention, who can see data, what deletion a teacher can do today).
+
+Removed:
+- **`/admin/log` and `GET /api/usageLog`** — the raw dump of up to 1,000 response and page-view
+  documents to owner/support, which contradicted the privacy documentation. The admin portal's
+  Traffic and Teacher-data pages cover the operational need.
+
+Added (operational, not user-facing):
+- `api/shared/studentDataCleanup.js` — shared idempotent cleanup helpers.
+- `api/scripts/cleanupOrphanedStudentData.js` — founder-run, dry-run-by-default one-off script to
+  clean data orphaned by pre-v4.9.1 deletes.
+
+No breaking changes for teachers or students.
+
 ## [v4.8.0] — Student quiz history & own-answer review
 
 Closes the student post-quiz dead-end. A student can now see which quizzes they've done and

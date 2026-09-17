@@ -120,7 +120,7 @@ function Classes() {
   }
 
   async function handleDelete(id, name) {
-    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return
+    if (!window.confirm(`Delete "${name}"? Students' names and notification sign-ups are removed. Their answers stay in your quiz results without names. This can't be undone.`)) return
     setDeletingId(id)
     try {
       const res = await fetch(`${API_BASE}/classes/${id}`, { method: 'DELETE' })

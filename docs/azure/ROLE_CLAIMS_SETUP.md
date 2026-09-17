@@ -14,7 +14,7 @@ JWKS on every request (see `api/auth.js`).
 Until the steps below are completed, no token carries a `role` claim, so `getCallerScope` falls back
 to `role: 'teacher'` for everyone and `schoolId: null`. This is a safe default (nobody is
 accidentally granted `owner`/`support`/`school_admin` scope) but it also means privileged
-endpoints — `GET /api/usageLog`, `PUT /api/manage/teachers/{id}/role`, and any Sprint 5/6 admin
+endpoints — `GET /api/manage/metrics`, `PUT /api/manage/teachers/{id}/role`, and any Sprint 5/6 admin
 endpoint built on `assertScope` — are unreachable by anyone until this configuration is in place.
 That is intentional: build the admin UI and configure the claim together, not before.
 
@@ -78,7 +78,7 @@ Until this is done, `assertScope(resource, caller, { ownerField: 'schoolId' })` 
 ## 5. Verify
 
 After assigning a role to a test account, decode the ID token (jwt.io or a debug log) and confirm
-the `roles` array (or mapped `role` claim, per step 3) is present. Call `GET /api/usageLog` with
+the `roles` array (or mapped `role` claim, per step 3) is present. Call `GET /api/manage/metrics` with
 that token — it should now return data instead of `404`. Revoking the role assignment should make
 the same call 404 again on the next sign-in (claims are only refreshed on token re-issuance, not
 instantly on revocation — note this if testing a revoke).

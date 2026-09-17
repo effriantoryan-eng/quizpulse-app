@@ -22,6 +22,17 @@ const REQUESTS_PER_DEVICE_PER_DAY = 5;
 const BRUTE_FORCE_MAX = 10;
 const BRUTE_FORCE_WINDOW_MS = 3600000; // 1 hour
 const PENDING_PER_CLASS_MAX = 60;
+const REJECTED_TTL_SECONDS = 604800; // R1: rejected requests auto-expire after 7 days
+
+// Mutates a join request into the rejected state with a 7-day TTL. Exported so the unit test
+// exercises the real mutation (not a mirror). The per-item ttl only takes effect once the
+// container's DefaultTimeToLive is enabled — see docs/azure/R1_JOIN_REQUESTS_TTL.md; until then it
+// is silently ignored, so this code can deploy first.
+function applyRejection(joinReq) {
+  joinReq.status = 'rejected';
+  joinReq.ttl = REJECTED_TTL_SECONDS;
+  return joinReq;
+}
 
 // Dedicated sliding-window store for join-code brute-force protection.
 // Intentionally separate from the general rateLimit.js (which delegates to APIM) —
@@ -415,7 +426,7 @@ app.http('joinRequestReject', {
       }
       if (joinReq.status === 'rejected') return respond(200, { rejected: true, id: reqId }, teacherId);
 
-      joinReq.status = 'rejected';
+      applyRejection(joinReq);
       await joinRequestsContainer.item(reqId, classId).replace(joinReq);
 
       return respond(200, { rejected: true, id: reqId }, teacherId);
@@ -487,4 +498,4 @@ async function approveRequest(reqId, classId, teacherId, context) {
   return { ok: true };
 }
 
-module.exports = {};
+module.exports = { applyRejection, REJECTED_TTL_SECONDS };

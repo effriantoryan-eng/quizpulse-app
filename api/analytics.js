@@ -274,7 +274,8 @@ app.http('analyticsExport', {
 
       const rows = [['studentName', 'question', 'answer', 'confidence', 'responseTimeMs', 'timestamp']];
       for (const r of responses) {
-        const studentName = nameByDevice.get(r.studentId) || r.studentId;
+        // A de-identified response (R1) has studentId null — never print the raw id/UUID.
+        const studentName = r.studentId == null ? 'Removed student' : (nameByDevice.get(r.studentId) || r.studentId);
         for (const a of (r.answers || [])) {
           const q = questionById.get(a.questionId);
           const questionText = q ? q.text : a.questionId;

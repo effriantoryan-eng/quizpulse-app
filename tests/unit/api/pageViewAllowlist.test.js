@@ -11,7 +11,6 @@ describe('classifyPage', () => {
     expect(classifyPage('/quiz')).toBe('/quiz');
     expect(classifyPage('/join')).toBe('/join');
     expect(classifyPage('/teacher/build')).toBe('/teacher/build');
-    expect(classifyPage('/admin/log')).toBe('/admin/log');
   });
 
   test('dynamic segments under an allowed prefix pass through unchanged', () => {
@@ -23,6 +22,7 @@ describe('classifyPage', () => {
     expect(classifyPage('/junk')).toBe('other');
     expect(classifyPage('/teacher/nonexistent')).toBe('other');
     expect(classifyPage('/../etc/passwd')).toBe('other');
+    expect(classifyPage('/admin/log')).toBe('other'); // retired in R1 — no longer an allowed route
   });
 
   test('a prefix does not falsely match an unrelated route sharing a substring', () => {

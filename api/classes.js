@@ -7,6 +7,7 @@ const { getTeacher } = require('./teacher');
 const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
 const { selectDemoStudents, DEMO_STUDENT_COUNT } = require('./shared/demoNames');
 const { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, generateJoinCode, createRealClass } = require('./shared/createClass');
+const { deleteSubscriptions, deleteJoinRequests, deidentifyResponses } = require('./shared/studentDataCleanup');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -15,6 +16,10 @@ const client = new CosmosClient({
 });
 const database = client.database(process.env.COSMOS_DATABASE);
 const classesContainer = database.container(process.env.COSMOS_CONTAINER_CLASSES || 'classes');
+const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
+const subscriptionsContainer = database.container(process.env.COSMOS_CONTAINER_SUBSCRIPTIONS || 'subscriptions');
+const quizzesContainer = database.container(process.env.COSMOS_CONTAINER_QUIZZES || 'quizzes');
+const responsesContainer = database.container(process.env.COSMOS_CONTAINER_RESPONSES || 'responses');
 
 const DEMO_CLASSES_PER_TEACHER = 1;  // v3.3.0 — at most one simulated demo class per teacher
 // DEMO_STUDENT_COUNT is imported from shared/demoNames.js (v4.6.0) so classes.js and firstRun.js
@@ -379,8 +384,6 @@ app.http('classesRemoveStudent', {
         throw err;
       }
 
-      const joinRequestsContainer = database.container(process.env.COSMOS_CONTAINER_JOIN_REQUESTS || 'join_requests');
-
       // Read the join request to verify it is approved and belongs to this class
       let joinReq;
       try {
@@ -393,6 +396,18 @@ app.http('classesRemoveStudent', {
       if (!joinReq || joinReq.classId !== classId || joinReq.status !== 'approved') {
         return respond(404, { error: 'Student not found or not approved' }, teacherId);
       }
+
+      // R1: clean up this device's data BEFORE deleting the join request, so a retry after a
+      // mid-cleanup failure still finds the (approved) request and re-runs the idempotent cleanup.
+      // deidentifyResponses skips answers still tied to a live enrolment in another class.
+      const subsDeleted = await deleteSubscriptions({ subscriptionsContainer }, { classId, deviceId: joinReq.deviceId });
+      const { deidentified, skipped } = await deidentifyResponses(
+        { quizzesContainer, responsesContainer, joinRequestsContainer },
+        { teacherId, classId, deviceIds: [joinReq.deviceId] },
+      );
+      context.log(
+        `removed student ${studentId} from class ${classId} — subscriptions=${subsDeleted}, responses deidentified=${deidentified} skipped=${skipped}`,
+      );
 
       // Delete the join request (remove the student)
       await joinRequestsContainer.item(studentId, classId).delete();
@@ -457,7 +472,28 @@ app.http('classesDelete', {
         throw err;
       }
 
+      // R1 cascade: a class's student data (join requests, responses, push subscriptions) outlives
+      // the class record unless we clean it up here. Order matters — the class document and the join
+      // requests are deleted LAST, so a retry after a mid-cascade failure still finds the class and
+      // re-runs the (idempotent) cascade. Demo classes have no join requests, so deviceIds is empty
+      // and the whole cascade is a no-op for them (no special-casing needed).
+      const { resources: jrDevices } = await joinRequestsContainer.items.query({
+        query: 'SELECT c.deviceId FROM c WHERE c.classId = @cid',
+        parameters: [{ name: '@cid', value: classId }],
+      }).fetchAll();
+      const deviceIds = [...new Set(jrDevices.map((r) => r.deviceId).filter(Boolean))];
+
+      const { deidentified, skipped } = await deidentifyResponses(
+        { quizzesContainer, responsesContainer, joinRequestsContainer },
+        { teacherId, classId, deviceIds },
+      );
+      const subsDeleted = await deleteSubscriptions({ subscriptionsContainer }, { classId });
+      const jrDeleted = await deleteJoinRequests({ joinRequestsContainer }, { classId });
+
       await classesContainer.item(classId, teacherId).delete();
+      context.log(
+        `class ${classId} deleted — cascade: responses deidentified=${deidentified} skipped=${skipped}, subscriptions=${subsDeleted}, joinRequests=${jrDeleted}`,
+      );
       return respond(200, { deleted: true, id: classId }, teacherId);
     } catch (err) {
       context.error('classesDelete error:', err.message);
