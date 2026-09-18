@@ -32,7 +32,7 @@ function QuestionCard({ question, index, onTick, onEdit, onDelete, onRegenerate,
           Question {index + 1}
           {question.editedManually && <span style={{ marginLeft: '6px', color: '#1a7a5e' }}>✓ Edited</span>}
         </div>
-        {question.reviewed && <span style={{ fontSize: '11px', color: '#1a7a5e', fontWeight: '600' }}>✓</span>}
+        {question.reviewed && <span style={{ fontSize: '11px', color: '#1a7a5e', fontWeight: '600' }} aria-hidden="true">✓</span>}
       </div>
 
       {editing ? (
