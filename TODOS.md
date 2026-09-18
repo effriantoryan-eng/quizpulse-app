@@ -331,3 +331,11 @@ Not bugs / environment notes: `/api/vapid-public-key` 503s locally (VAPID keys a
 local.settings.json — push isn't locally testable, expected). Browser-pane screenshots timed out
 all session and injected clicks intermittently didn't land (tooling flake on this machine —
 verified app handlers fine via programmatic dispatch; page reads/console/network all worked).
+
+## v4.12.0 R3 — dated removals
+
+- [ ] **Remove the `?deviceId=` query-param fallback** in `api/joinRequests.js` (`joinRequestStatus`)
+  and `api/studentQuizzes.js`, added 2026-09-18 for one release to tolerate old cached PWA clients
+  that still send the device id in the URL (audit #9 — request logs keep query strings). Remove in
+  the release AFTER v4.12.0, once every client has had a chance to update. Both call sites already
+  `context.warn('deviceId via query string (legacy client)')` — check that log is quiet before removing.

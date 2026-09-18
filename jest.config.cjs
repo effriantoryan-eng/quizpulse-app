@@ -17,8 +17,8 @@ module.exports = {
     [
       'jest-html-reporter',
       {
-        pageTitle: 'QuizPulse — v4.11.0 R2 Erasure and opt-out',
-        outputPath: 'tests/reports/v4.11.0-report.html',
+        pageTitle: 'QuizPulse — v4.12.0 R3 Notice, consent and minimisation',
+        outputPath: 'tests/reports/v4.12.0-report.html',
         includeFailureMsg: true,
         includeConsoleLog: true,
       },

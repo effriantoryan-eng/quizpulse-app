@@ -490,6 +490,100 @@ the DELETE-route registration, 5 execution-note findings, all folded in).
 - **Deploy (human-gated):** publish the API (Node 22) → deploy the admin portal (as v4.9.0's admin
   pages were) → merge release → develop → main → tag `v4.11.0`.
 
+**v4.12.0 (R3 — Notice, consent and data minimisation) is [IN PROGRESS] on
+`release/v4.12-notice-consent` (cut from `main` after v4.11.0) — code + unit tests complete;
+**release is blocked on legal wording** (see below), which is why this is not yet tagged/deployed.**
+Third of the R1–R5 remediation sprints (2026-09-17 audit, Part B: B2/B3/B6). Built per
+`C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R3_Notice_consent_minimisation.md`, decisions
+D3.1–D3.7 at their defaults (no reviewer overrides supplied), following the plan review via
+`/autoplan` (Codex unavailable — subagent-only CEO/Eng/Design voices; no user-challenge escalations,
+several taste/critical findings folded in before the build).
+- **No legal wording was supplied this session.** Every legal string
+  (`src/data/legalContent.js` — the Privacy Policy, Collection Notice, Terms, the join-form notice,
+  the class-attestation checkbox text) is the literal `"[LEGAL TEXT PENDING]"` marker. Per the
+  plan's own gate, `grep -r "LEGAL TEXT PENDING" src/` returning anything **blocks the rc1 tag and
+  deploy** — this is deliberate, not a bug. Every place that would show a document or record
+  acceptance of one is guarded by `isLegalPending()` and refuses to render the marker or accept a
+  placeholder document (`LegalPage.jsx`'s "being finalised" state; `Onboarding.jsx`'s terms
+  checkbox and `TermsUpdate.jsx`'s interstitial both disable the accept action; `JoinClass.jsx`'s
+  notice omits `noticeVersion` from the request; `Classes.jsx`/`ClassRoster.jsx`'s attestation
+  checkbox/banner do the same) — a design-review finding that acceptance of a placeholder must be
+  impossible by construction, not just caught by a CI grep.
+- **`ATTESTATION_REQUIRED_FROM` (D3.4) also has no reviewer-supplied cut-off date.**
+  `api/shared/legalVersions.js`'s `attestationCutoffMs()` **fails open** when unset or unparseable
+  (returns `Infinity`, never `0`) — a CEO-review-caught critical: a naive `now >= null` coerces to
+  `now >= 0` → `true`, which would have 409'd every existing pilot class's joins the moment this
+  deployed. No class is ever blocked from accepting joins until the reviewer sets a real date (env
+  override `ATTESTATION_REQUIRED_FROM`, or the constant in that file) and pilot teachers are told.
+- **Task 1 — page-view minimisation** (`api/pageView.js`, `api/shared/trafficAggregate.js`,
+  `src/hooks/usePageView.js`, `src/deviceId.js`): the six raw browser-fingerprint fields are no
+  longer stored anywhere — replaced by coarse `device`/`browser` buckets computed server-side then
+  discarded, withheld entirely (`'unknown'`/`'other'`) on student/consent routes. `teacherId`
+  (the device UUID) is `null`, never a truthy `'anonymous'` sentinel, until a device joins a class —
+  `aggregateTraffic` counts unique visitors by truthy `teacherId`, so anonymous pre-join traffic
+  never inflates that number (D3.2). The four duplicate device-id get-or-create generators
+  (`src/session.js`, and one each in `JoinClass`/`TakeQuiz`/`StudentClass`) are consolidated into
+  `src/deviceId.js`'s `getDeviceId()` (read-only, null when absent) / `createDeviceId()` (mints,
+  called ONLY from `JoinClass`'s submit handler) — `src/session.js` is deleted.
+  `TakeQuiz.jsx`/`StudentClass.jsx`/`QuizReview.jsx` never mint; a student with no device id on
+  `/quiz` sees "Join your class first" instead of loading the check-in. Legacy docs with raw fields
+  and no buckets still aggregate identically (fallback in `aggregateTraffic`; the query projection
+  in `api/traffic.js` keeps both the new and legacy fields on purpose — dropping the legacy fields
+  would silently regress every pre-R3 doc to unknown/other). Admin Traffic's "Unique visitors" tile
+  is relabelled "Joined devices" with an explanatory line, since the metric's meaning genuinely
+  changed (eng + CEO review: a caption alone wasn't enough for a metric rename).
+- **Task 2 — device id out of URLs** (audit #9): `join-request/status` and `student/quizzes` read
+  the device id from the `X-Device-Id` request header; for this release only, a `?deviceId=` query
+  fallback (+ `context.warn`) keeps old cached PWA clients working — diarised in `TODOS.md` for
+  removal next release.
+- **Task 3 — legal pages and footer**: `src/data/legalContent.js` (client wording + versions),
+  `api/shared/legalVersions.js` (server-side version constants ONLY — same client/server
+  duplication convention as `apstContent.js`/`topicTags.js`), `LegalPage.jsx` at `/privacy`,
+  `/collection-notice`, `/terms`, and `LegalFooter.jsx` rendered on Home/Login/Join/TakeQuiz/
+  QuizReview/StudentClass/Onboarding and the teacher sidebar foot.
+- **Task 4 — join notice + push prompt** (D3.6): the join form shows a short collection notice
+  above the submit button, linking to the full notice; `noticeVersion` travels with the join
+  request (optional, D3.7). The automatic notification prompt is GONE from both the approval effect
+  and the reconcile-on-load path — a primary "Turn on notifications" button on the approval screen
+  and on `/student/class` (reusing R2's existing per-class toggle, not a parallel control — a
+  design-review finding) supplies the user gesture, with an explanation line before it and a
+  browser-settings hint when permission is already `denied` (a design-review finding: tapping the
+  button while denied would otherwise do nothing visible).
+- **Task 5 — teacher terms acceptance**: `Onboarding.jsx` step 1 gains a required checkbox (skipped
+  entirely, Continue disabled, while the docs are pending); `PUT /api/me/terms` lets an existing
+  teacher re-accept; `RequireTeacher` in `App.jsx` shows a one-screen `TermsUpdate.jsx` interstitial
+  when `GET /api/me`'s `termsCurrent` is `false`, with explicit idle/submitting/error states (a
+  design-review finding — never optimistically marks accepted before the 200 lands) and a
+  fail-open catch on the `/api/me` fetch itself (same posture as the existing onboarded-status
+  fail-open, an eng-review finding — an API blip must never lock a teacher out behind an
+  unresolvable screen).
+- **Task 6 — class attestation**: `api/shared/createClass.js`'s `createRealClass` now requires
+  `{ schoolAuthorised: true, version: ATTESTATION_VERSION }` and throws `AttestationError` (400)
+  without it — EXCEPT for `POST /api/classes/shells`, which passes an internal `skipAttestation`
+  flag (an eng-review-caught blocker: the plan as written would have 500'd that still-live endpoint,
+  since it creates empty server-named shells with no per-class UI to attest with). New
+  `PUT /api/classes/{id}/attest` (`authenticateTeacher → assertScope(mutate:true) → 404-on-mismatch`,
+  shares the `classes` rate-limit bucket). `Classes.jsx` shows one grouped banner ("N classes need
+  you to confirm…") covering every un-attested class rather than one banner per class (a
+  design-review finding: per-class banner spam trains teachers to click without reading);
+  `ClassRoster.jsx` shows the same banner for that one class.
+- **Task 7 — docs**: `docs/privacy/STUDENT_DATA.md` rewritten for the new collection/consent/
+  attestation model; this file's data-model entries below.
+- **Tests:** 593/593 unit pass (`tests/reports/v4.12.0-report.html`) — new coverage in
+  `pageView.test.js`, `trafficAggregate.test.js`, `usePageView.test.js`, `createClass.test.js`, and
+  a new `legalVersions.test.js` (the fail-open attestation cut-off is the one test explicitly
+  checked against the exact regression shape: `now >= 0` from a null cut-off). The route-walk test
+  in `pageViewAllowlist.test.js` passes with the three new legal routes with no changes needed
+  (it walks `App.jsx`'s real route table). `tests/integration/api/v4.12.0-notice-consent.test.js`
+  (8 cases) is written but **not yet run** against the test Cosmos account — no `func start` session
+  in this build. `npm run build` is clean. E2E is not yet walked. See
+  `SPRINT_TEST_CHECKLIST.md`'s v4.12.0 section for the full per-row status.
+- **Deploy (human-gated, and additionally BLOCKED on legal wording):** get the reviewer's approved
+  wording for all 5 legal strings + confirm the `ATTESTATION_REQUIRED_FROM` cut-off date and that
+  pilot teachers were told → run the integration suite + a manual E2E walk → publish the API
+  (Node 22; it accepts old and new client shapes) → deploy the admin portal (Traffic copy) → merge
+  release → develop → main → tag `v4.12.0`.
+
 ---
 
 ## Tech stack
@@ -684,6 +778,7 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 16 | v4.9.0 | Admin teacher-data drill-down + consent & install telemetry — `api/manageTeacherData.js` (overview + per-quiz analytics, fail-closed audit, GROUP BY response counts), admin Teachers/TeacherData pages, 5 new pageView eventTypes, coarse platform field, `aggregateConsentFunnel`, admin Traffic consent strip (IN PROGRESS) |
 | 17 | v4.9.1 | R1 Stop the leaks (remediation) — class-delete cascade + remove-student cleanup (de-identify responses, delete subscriptions/join requests), send-time approval re-check, 7-day TTL on rejected requests, retire `/admin/log` + `GET /api/usageLog`, founder-run orphan-cleanup script, `STUDENT_DATA.md` truth pass (IN PROGRESS — rc1 tagged, deploy human-gated) |
 | 18 | v4.11.0 | R2 Erasure and opt-out (remediation) — student leave-class + notification off/on + rotated-subscription resync, teacher self-service account deletion (`DELETE /api/me`), owner erasure tool (device or teacher account) + runbook, after-hours send warning; three shared erasure helpers on `studentDataCleanup.js` (IN PROGRESS — code + unit tests complete, integration written-but-unrun, deploy human-gated) |
+| 19 | v4.12.0 | R3 Notice, consent and minimisation (remediation) — page-view fingerprint removal + coarse device/browser buckets, device id out of URLs, legal pages (`/privacy`/`/collection-notice`/`/terms`) + footer, join-form collection notice, button-triggered notification prompt, teacher terms acceptance + interstitial, class school-authorisation attestation with a fail-open cut-off (IN PROGRESS — code + unit tests complete; **release blocked on reviewer-supplied legal wording**, integration written-but-unrun) |
 
 ### Rules
 
@@ -806,14 +901,20 @@ product; 5–6 add institution machinery and can be funded from pilot revenue.
   ever built, so starter-pack seeds don't skew it.
 - `quizzes` — { id, teacherId, name, questionIds[], classIds[], status, classSize, sentAt, createdAt, isDemo?, topicTag?, schoolId?, confidenceResponseCount? } — `isDemo` (default false, non-breaking) added v3.3.0; legacy docs without it are treated as `isDemo=false`. `topicTag` (string, preset enum) and `schoolId` (string, resolved server-side from the teacher's own record at send time — never client-supplied) are **[CURRENT — v4.0.0]**, optional (teacher can send without picking a topic; that quiz simply doesn't contribute to population benchmarking — see Security limits / D3 in the addendum). `confidenceResponseCount` (int) is **[CURRENT — v4.2.0]**, a denormalised counter incremented via an atomic Cosmos `incr` patch at response-submit time (both `api/responses.js` and `api/shared/runSimulation.js`) — read only by `introEligibility.js`'s `analytics_intro`/`misconception_intro` milestones; a legacy quiz with no field is treated as 0.
 - `responses` — { id, quizId, studentId, answers[]: { questionId, selectedIndex, confidence: "sure"|"pretty_sure"|"guessing", responseTimeMs? }, quizDurationMs?, completedAt, isDemo?, simulated?, topicTag?, schoolId?, deidentifiedAt?, deidPendingId? } — `confidence` and `responseTimeMs` added in v3.2.0 (Confidence Layer); `isDemo`/`simulated` (default false, non-breaking) added v3.3.0 for simulated demo-class responses. Legacy docs without these fields are tolerated: `confidentButIncorrect` counts 0 for answers with no confidence field. `topicTag`/`schoolId` are **[CURRENT — v4.0.0]**, copied server-side from the parent quiz doc at submit time in `api/responses.js` (students submit anonymously — there is no claim to read these from). **[CURRENT — v4.9.1]** a de-identified response (class delete / remove-student / orphan cleanup) carries **`studentId: null` + `deidentifiedAt`**: its per-question counts still contribute to the teacher's results, but nothing links it to a device. The new doc's `id` is a **fresh random UUID**, never derived from the original `sha256(quizId:deviceId)` (a derived id would be recomputable from the device ID). `deidPendingId` is a **transient** marker set on the original just before its copy is created, so a retried cleanup is idempotent (`api/shared/studentDataCleanup.js`); it is dropped from the copy. **[CURRENT — v4.11.0]** an **explicit erasure** — a student device erasure (`eraseDevice`) or a teacher account deletion (`deleteTeacherAccount`) — **HARD-deletes** the response instead of de-identifying it (de-identification is for a removal/cascade; an erasure request means the data goes entirely). `eraseDevice` deletes responses FIRST, before any de-identifying step could sever the `studentId` link and hide them. **No `correct`, `confidenceLevel`, `yearLevel`, or `isPopulationSeed` field is added** — the original .docx spec included these, but correctness/confidence already live in `answers[]` (per-answer, not per-response) and `yearLevel` is a pure function of `topicTag`; see `DESIGN_REVIEW_v400_v410_addendum.md` §E0.
-- `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt, profile?, featureIntros? } (pk `/id`) — `profile` (`{subjects[], yearLevels[], classCount, registrationStatus}`, all optional/independent) and `featureIntros` (`{[key]: {shownAt?, dismissedAt?}}` for the nine keys in `api/shared/featureIntros.js`) are **[CURRENT — v4.2.0]**, additive; a legacy teacher doc with neither field is treated as `profile:{}`/`featureIntros:{}` everywhere (`GET /api/me`, `introEligibility.js`, the SendQuiz topic prefilter). **[CURRENT — v4.6.0]** a tenth, synthetic `featureIntros.getting_started` key —
+- `teachers` — { id, teacherId, schoolId, schoolStatus, name, email, idp, role, createdAt, profile?, featureIntros?, termsAcceptedVersion?, termsAcceptedAt? } (pk `/id`) — `profile` (`{subjects[], yearLevels[], classCount, registrationStatus}`, all optional/independent) and `featureIntros` (`{[key]: {shownAt?, dismissedAt?}}` for the nine keys in `api/shared/featureIntros.js`) are **[CURRENT — v4.2.0]**, additive; a legacy teacher doc with neither field is treated as `profile:{}`/`featureIntros:{}` everywhere (`GET /api/me`, `introEligibility.js`, the SendQuiz topic prefilter). **[CURRENT — v4.6.0]** a tenth, synthetic `featureIntros.getting_started` key —
   `{ releasedAt?, dismissedAt?, skippedSteps?: string[] }` — holds the Getting Started checklist's
   ONE-WAY release/dismiss moment and per-step skipped markers (`api/shared/gettingStarted.js`).
   Deliberately excluded from `introEligibility.js`'s `CANDIDATE_KEYS` (it's not a `FeatureIntroCard`,
   it's the checklist itself) but included in the generic `FEATURE_INTRO_KEYS` validation/short-circuit
-  list.
+  list. **[CURRENT — v4.12.0]** `termsAcceptedVersion`/`termsAcceptedAt` — set at onboarding
+  (`api/teacher.js`'s `onboarding` handler, an optional `acceptedTermsVersion` in the request body)
+  or later via `PUT /api/me/terms` (the `RequireTeacher` terms-update interstitial). `null` on a
+  legacy teacher doc or one whose acceptance predates a version bump — `GET /api/me`'s
+  `termsCurrent` boolean is `teacher.termsAcceptedVersion === TERMS_VERSION` (from
+  `api/shared/legalVersions.js`), computed fresh on every call, never cached server-side.
+  `termsAcceptedAt` is always a **server** timestamp, never a client-supplied one.
 - `schools` — { id, name, status, sector, suburb, state, mergedIntoId, createdAt, validatedAt } (pk `/id`)
-- `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload).
+- `classes` — { id, teacherId, schoolId, name, studentCount, joinCode, nameList[], nameListEnabled, cap, createdAt, isDemo?, demoStudents?, attestedAt?, attestationVersion? } (pk `/teacherId`) — `isDemo` (default false, non-breaking) added v3.3.0. When `isDemo=true`: the class has no `joinCode` (never joinable) and no `nameList`, and carries `demoStudents: [{ studentId: <uuid>, name: <string> }]` (24 entries, generated server-side at create time via `api/shared/demoNames.js`, never client-provided). Max 1 demo class per teacher; demo classes do NOT count toward the 20-real-class cap. `GET /api/classes` returns `isDemo` + `demoStudentCount` (the raw `demoStudents` array is dropped from the list payload). **[CURRENT — v4.12.0]** `attestedAt`/`attestationVersion` — a teacher's confirmation that their school has authorised QuizPulse, required by `api/shared/createClass.js`'s `createRealClass` for every new real class (`AttestationError`, 400, if missing/stale) EXCEPT classes created via `POST /api/classes/shells` (an internal `skipAttestation` flag — those empty onboarding shells have no per-class UI to attest with, and stay un-attested until the teacher confirms via `PUT /api/classes/{id}/attest`). `null` on any class created before attestation existed, or a shell. `api/joinRequests.js`'s `joinRequestCreate` 409s a join to a real, un-attested class once `attestationRequiredNow()` (D3.4, `api/shared/legalVersions.js`) is true — that function **fails open** (never blocks) when no `ATTESTATION_REQUIRED_FROM` cut-off date is configured, so an unset date can never take a pilot class offline. Demo classes are exempt (never joinable).
 - `audit_log` [Sprint 5] (pk `/actorId`) — { id, actorId, actorRole, action, targetType, targetId,
   before, after, ip, createdAt }. Append-only — `api/shared/auditLog.js` exports only
   `writeAudit()`, no update/delete path. Manual provisioning:
@@ -832,11 +933,17 @@ attribution on old responses is accepted).
 ### [PLANNED] new/changed containers
 
 - **`join_requests`** [Sprint 2] (pk `/classId`) — { id, classId, schoolId, teacherId,
-  studentName, deviceId, status: "pending|approved|rejected|queued", matchedName, matchScore, createdAt, ttl? }
+  studentName, deviceId, status: "pending|approved|rejected|queued", matchedName, matchScore, createdAt, ttl?, noticeVersion? }
   — **[CURRENT — v4.9.1]** a **rejected** request is stamped with `ttl: 604800` (7 days) so it
   auto-expires (`api/joinRequests.js` `applyRejection`). Per-item TTL only takes effect once the
   container's `DefaultTimeToLive` is enabled to `-1` (docs/azure/R1_JOIN_REQUESTS_TTL.md); legacy
   rejected requests with no `ttl` are cleaned by `api/scripts/cleanupOrphanedStudentData.js`.
+  **[CURRENT — v4.12.0]** `noticeVersion` records which version of the join-form collection notice
+  the student was shown, from `api/shared/legalVersions.js`'s `COLLECTION_NOTICE_VERSION`. Optional
+  — when the client sends none (an old cached client, or one shown a still-pending notice), it's
+  stored `null`, never rejected (D3.7); when present it must equal the current version or the
+  request 400s. `joinRequestCreate` also 409s any real class with no `attestedAt` once
+  `attestationRequiredNow()` (D3.4) is true — see the `classes` entry below.
 - **`subscriptions`** ~~[Sprint 3]~~ **[CURRENT — Sprint 3 complete]** (pk `/classId`) — { id, classId, deviceId, endpoint, keys: { p256dh, auth }, createdAt, updatedAt }
 - **`question_upvotes`** ~~[Sprint 6]~~ **[CURRENT — Sprint 6]** (pk `/questionId`) — { id, questionId, teacherId, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_UPVOTES`. Provisioning: `docs/azure/SPRINT6_CONTAINERS_SETUP.md`.
 - **`question_reports`** [CURRENT — Sprint 6] (pk `/questionId`) — { id, questionId, teacherId, reason, createdAt }. Env: `COSMOS_CONTAINER_QUESTION_REPORTS`. Max 20 reports/teacher/day; visible to support/platform_admin via `GET /api/questions/reports`.
@@ -848,26 +955,38 @@ attribution on old responses is accepted).
   cross-partition-scanned the transactional container on every Population page load. `GET
   /api/analytics/population` does a point-read per topic against this container instead. See
   `DESIGN_REVIEW_v400_v410_addendum.md` §E1.
-- **`pageviews`** **[CURRENT — formalized in v4.4.0]** (pk `/teacherId` — the field actually
-  holds the anonymous visitor device UUID, the name is historical) —
-  { id, page, teacherId, sessionId, eventType, quizId?, referrer, userAgent, language, timezone,
-  screenWidth, screenHeight, visitedAt }. Written by `api/pageView.js` (anonymous, 60/min/IP,
-  4 KB cap) on every SPA route change via `src/hooks/usePageView.js`. `page` is bucketed through
-  `api/shared/pageViewAllowlist.js` server-side — an unrecognised value is stored as `'other'`,
-  never rejected. `eventType` (`'view'|'pwa_install'|'push_prompted'|'push_granted'|'push_denied'|
-  'install_accepted'|'install_dismissed'`, default `'view'`) — `'view'`/`'pwa_install'` added
-  v4.4.0; 5 consent/install types added v4.9.0; an unrecognised value is rejected with 400 (deploy
-  API before frontend to avoid silent data loss — review E3). `platform`
+- **`pageviews`** **[CURRENT — formalized in v4.4.0, fields minimised v4.12.0]** (pk `/teacherId`
+  — the field actually holds the anonymous visitor device UUID, the name is historical) —
+  { id, page, teacherId, sessionId, eventType, quizId?, device, browser, platform, visitedAt }.
+  Written by `api/pageView.js` (anonymous, 60/min/IP, 4 KB cap) on every SPA route change via
+  `src/hooks/usePageView.js`. `page` is bucketed through `api/shared/pageViewAllowlist.js`
+  server-side — an unrecognised value is stored as `'other'`, never rejected. `eventType`
+  (`'view'|'pwa_install'|'push_prompted'|'push_granted'|'push_denied'|'install_accepted'|
+  'install_dismissed'`, default `'view'`) — `'view'`/`'pwa_install'` added v4.4.0; 5 consent/install
+  types added v4.9.0; an unrecognised value is rejected with 400. `platform`
   (`'ios'|'android'|'desktop'|null`) **[CURRENT — v4.9.0]** stored only on consent/install events.
   A legacy doc with no `eventType` counts as `'view'` in every aggregate (mandatory regression,
-  tested). **Student privacy posture (v4.4.0 + v4.9.0):** on `/quiz` AND on any consent event
-  type, `referrer`/`userAgent`/`language`/
-  `timezone`/`screenWidth`/`screenHeight` are always `null` — enforced server-side regardless of
-  what the client sends — and `quizId` (from the `?quizId=` query param) is the one extra field
-  carried, feeding the `manage/traffic` funnel's per-quiz open attribution. Came over in the
-  baseline import from the demo repo; the pre-v4.4.0 code self-created this container via runtime
-  `createIfNotExists` — v4.4.0 removed that (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`, matching
-  every other container's manual-provisioning convention) and added a 180-day TTL. (No
+  tested).
+  **[CURRENT — v4.12.0, R3 data minimisation]** The six raw browser-fingerprint fields
+  (`referrer`, `userAgent`, `language`, `timezone`, `screenWidth`, `screenHeight`) are **no longer
+  stored at all**, on any route — replaced by two coarse buckets computed server-side and then the
+  raw values discarded: `device` (`'mobile'|'desktop'|'unknown'`, from `screenWidth`) and `browser`
+  (`'chrome'|'safari'|'firefox'|'edge'|'other'`, from `userAgent`; `api/shared/trafficAggregate.js`'s
+  `classifyDevice`/`classifyBrowser`, shared with the aggregation code so the two can never
+  disagree). On `/quiz`, `/quiz/*`, `/student/class` and any consent event, the buckets themselves
+  are withheld too (stored `'unknown'`/`'other'`) — those routes are student-private by design, not
+  just fingerprint-stripped. `teacherId` (the device UUID) is `null`, never a truthy sentinel,
+  until a device actually joins a class — `api/shared/trafficAggregate.js`'s `aggregateTraffic`
+  counts unique visitors by truthy `teacherId`, so a pre-join anonymous visit contributes a page
+  view and a session but never a "unique visitor" (D3.2 — visitors are devices that joined, not
+  anonymous traffic). `aggregateTraffic` falls back to classifying the raw `screenWidth`/`userAgent`
+  fields for a legacy doc that predates this change and is still inside the 180-day TTL — the
+  `manage/traffic` query projection (`api/traffic.js`) therefore still selects both the new bucket
+  fields AND the legacy raw fields, on purpose (dropping the raw fields would regress every legacy
+  doc's device/browser breakdown to unknown/other). Came over in the baseline import from the demo
+  repo; the pre-v4.4.0 code self-created this container via runtime `createIfNotExists` — v4.4.0
+  removed that (lazy init from `COSMOS_CONTAINER_PAGEVIEWS`, matching every other container's
+  manual-provisioning convention) and added a 180-day TTL. (No
   per-container RU cap — the account runs in Serverless capacity mode, which doesn't support one;
   see the correction in `docs/azure/V440_CONTAINERS_SETUP.md`.) Env: `COSMOS_CONTAINER_PAGEVIEWS`.
   Provisioning: `docs/azure/V440_CONTAINERS_SETUP.md`.
@@ -1622,6 +1741,8 @@ at the repo root — read that file before touching any styling, not this summar
 | DELETE /api/me (account deletion) rate | 3/hr/teacher (behind step-up re-auth + confirm word) | v4.11.0 |
 | manage/erasure lookup rate | 60/hr/owner (candidates) | v4.11.0 |
 | manage/erasure mutation rate | 10/hr/owner (device erasure + teacher deletion share the bucket; behind step-up) | v4.11.0 |
+| PUT /api/me/terms rate | 10/min/teacher | v4.12.0 |
+| PUT /api/classes/{id}/attest rate | shares the `classes` bucket (30/min/teacher) | v4.12.0 |
 
 ---
 
@@ -1836,6 +1957,11 @@ step — `docs/privacy/ERASURE_RUNBOOK.md`).
 | Teacher self-service account deletion (`DELETE /api/me`, `/teacher/account`, fail-closed `runAccountDeletion`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
 | Owner erasure tool (`api/manageErasure.js` device/teacher erasure + candidates, admin `Erasure.jsx`, `ERASURE_RUNBOOK.md`, fail-closed `runErasure`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
 | After-hours send warning (`src/data/schoolHours.js`, SendQuiz "Send anyway", D2.5 warn-not-block) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
+| Page-view data minimisation (no fingerprint fields anywhere, coarse device/browser buckets, `teacherId` null pre-join, device id out of URLs) | [IN PROGRESS — v4.12.0 code + unit tests complete, integration written-but-unrun] |
+| Legal pages + footer (`/privacy`, `/collection-notice`, `/terms`, `LegalFooter.jsx`) | [IN PROGRESS — v4.12.0 code complete; **content is `[LEGAL TEXT PENDING]` — blocks rc1/deploy**] |
+| Join-form collection notice + button-triggered notification prompt (D3.6) | [IN PROGRESS — v4.12.0 code complete] |
+| Teacher terms acceptance + re-accept interstitial (`PUT /api/me/terms`, `TermsUpdate.jsx`) | [IN PROGRESS — v4.12.0 code complete] |
+| Class school-authorisation attestation (`PUT /api/classes/{id}/attest`, fail-open cut-off) | [IN PROGRESS — v4.12.0 code complete] |
 | Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0 features sprint (distinct from the shipped v4.8.0 above)] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
