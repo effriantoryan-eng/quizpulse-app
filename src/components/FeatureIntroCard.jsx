@@ -43,18 +43,18 @@ function FeatureIntroCard({ introKey, onDismissed }) {
       role="status"
       style={{
         display: 'flex', alignItems: 'flex-start', gap: '14px',
-        background: '#F1EFFD', border: 'var(--bw) solid var(--border)', borderRadius: '10px',
+        background: 'var(--surface2)', border: 'var(--bw) solid var(--border)',
         padding: '14px 16px', marginBottom: '16px',
       }}
     >
-      <div style={{ fontSize: '22px', flexShrink: 0 }} aria-hidden="true">✨</div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: '14px', fontWeight: 600 }}>{content.headline}</div>
         <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>{content.line}</div>
         <button
           type="button"
           onClick={() => { onDismissed?.(); navigate(content.route) }}
-          style={{ marginTop: '10px', padding: '7px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+          className="btn btn-primary"
+          style={{ marginTop: '10px', fontSize: '13px', padding: '7px 14px' }}
         >
           Show me
         </button>

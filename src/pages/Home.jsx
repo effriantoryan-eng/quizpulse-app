@@ -3,12 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { loginRequest, signUpRequest } from '../authConfig'
 import InstallButton from '../components/InstallButton'
-import PricingTiers from '../components/PricingTiers'
 import LegalFooter from '../components/LegalFooter'
-
-// Brand accents for the public landing.
-const BRAND = '#534AB7'
-const BRAND_LIGHT = '#EEEDFE'
+import BrandMark from '../components/BrandMark'
 
 // Two-path public landing (v3.2.2). Signed-out visitors choose their path: students join a
 // class; teachers sign in or create an account. Signed-in teachers are sent straight to their
@@ -21,44 +17,15 @@ export default function Home() {
     if (isAuthenticated) navigate('/teacher/home', { replace: true })
   }, [isAuthenticated, navigate])
 
-  // Don't flash the landing while the redirect is in flight.
   if (isAuthenticated) return null
 
   return (
     <div style={{ maxWidth: 880, margin: '0 auto', padding: '56px 24px' }}>
-      {/* Header: logo + preview gallery link */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '48px' }}>
+      {/* Header: brand mark + wordmark */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '48px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: '40px', height: '40px', borderRadius: '11px',
-            background: BRAND, color: '#fff', fontSize: '20px',
-          }}>⚡</div>
+          <BrandMark size={40} />
           <span style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text)' }}>QuizPulse</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* hidden: Plans link
-          <button
-            data-testid="plans-link"
-            onClick={() => navigate('/pricing')}
-            style={{
-              background: 'none', border: 'none', color: BRAND, fontSize: '14px',
-              fontWeight: '600', cursor: 'pointer', textDecoration: 'underline',
-            }}
-          >
-            Plans
-          </button>
-          */}
-          <button
-            data-testid="preview-gallery-link"
-            onClick={() => navigate('/demo')}
-            style={{
-              background: 'none', border: 'none', color: BRAND, fontSize: '14px',
-              fontWeight: '600', cursor: 'pointer', textDecoration: 'underline',
-            }}
-          >
-            Preview gallery
-          </button>
         </div>
       </div>
 
@@ -81,25 +48,21 @@ export default function Home() {
         <div
           data-testid="student-card"
           style={{
-            padding: '32px 28px', borderRadius: '16px',
-            background: BRAND_LIGHT, border: `2px solid ${BRAND}`,
+            padding: '32px 28px',
+            background: 'var(--surface)', border: 'var(--bw) solid var(--border)',
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ fontSize: '28px', marginBottom: '12px' }}>🎒</div>
           <h2 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text)', margin: '0 0 8px' }}>
             I'm a student
           </h2>
-          <p style={{ fontSize: '14px', color: '#555', lineHeight: '1.6', margin: '0 0 24px', flexGrow: 1 }}>
+          <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: '1.6', margin: '0 0 24px', flexGrow: 1 }}>
             Got a join code from your teacher? Hop in and you're ready for the next check-in.
           </p>
           <button
             data-testid="student-join-btn"
             onClick={() => navigate('/join')}
-            style={{
-              padding: '13px 20px', background: BRAND, color: '#fff', border: 'none',
-              borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer',
-            }}
+            className="btn btn-primary btn-block"
           >
             Join a class
           </button>
@@ -109,36 +72,31 @@ export default function Home() {
         <div
           data-testid="teacher-card"
           style={{
-            padding: '32px 28px', borderRadius: '16px',
-            background: 'var(--surface)', border: `2px solid ${BRAND}`,
+            padding: '32px 28px',
+            background: 'var(--surface)', border: 'var(--bw) solid var(--border)',
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ fontSize: '28px', marginBottom: '12px' }}>🎓</div>
           <h2 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text)', margin: '0 0 8px' }}>
             I'm a teacher
           </h2>
-          <p style={{ fontSize: '14px', color: '#555', lineHeight: '1.6', margin: '0 0 24px', flexGrow: 1 }}>
+          <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: '1.6', margin: '0 0 24px', flexGrow: 1 }}>
             Build a question, send it to your class, and see what to revisit — all before the next lesson.
           </p>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button
               data-testid="teacher-signin-btn"
               onClick={() => login(loginRequest)}
-              style={{
-                flex: 1, minWidth: '120px', padding: '13px 16px', background: BRAND, color: '#fff',
-                border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer',
-              }}
+              className="btn btn-primary"
+              style={{ flex: 1, minWidth: '120px' }}
             >
               Sign in
             </button>
             <button
               data-testid="teacher-signup-btn"
               onClick={() => login(signUpRequest)}
-              style={{
-                flex: 1, minWidth: '120px', padding: '13px 16px', background: '#fff', color: BRAND,
-                border: `2px solid ${BRAND}`, borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer',
-              }}
+              className="btn btn-secondary"
+              style={{ flex: 1, minWidth: '120px' }}
             >
               Create account
             </button>
@@ -150,21 +108,6 @@ export default function Home() {
       <InstallButton align="center" />
 
       <LegalFooter />
-
-      {/* hidden: Plans section
-      <div style={{ marginTop: '72px', paddingTop: '48px', borderTop: '1px solid var(--border)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: 'var(--text)', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
-            Simple plans for every teacher
-          </h2>
-          <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '480px', margin: '0 auto', lineHeight: '1.6' }}>
-            The whole check-in loop is free. Pay only when you want your full history, deeper
-            insight, and registration evidence.
-          </p>
-        </div>
-        <PricingTiers />
-      </div>
-      */}
     </div>
   )
 }

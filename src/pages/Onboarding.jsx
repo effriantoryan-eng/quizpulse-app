@@ -6,6 +6,7 @@ import ProfileWizardSteps from '../components/onboarding/ProfileWizardSteps'
 import { Link } from 'react-router-dom'
 import LegalFooter from '../components/LegalFooter'
 import { TERMS_VERSION, TERMS, PRIVACY_POLICY, isLegalPending } from '../data/legalContent'
+import BrandMark from '../components/BrandMark'
 
 // Design review 1: a teacher must not be able to "accept" terms whose text is still a placeholder.
 // When either doc is pending, the checkbox is replaced with a being-finalised notice and Continue
@@ -59,7 +60,7 @@ function Onboarding() {
 
   return (
     <div style={{ maxWidth: 480, margin: '80px auto', padding: '44px 32px', textAlign: 'center', background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)' }}>
-      <div style={{ width: '52px', height: '52px', borderRadius: '12px', background: 'var(--logoGrad)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '26px', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--shadowField)' }}>⚡</div>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '0 auto 20px' }}><BrandMark size={52} /></div>
 
       {!schoolDone ? (
         <>
