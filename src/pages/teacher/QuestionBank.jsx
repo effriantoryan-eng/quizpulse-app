@@ -121,12 +121,12 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
         display: 'flex', alignItems: 'flex-start', gap: '12px',
         padding: '14px 16px', marginBottom: '10px',
         border: `1px solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
-        borderRadius: '10px', background: isSelected ? 'var(--surface2)22' : 'white',
+        borderRadius: '10px', background: isSelected ? 'var(--surface2)' : 'white',
         cursor: showActions && onToggleSelect ? 'pointer' : 'default'
       }}
     >
       {onToggleSelect && (
-        <input type="checkbox" checked={!!isSelected} onChange={() => onToggleSelect(q.id)} style={{ marginTop: '3px', accentColor: 'var(--primary)' }} />
+        <input type="checkbox" checked={!!isSelected} onChange={() => onToggleSelect(q.id)} aria-label={`Select question: ${q.text.slice(0, 60)}`} style={{ marginTop: '3px', accentColor: 'var(--primary)' }} />
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '14px', marginBottom: '6px', lineHeight: '1.5' }}>{q.text}</div>

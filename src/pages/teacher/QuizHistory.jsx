@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
@@ -136,12 +136,9 @@ export default function QuizHistory() {
         return quizzes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', border: '1px dashed #ddd', borderRadius: '12px' }}>
           No quizzes sent yet.{' '}
-          <span
-            onClick={() => navigate('/teacher/build')}
-            style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
-          >
+          <button type="button" className="link-button" onClick={() => navigate('/teacher/build')}>
             Build your first quiz
-          </span>
+          </button>
         </div>
       ) : visible.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '14px' }}>
@@ -155,15 +152,15 @@ export default function QuizHistory() {
               .join(', ')
 
             return (
-              <div
+              <Link
                 key={quiz.id}
-                onClick={() => navigate(`/teacher/analytics/${quiz.id}`)}
+                to={`/teacher/analytics/${quiz.id}`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '16px',
                   padding: '16px 18px', marginBottom: '10px',
                   background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
                   boxShadow: 'var(--shadow)',
-                  cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s',
+                  textDecoration: 'none', color: 'inherit', transition: 'transform 0.1s, box-shadow 0.1s',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = '6px 6px 0 #111111' }}
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow)' }}
@@ -199,7 +196,7 @@ export default function QuizHistory() {
 
                 {/* Arrow */}
                 <div style={{ color: '#ccc', fontSize: '16px', flexShrink: 0 }}>›</div>
-              </div>
+              </Link>
             )
           })}
         </div>

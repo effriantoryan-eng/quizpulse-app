@@ -217,8 +217,9 @@ function BuildQuiz() {
             {selected.map((q, i) => {
               const topicStyle = TOPIC_COLORS[q.topic] || { bg: 'var(--surface2)', color: 'var(--text)' }
               return (
-                <div
+                <button
                   key={q.id}
+                  type="button"
                   onClick={() => setPreviewIndex(i)}
                   style={{
                     display: 'flex',
@@ -228,29 +229,32 @@ function BuildQuiz() {
                     marginBottom: '8px',
                     border: `1px solid ${previewIndex === i ? 'var(--primary)' : '#e0e0e0'}`,
                     borderRadius: '8px',
-                    background: previewIndex === i ? 'var(--surface2)22' : 'white',
+                    background: previewIndex === i ? 'var(--surface2)' : 'white',
                     cursor: 'pointer',
-                    fontSize: '13px'
+                    fontSize: '13px',
+                    width: '100%',
+                    textAlign: 'left',
                   }}
                 >
                   <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#666', flexShrink: 0 }}>{i + 1}</span>
                   <span style={{ flex: 1, lineHeight: '1.4' }}>{q.text}</span>
                   <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color, flexShrink: 0 }}>{q.topic}</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <button onClick={e => { e.stopPropagation(); moveUp(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888', padding: '1px 4px' }}>▲</button>
-                    <button onClick={e => { e.stopPropagation(); moveDown(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888', padding: '1px 4px' }}>▼</button>
+                    <button type="button" aria-label="Move question up" onClick={e => { e.stopPropagation(); moveUp(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', padding: '1px 4px' }}>▲</button>
+                    <button type="button" aria-label="Move question down" onClick={e => { e.stopPropagation(); moveDown(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', padding: '1px 4px' }}>▼</button>
                   </div>
-                  <button onClick={e => { e.stopPropagation(); removeQuestion(q.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#ccc', padding: '2px 6px' }}>×</button>
-                </div>
+                  <button type="button" aria-label="Remove question" onClick={e => { e.stopPropagation(); removeQuestion(q.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#ccc', padding: '2px 6px' }}>×</button>
+                </button>
               )
             })}
 
-            <div
-              style={{ border: '1px dashed #ddd', borderRadius: '8px', padding: '12px', textAlign: 'center', fontSize: '13px', color: '#aaa', cursor: 'pointer', marginTop: '4px' }}
+            <button
+              type="button"
+              style={{ border: '1px dashed #ddd', borderRadius: '8px', padding: '12px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer', marginTop: '4px', width: '100%', background: 'none' }}
               onClick={() => navigate('/teacher/bank')}
             >
               + Add more from bank
-            </div>
+            </button>
           </div>
         </div>
 
