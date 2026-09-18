@@ -17,8 +17,8 @@ Same variable names as before v4.7.0 — only values changed:
 | `--surface` | `#ffffff` | cards, inputs |
 | `--surface2` | `#eae9e9` | secondary fill |
 | `--border` / `--text` | `#201e1d` | ink |
-| `--muted` | `#7d7979` | secondary text |
-| `--primary` | `#ec3013` | the one accent — buttons, links, active nav, misconception |
+| `--muted` | `#6b6868` | secondary text (≥4.52:1 on white, WCAG AA) |
+| `--primary` | `#ca2910` | the one accent — buttons, links, active nav, misconception (5.47:1 on white, WCAG AA) |
 | `--primaryInk` | `#ffffff` | text on `--primary` |
 | `--bw` | `2px` | the border weight used everywhere (unchanged) |
 | `--radius` / `--radiusSm` / `--chipRadius` | `0px` | sharp corners, no rounding, anywhere |

@@ -143,14 +143,14 @@ function SendQuiz() {
   useEffect(() => { setArmedAfterHours(false) }, [mode, scheduledFor, spacedRepeatsInput])
 
   if (incomingQuizId && loadingQuiz) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
+    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
 
   if (!quizName || questionIds.length === 0) {
     return (
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '24px' }}>
         <h2 style={{ marginBottom: '16px' }}>Send quiz</h2>
-        <p style={{ fontSize: '14px', color: '#888', marginBottom: '16px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>
           No quiz to send. Please build a quiz first.
         </p>
         <button
@@ -296,7 +296,7 @@ function SendQuiz() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Send quiz</h2>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -314,10 +314,10 @@ function SendQuiz() {
 
       {/* Quiz summary */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', background: '#f8f8f8', borderRadius: '10px', marginBottom: '24px', border: 'var(--bw) solid var(--border)' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}>📋</div>
+        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}><span aria-hidden="true">📋</span></div>
         <div>
           <div style={{ fontSize: '14px', fontWeight: '500' }}>{quizName}</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>{questionIds.length} question{questionIds.length !== 1 ? 's' : ''}</div>
+          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{questionIds.length} question{questionIds.length !== 1 ? 's' : ''}</div>
         </div>
       </div>
 
@@ -361,7 +361,7 @@ function SendQuiz() {
       ) : (
         <>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
-            Topic <span style={{ fontWeight: '400', color: '#aaa' }}>(optional)</span>
+            Topic <span style={{ fontWeight: '400', color: 'var(--muted)' }}>(optional)</span>
           </label>
           <select
             data-testid="send-topic-select"
@@ -401,16 +401,16 @@ function SendQuiz() {
               Show all topics
             </button>
           )}
-          <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '20px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: 0, marginBottom: '20px' }}>
             {onlyDemoSelected
               ? 'Practice quizzes sent to a demo class don’t count toward your school’s benchmark on the Population page.'
               : 'Picking a topic lets this quiz count toward your school’s benchmark on the Population page.'}
           </p>
 
-          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>Send to class</div>
+          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', marginBottom: '10px' }}>Send to class</div>
 
           {classesLoading && (
-            <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center' }}>Loading classes…</div>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center' }}>Loading classes…</div>
           )}
 
           {classesSessionExpired && (
@@ -438,14 +438,11 @@ function SendQuiz() {
           )}
 
           {!classesLoading && !classesError && !classesSessionExpired && classes.length === 0 && (
-            <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
               No classes yet.{' '}
-              <span
-                style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
-                onClick={() => navigate('/teacher/classes')}
-              >
+              <button type="button" className="link-button" onClick={() => navigate('/teacher/classes')}>
                 Create a class first
-              </span>
+              </button>
               .
             </div>
           )}
@@ -453,31 +450,27 @@ function SendQuiz() {
           {classes.map(c => {
             const isSelected = selectedClasses.includes(c.id)
             return (
-              <div
+              <label
                 key={c.id}
-                onClick={() => toggleClass(c.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '12px 14px', marginBottom: '8px',
-                  border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
-                  borderRadius: '8px', background: isSelected ? 'var(--surface2)11' : 'white',
+                  border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
+                  borderRadius: '8px', background: isSelected ? 'var(--surface2)' : 'white',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
-                <div style={{
-                  width: '20px', height: '20px', borderRadius: '50%',
-                  border: `1px solid ${isSelected ? 'var(--primary)' : '#ccc'}`,
-                  background: isSelected ? 'var(--primary)' : 'white',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, fontSize: '12px', color: 'white',
-                }}>
-                  {isSelected ? '✓' : ''}
-                </div>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleClass(c.id)}
+                  style={{ accentColor: 'var(--primary)', width: '18px', height: '18px', flexShrink: 0, cursor: 'pointer' }}
+                />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: '500' }}>{c.name}</div>
-                  <div style={{ fontSize: '12px', color: '#888' }}>{c.studentCount || 0} students</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{c.studentCount || 0} students</div>
                 </div>
-              </div>
+              </label>
             )
           })}
 
@@ -491,29 +484,37 @@ function SendQuiz() {
           )}
 
           <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }}></div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-            <div
+          <div role="group" aria-label="When to send" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+            <button
+              type="button"
+              className="seg-opt"
+              aria-pressed={mode === 'now'}
               onClick={() => setMode('now')}
               style={{
                 padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
                 border: `2px solid ${mode === 'now' ? 'var(--primary)' : '#e0e0e0'}`,
-                background: mode === 'now' ? 'var(--surface2)22' : '#fafafa',
+                background: mode === 'now' ? 'var(--surface2)' : '#fafafa',
+                fontWeight: '500', fontSize: '13px',
+                color: mode === 'now' ? 'var(--primary)' : 'var(--muted)',
               }}
             >
-              <div style={{ fontSize: '20px', marginBottom: '6px' }}>📤</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'now' ? 'var(--primary)' : '#888' }}>Send now</div>
-            </div>
-            <div
+              Send now
+            </button>
+            <button
+              type="button"
+              className="seg-opt"
+              aria-pressed={mode === 'schedule'}
               onClick={() => setMode('schedule')}
               style={{
                 padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
                 border: `2px solid ${mode === 'schedule' ? 'var(--primary)' : '#e0e0e0'}`,
-                background: mode === 'schedule' ? 'var(--surface2)22' : '#fafafa',
+                background: mode === 'schedule' ? 'var(--surface2)' : '#fafafa',
+                fontWeight: '500', fontSize: '13px',
+                color: mode === 'schedule' ? 'var(--primary)' : 'var(--muted)',
               }}
             >
-              <div style={{ fontSize: '20px', marginBottom: '6px' }}>🕐</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'schedule' ? 'var(--primary)' : '#888' }}>Schedule</div>
-            </div>
+              Schedule
+            </button>
           </div>
 
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
@@ -542,7 +543,7 @@ function SendQuiz() {
           )}
 
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
-            Schedule spaced repeats <span style={{ fontWeight: '400', color: '#aaa' }}>(optional, up to 5)</span>
+            Schedule spaced repeats <span style={{ fontWeight: '400', color: 'var(--muted)' }}>(optional, up to 5)</span>
           </label>
           <input
             data-testid="send-spaced-repeats-input"
@@ -552,7 +553,7 @@ function SendQuiz() {
             onChange={e => setSpacedRepeatsInput(e.target.value)}
             style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '4px' }}
           />
-          <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: 0, marginBottom: '16px' }}>
             After you send this quiz, we'll resend practice on the days you list here.
           </p>
 
@@ -564,7 +565,7 @@ function SendQuiz() {
           )}
 
           {error && (
-            <div style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
+            <div role="alert" style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
               {error}
             </div>
           )}
@@ -595,7 +596,7 @@ function SendQuiz() {
                   : `Send to ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`}
           </button>
 
-          <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', marginTop: '10px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', marginTop: '10px' }}>
             You'll see live analytics update as students respond to the quiz.
           </p>
         </>

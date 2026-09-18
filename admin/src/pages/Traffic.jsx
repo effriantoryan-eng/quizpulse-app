@@ -20,7 +20,7 @@ function StatTile({ label, value, unit = '' }) {
   const display = value === null || value === undefined ? '—' : `${value}${unit}`
   return (
     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, padding: '14px 16px' }}>
-      <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color: value === null || value === undefined ? '#94a3b8' : '#1a1a1a' }}>{display}</div>
     </div>
   )
@@ -51,7 +51,7 @@ function FunnelStep({ label, value, rate }) {
       </div>
       <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{label}</div>
       {rate !== undefined && (
-        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
           {rate === null ? '—' : `${rate}%`}
         </div>
       )}
@@ -103,7 +103,7 @@ export default function Traffic() {
             </button>
           ))}
         </div>
-        {loading && <span style={{ color: '#94a3b8', fontSize: 12 }}>Loading…</span>}
+        {loading && <span style={{ color: '#64748b', fontSize: 12 }}>Loading…</span>}
       </div>
 
       {error && <div style={{ color: '#dc2626', marginBottom: 12, fontSize: 13 }}>Error: {error}</div>}
@@ -114,7 +114,7 @@ export default function Traffic() {
       </div>
 
       {isEmpty && (
-        <div style={{ ...groupStyle, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+        <div style={{ ...groupStyle, textAlign: 'center', color: '#64748b', fontSize: 13 }}>
           No traffic recorded in this range yet.
         </div>
       )}
@@ -128,7 +128,7 @@ export default function Traffic() {
             <StatTile label="Pages / session" value={t.totals.pagesPerSession} />
             <StatTile label="PWA installs" value={t.pwaInstalls} />
           </div>
-          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 16 }}>
             From v4.12.0, visitors are counted only for devices that joined a class; other visits are counted as sessions.
           </div>
 
@@ -145,7 +145,7 @@ export default function Traffic() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             <div style={groupStyle}>
               <h2 style={headingStyle}>Top pages</h2>
-              {t.topPages.length === 0 && <div style={{ color: '#94a3b8', fontSize: 13 }}>No pages recorded.</div>}
+              {t.topPages.length === 0 && <div style={{ color: '#64748b', fontSize: 13 }}>No pages recorded.</div>}
               {t.topPages.map(({ page, count }) => (
                 <BarRow key={page} label={page} value={count} max={t.topPages[0]?.count || 0} />
               ))}
@@ -153,7 +153,7 @@ export default function Traffic() {
 
             <div style={groupStyle}>
               <h2 style={headingStyle}>Daily</h2>
-              {t.daily.length === 0 && <div style={{ color: '#94a3b8', fontSize: 13 }}>No daily data yet.</div>}
+              {t.daily.length === 0 && <div style={{ color: '#64748b', fontSize: 13 }}>No daily data yet.</div>}
               {t.daily.map(({ date, pageViews }) => (
                 <BarRow key={date} label={date} value={pageViews} max={Math.max(...t.daily.map(d => d.pageViews), 1)} />
               ))}
@@ -163,13 +163,13 @@ export default function Traffic() {
           {t.consent && (
             <div style={groupStyle}>
               <h2 style={headingStyle}>Consent &amp; install telemetry</h2>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 12 }}>
+              <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>
                 Consent data since v4.9.0 only · install-prompt outcomes exclude iOS (no native prompt on iOS)
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 16 }}>
                 {['push_prompted', 'push_granted', 'push_denied', 'install_accepted', 'install_dismissed'].map(k => (
                   <div key={k} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 4, padding: '8px 10px' }}>
-                    <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{k.replace(/_/g, ' ')}</div>
+                    <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{k.replace(/_/g, ' ')}</div>
                     <div style={{ fontSize: 18, fontWeight: 700 }}>{t.consent.counts[k] ?? 0}</div>
                   </div>
                 ))}
@@ -206,7 +206,7 @@ export default function Traffic() {
               <BarRow label="Teacher" value={t.audience.teacher} max={Math.max(t.audience.teacher, t.audience.student, t.audience.public, 1)} />
               <BarRow label="Student" value={t.audience.student} max={Math.max(t.audience.teacher, t.audience.student, t.audience.public, 1)} />
               <BarRow label="Public" value={t.audience.public} max={Math.max(t.audience.teacher, t.audience.student, t.audience.public, 1)} />
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>
                 Device/browser breakdowns below are computed from teacher + public traffic only —
                 student (/quiz) visits carry no device fingerprint by design.
               </div>

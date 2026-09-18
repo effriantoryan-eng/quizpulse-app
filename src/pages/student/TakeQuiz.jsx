@@ -33,17 +33,30 @@ const CONFIDENCE_LEVELS = [
 
 // One-time explainer shown before the student's first confidence rating.
 function ConfidenceExplainer({ onDone }) {
+  const btnRef = useRef(null)
+  useEffect(() => { btnRef.current?.focus() }, [])
+  function handleKeyDown(e) {
+    if (e.key === 'Escape') onDone()
+    // Minimal focus trap: Tab/Shift+Tab with only one focusable element just keeps focus there.
+    if (e.key === 'Tab') { e.preventDefault(); btnRef.current?.focus() }
+  }
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 100, padding: '24px',
-    }}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="conf-explainer-title"
+      onKeyDown={handleKeyDown}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 100, padding: '24px',
+      }}
+    >
       <div style={{
         background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '28px 24px',
         maxWidth: '380px', width: '100%', textAlign: 'center',
       }}>
-        <h2 style={{ margin: '0 0 10px', fontSize: '18px', color: 'var(--text)' }}>
+        <h2 id="conf-explainer-title" style={{ margin: '0 0 10px', fontSize: '18px', color: 'var(--text)' }}>
           How sure are you?
         </h2>
         <p style={{ margin: '0 0 20px', fontSize: '14px', color: 'var(--muted)', lineHeight: '1.6' }}>
@@ -61,7 +74,7 @@ function ConfidenceExplainer({ onDone }) {
             </div>
           ))}
         </div>
-        <button onClick={onDone} className="btn btn-primary btn-block">
+        <button ref={btnRef} onClick={onDone} className="btn btn-primary btn-block">
           Got it
         </button>
       </div>
@@ -70,17 +83,34 @@ function ConfidenceExplainer({ onDone }) {
 }
 
 // 3-button confidence selector for a single question.
+// Uses radiogroup/radio roles with roving tabindex so arrow keys navigate between levels.
 function ConfidenceSelector({ questionId, value, onChange }) {
+  const refs = useRef([])
+  function handleKeyDown(e, idx) {
+    let next = null
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % CONFIDENCE_LEVELS.length
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + CONFIDENCE_LEVELS.length) % CONFIDENCE_LEVELS.length
+    if (next !== null) {
+      e.preventDefault()
+      onChange(questionId, CONFIDENCE_LEVELS[next].value)
+      refs.current[next]?.focus()
+    }
+  }
   return (
     <div style={{ marginTop: '12px' }}>
-      <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>How sure are you?</div>
-      <div className="seg" style={{ width: '100%' }}>
-        {CONFIDENCE_LEVELS.map(({ value: cv, label }) => {
+      <div id={`conf-label-${questionId}`} style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>How sure are you?</div>
+      <div role="radiogroup" aria-labelledby={`conf-label-${questionId}`} className="seg" style={{ width: '100%' }}>
+        {CONFIDENCE_LEVELS.map(({ value: cv, label }, idx) => {
           const selected = value === cv
           return (
             <button
               key={cv}
+              ref={el => refs.current[idx] = el}
+              role="radio"
+              aria-checked={selected}
+              tabIndex={selected || (value === undefined && idx === 0) ? 0 : -1}
               onClick={() => onChange(questionId, cv)}
+              onKeyDown={e => handleKeyDown(e, idx)}
               className={`seg-opt${selected ? ' active' : ''}`}
               style={{ flex: 1, justifyContent: 'center' }}
             >
@@ -366,10 +396,10 @@ function TakeQuiz() {
         </p>
 
         {questions.map((q, qi) => (
-          <div key={q.id} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '18px', marginBottom: '16px' }}>
-            <div className="bp-label" style={{ marginBottom: '8px' }}>
+          <fieldset key={q.id} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '18px', marginBottom: '16px' }}>
+            <legend style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', padding: '0 4px', marginBottom: '4px' }}>
               Question {qi + 1}
-            </div>
+            </legend>
             <div style={{ fontSize: '15px', fontWeight: '500', marginBottom: '14px' }}>{q.text}</div>
 
             {(q.options || []).map((opt, i) => {
@@ -403,11 +433,11 @@ function TakeQuiz() {
                 onChange={selectConfidence}
               />
             )}
-          </div>
+          </fieldset>
         ))}
 
         {submitError && (
-          <div style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
+          <div role="alert" style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
             {submitError}
           </div>
         )}

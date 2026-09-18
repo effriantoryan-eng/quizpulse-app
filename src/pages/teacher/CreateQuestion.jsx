@@ -72,7 +72,7 @@ function CreateQuestion() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <h1 style={{ margin: 0 }}>Create question</h1>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', color: 'var(--primary)', fontSize: '15px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadowField)', flex: 'none' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', color: 'var(--primary)', fontSize: '15px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadowField)', flex: 'none' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -105,27 +105,28 @@ function CreateQuestion() {
         />
       </div>
 
-      <div style={{ marginBottom: '28px' }}>
-        <label className="bp-label">Answer options — select the correct one</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <fieldset style={{ border: 'none', padding: 0, margin: '0 0 28px 0' }}>
+        <legend className="bp-label" style={{ float: 'left', width: '100%', marginBottom: '12px' }}>Correct answer</legend>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', clear: 'both' }}>
           {options.map((opt, i) => {
             const selected = correctIndex === i
+            const optLabel = `Option ${String.fromCharCode(65 + i)}`
+            const inputId = `option-text-${i}`
+            const radioId = `correct-${i}`
             return (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <span
-                  onClick={() => setCorrectIndex(i)}
-                  role="radio"
-                  aria-checked={selected}
-                  style={{
-                    width: '22px', height: '22px', borderRadius: '50%', flex: 'none', cursor: 'pointer',
-                    border: `2px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  {selected && <span style={{ width: '11px', height: '11px', borderRadius: '50%', background: 'var(--primary)' }} />}
-                </span>
+                <input
+                  type="radio"
+                  id={radioId}
+                  name="correctAnswer"
+                  checked={selected}
+                  onChange={() => setCorrectIndex(i)}
+                  style={{ accentColor: 'var(--primary)', width: '18px', height: '18px', flex: 'none', cursor: 'pointer' }}
+                />
+                <label htmlFor={inputId} className="visually-hidden">{optLabel} text</label>
                 <input
                   type="text"
+                  id={inputId}
                   style={{
                     flex: 1, fontSize: '16px',
                     fontWeight: selected ? 600 : 500,
@@ -133,15 +134,19 @@ function CreateQuestion() {
                     background: selected ? 'var(--primarySoft)' : 'var(--surface)',
                     boxShadow: selected ? 'none' : 'var(--shadowField)',
                   }}
-                  placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                  placeholder={optLabel}
                   value={opt}
                   onChange={e => handleOptionChange(i, e.target.value)}
+                  aria-label={optLabel}
                 />
+                <label htmlFor={radioId} style={{ fontSize: '12px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                  {optLabel}
+                </label>
               </div>
             )
           })}
         </div>
-      </div>
+      </fieldset>
 
       <div style={{ marginBottom: '28px' }}>
         <label className="bp-label">Topic tag</label>

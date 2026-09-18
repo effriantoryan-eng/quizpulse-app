@@ -113,7 +113,7 @@ function BuildQuiz() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>
         Loading questions…
       </div>
     )
@@ -122,7 +122,7 @@ function BuildQuiz() {
   if (sessionExpired) {
     return (
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
-        <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+        <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
         <button
           onClick={() => login()}
           style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -152,7 +152,7 @@ function BuildQuiz() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Build quiz</h2>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -190,7 +190,7 @@ function BuildQuiz() {
         {/* Left — quiz details and questions */}
         <div>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Quiz name</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)' }}>Quiz name</label>
             <input
               type="text"
               value={quizName}
@@ -201,12 +201,12 @@ function BuildQuiz() {
           </div>
 
           <div style={{ borderTop: '1px solid #eee', paddingTop: '16px', marginBottom: '10px' }}>
-            <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>
+            <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', marginBottom: '10px' }}>
               Selected questions ({selected.length})
             </div>
 
             {selected.length === 0 && (
-              <div style={{ fontSize: '13px', color: '#aaa', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px' }}>
                 No questions added yet
                 {allQuestions.length === 0 && (
                   <StarterSeedCta onSeeded={(seeded) => { setAllQuestions(seeded); setSelected(seeded) }} />
@@ -217,8 +217,9 @@ function BuildQuiz() {
             {selected.map((q, i) => {
               const topicStyle = TOPIC_COLORS[q.topic] || { bg: 'var(--surface2)', color: 'var(--text)' }
               return (
-                <div
+                <button
                   key={q.id}
+                  type="button"
                   onClick={() => setPreviewIndex(i)}
                   style={{
                     display: 'flex',
@@ -228,41 +229,44 @@ function BuildQuiz() {
                     marginBottom: '8px',
                     border: `1px solid ${previewIndex === i ? 'var(--primary)' : '#e0e0e0'}`,
                     borderRadius: '8px',
-                    background: previewIndex === i ? 'var(--surface2)22' : 'white',
+                    background: previewIndex === i ? 'var(--surface2)' : 'white',
                     cursor: 'pointer',
-                    fontSize: '13px'
+                    fontSize: '13px',
+                    width: '100%',
+                    textAlign: 'left',
                   }}
                 >
-                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#666', flexShrink: 0 }}>{i + 1}</span>
+                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: 'var(--muted)', flexShrink: 0 }}>{i + 1}</span>
                   <span style={{ flex: 1, lineHeight: '1.4' }}>{q.text}</span>
                   <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color, flexShrink: 0 }}>{q.topic}</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <button onClick={e => { e.stopPropagation(); moveUp(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888', padding: '1px 4px' }}>▲</button>
-                    <button onClick={e => { e.stopPropagation(); moveDown(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#888', padding: '1px 4px' }}>▼</button>
+                    <button type="button" aria-label="Move question up" onClick={e => { e.stopPropagation(); moveUp(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', padding: '1px 4px' }}>▲</button>
+                    <button type="button" aria-label="Move question down" onClick={e => { e.stopPropagation(); moveDown(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', padding: '1px 4px' }}>▼</button>
                   </div>
-                  <button onClick={e => { e.stopPropagation(); removeQuestion(q.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#ccc', padding: '2px 6px' }}>×</button>
-                </div>
+                  <button type="button" aria-label="Remove question" onClick={e => { e.stopPropagation(); removeQuestion(q.id) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#ccc', padding: '2px 6px' }}>×</button>
+                </button>
               )
             })}
 
-            <div
-              style={{ border: '1px dashed #ddd', borderRadius: '8px', padding: '12px', textAlign: 'center', fontSize: '13px', color: '#aaa', cursor: 'pointer', marginTop: '4px' }}
+            <button
+              type="button"
+              style={{ border: '1px dashed #ddd', borderRadius: '8px', padding: '12px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer', marginTop: '4px', width: '100%', background: 'none' }}
               onClick={() => navigate('/teacher/bank')}
             >
               + Add more from bank
-            </div>
+            </button>
           </div>
         </div>
 
         {/* Right — preview */}
         <div>
-          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>
+          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', marginBottom: '10px' }}>
             Preview — student view
           </div>
           <div style={{ background: '#f8f8f8', borderRadius: '12px', padding: '16px', border: 'var(--bw) solid var(--border)' }}>
             {previewQuestion ? (
               <>
-                <div style={{ fontSize: '11px', color: '#aaa', textAlign: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', textAlign: 'center', marginBottom: '10px' }}>
                   Question {previewIndex + 1} of {selected.length}
                 </div>
                 <div style={{ background: 'white', borderRadius: '8px', padding: '14px', marginBottom: '12px', fontSize: '14px', lineHeight: '1.5' }}>
@@ -275,7 +279,7 @@ function BuildQuiz() {
                 ))}
               </>
             ) : (
-              <div style={{ fontSize: '13px', color: '#aaa', textAlign: 'center', padding: '24px' }}>No questions to preview</div>
+              <div style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', padding: '24px' }}>No questions to preview</div>
             )}
           </div>
 

@@ -39,6 +39,7 @@ export default function HomeCalendar({ quizzes }) {
                 role={dayQuizzes.length ? 'button' : undefined}
                 tabIndex={dayQuizzes.length ? 0 : undefined}
                 onClick={dayQuizzes.length ? () => navigate(`/teacher/analytics/${dayQuizzes[0].id}`) : undefined}
+                onKeyDown={dayQuizzes.length ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/teacher/analytics/${dayQuizzes[0].id}`) } } : undefined}
                 style={{
                   background: 'var(--surface)', minHeight: view === 'month' ? '52px' : '76px',
                   padding: '6px', cursor: dayQuizzes.length ? 'pointer' : 'default',

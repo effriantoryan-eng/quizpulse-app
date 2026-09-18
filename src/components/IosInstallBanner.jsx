@@ -35,7 +35,7 @@ function IosInstallBanner() {
         </div>
         <button
           onClick={dismiss}
-          style={{ background: 'none', border: 'none', fontSize: '20px', color: '#aaa', cursor: 'pointer', lineHeight: 1 }}
+          style={{ background: 'none', border: 'none', fontSize: '20px', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1 }}
           aria-label="Dismiss"
         >
           ×

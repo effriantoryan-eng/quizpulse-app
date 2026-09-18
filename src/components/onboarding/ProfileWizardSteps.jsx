@@ -139,12 +139,13 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
 
       {current.key === 'classCount' && (
         <div data-testid="wizard-step-class-count">
-          <h2 style={{ fontSize: '18px', marginBottom: '4px' }}>How many classes do you teach?</h2>
+          <label htmlFor="wizard-class-count" style={{ display: 'block', fontSize: '18px', fontWeight: '600', marginBottom: '4px' }}>How many classes do you teach?</label>
           <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '14px' }}>
             Helps us tailor what we show you — you'll set up your first real class from the
             Getting Started checklist in a moment.
           </p>
           <input
+            id="wizard-class-count"
             data-testid="wizard-class-count-input"
             type="number"
             min={1}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
@@ -49,11 +49,11 @@ export default function QuizHistory() {
     fetchQuizzes()
   }, [teacherId])
 
-  if (loading) return <div style={{ padding: '24px', color: '#888', fontSize: '14px' }}>Loading quizzes…</div>
+  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading quizzes…</div>
 
   if (sessionExpired) return (
     <div style={{ padding: '24px', textAlign: 'center' }}>
-      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
         style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -81,7 +81,7 @@ export default function QuizHistory() {
         <h2 style={{ margin: 0, fontSize: '20px' }}>Quiz history</h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {!hintVisible && (
-            <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+            <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
           )}
           <button
             onClick={() => navigate('/teacher/build')}
@@ -134,17 +134,14 @@ export default function QuizHistory() {
           .filter(q => statusFilter === 'All' || q.status === statusFilter)
           .filter(q => !term || (q.name || '').toLowerCase().includes(term))
         return quizzes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', border: '1px dashed #ddd', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #ddd', borderRadius: '12px' }}>
           No quizzes sent yet.{' '}
-          <span
-            onClick={() => navigate('/teacher/build')}
-            style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
-          >
+          <button type="button" className="link-button" onClick={() => navigate('/teacher/build')}>
             Build your first quiz
-          </span>
+          </button>
         </div>
       ) : visible.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '14px' }}>
           No quizzes match your filters.
         </div>
       ) : (
@@ -155,15 +152,15 @@ export default function QuizHistory() {
               .join(', ')
 
             return (
-              <div
+              <Link
                 key={quiz.id}
-                onClick={() => navigate(`/teacher/analytics/${quiz.id}`)}
+                to={`/teacher/analytics/${quiz.id}`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '16px',
                   padding: '16px 18px', marginBottom: '10px',
                   background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
                   boxShadow: 'var(--shadow)',
-                  cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s',
+                  textDecoration: 'none', color: 'inherit', transition: 'transform 0.1s, box-shadow 0.1s',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = '6px 6px 0 #111111' }}
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow)' }}
@@ -173,14 +170,14 @@ export default function QuizHistory() {
                   width: '40px', height: '40px', borderRadius: '10px',
                   background: 'var(--surface2)', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', fontSize: '18px', flexShrink: 0,
-                }}>📋</div>
+                }}><span aria-hidden="true">📋</span></div>
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {quiz.name}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#888' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                     {classLabels || 'No class'} · {quiz.questionIds?.length ?? 0} question{(quiz.questionIds?.length ?? 0) !== 1 ? 's' : ''} · {formatDate(quiz.sentAt || quiz.createdAt)}
                   </div>
                 </div>
@@ -199,7 +196,7 @@ export default function QuizHistory() {
 
                 {/* Arrow */}
                 <div style={{ color: '#ccc', fontSize: '16px', flexShrink: 0 }}>›</div>
-              </div>
+              </Link>
             )
           })}
         </div>

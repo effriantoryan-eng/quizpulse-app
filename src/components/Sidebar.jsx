@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { HUBS, activeHub } from '../teacherNav'
@@ -37,11 +37,11 @@ const NAV = [
 
 function Logo({ onClick }) {
   return (
-    <div className="sidebar-logo" onClick={onClick} aria-label="QuizPulse home">
+    <button type="button" className="sidebar-logo" onClick={onClick} aria-label="QuizPulse home" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
         <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
       </svg>
-    </div>
+    </button>
   )
 }
 
@@ -50,14 +50,19 @@ export default function Sidebar() {
   const { pathname } = useLocation()
   const { isAuthenticated, user, login, logout } = useAuth()
   const [open, setOpen] = useState(false)
+  const hamburgerRef = useRef(null)
+  const firstNavRef = useRef(null)
 
   // Close drawer on route change
   useEffect(() => { setOpen(false) }, [pathname])
 
-  // Close drawer on Escape
+  // Close drawer on Escape; focus hamburger on close
   useEffect(() => {
     if (!open) return
-    const handler = (e) => { if (e.key === 'Escape') setOpen(false) }
+    firstNavRef.current?.focus()
+    const handler = (e) => {
+      if (e.key === 'Escape') { setOpen(false); hamburgerRef.current?.focus() }
+    }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [open])
@@ -83,10 +88,12 @@ export default function Sidebar() {
         <span className="sidebar-wordmark" style={{ flex: 1 }}>QuizPulse</span>
         <span className="sidebar-badge">beta</span>
         <button
+          ref={hamburgerRef}
           className="sidebar-hamburger"
           onClick={() => setOpen(o => !o)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
+          aria-controls="sidebar-nav"
         >
           <HamburgerIcon />
         </button>
@@ -97,8 +104,10 @@ export default function Sidebar() {
         <div className="drawer-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
       )}
 
-      {/* Sidebar: static column on desktop, fixed overlay drawer on mobile */}
-      <aside className={`sidebar sidebar-drawer ${open ? 'drawer-open' : ''}`}>
+      {/* Sidebar: static column on desktop, fixed overlay drawer on mobile.
+          inert when closed (mobile) so keyboard/SR users can't tab into a hidden drawer. */}
+      <aside id="sidebar-nav" className={`sidebar sidebar-drawer ${open ? 'drawer-open' : ''}`}
+        {...(!open ? { inert: '' } : {})}>
         <div className="sidebar-brand">
           <Logo onClick={() => go('/')} />
           <span className="sidebar-wordmark">QuizPulse</span>
@@ -108,6 +117,7 @@ export default function Sidebar() {
         <nav className="sidebar-nav">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
             <button
+              ref={firstNavRef}
               className="sidebar-create-btn"
               onClick={() => go('/teacher/build')}
               style={{ padding: '10px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
