@@ -2,6 +2,7 @@ const { app }         = require('@azure/functions');
 const { CosmosClient } = require('@azure/cosmos');
 const { rateLimit, getClientIp } = require('./rateLimit');
 const { classifyPage } = require('./shared/pageViewAllowlist');
+const { classifyDevice, classifyBrowser } = require('./shared/trafficAggregate');
 
 // Lazy container init — mirrors api/metrics.js's getContainers() pattern (keeps
 // require('./pageView') from constructing a CosmosClient when no Cosmos env is configured).
@@ -27,11 +28,17 @@ const MAX_QUIZ_ID_LENGTH = 100;
 // Pure: validates + shapes a pageview doc from a raw request body. Returns { error } on
 // validation failure, or { doc } (missing id/visitedAt — the caller stamps those) on success.
 // No Cosmos, no crypto — testable without a DB or a running Function host.
+//
+// v4.12.0 (R3 data minimisation, audit B2/B3): the raw browser-fingerprint fields (referrer,
+// userAgent, language, timezone, screenWidth, screenHeight) are NO LONGER STORED. Instead we
+// derive two coarse buckets server-side — device (mobile/desktop/unknown) and browser
+// (chrome/safari/firefox/edge/other) — then discard the raw values. Unknown body fields are
+// ignored (old cached clients that still send the raw six keep working; we just don't persist
+// them).
 function buildPageViewDoc(body) {
   const {
     page, teacherId, sessionId,
-    referrer, userAgent, language,
-    timezone, screenWidth, screenHeight,
+    userAgent, screenWidth,
     eventType, quizId,
   } = body || {};
 
@@ -49,18 +56,13 @@ function buildPageViewDoc(body) {
   // this is what actually caps what an anonymous flood can do to topPages/audience cardinality.
   const classifiedPage = classifyPage(page.slice(0, 200));
 
-  // Student privacy posture: /quiz beacons never carry browser-fingerprint fields (userAgent,
-  // screen size, language, timezone, referrer) — enforced here even if the client sent them,
-  // since the student-facing route has no auth and nothing here can be trusted to have
-  // stripped them client-side. quizId is the one extra field /quiz beacons DO carry, since
-  // it's what makes the traffic funnel (v4.4.0 Task 3) attribute opens to a specific send.
-  // startsWith('/quiz/') covers the /quiz/review + /quiz/practice student sub-routes (v4.8) so
-  // their beacons get the same fingerprint-stripping as /quiz itself — and any future /quiz/*
-  // route is student-private by default.
+  // Student privacy posture: /quiz beacons never carry browser detail — enforced here even if the
+  // client sent it, since the student-facing route has no auth and nothing here can be trusted to
+  // have stripped it client-side. quizId is the one extra field /quiz beacons DO carry, since it's
+  // what makes the traffic funnel (v4.4.0 Task 3) attribute opens to a specific send. The
+  // /quiz/* prefix covers the /quiz/review + /quiz/practice sub-routes (v4.8), and /student/class.
   //
-  // v4.9.0 extension (review B1): consent/install events (push_*/install_*) also strip
-  // fingerprint fields regardless of route — they fire on student routes (/join, /student/class)
-  // where device identity is linkable to quiz identity, same posture as /quiz itself.
+  // v4.9.0: consent/install events (push_*/install_*) also strip regardless of route.
   const isStudentRoute = classifiedPage === '/quiz' || classifiedPage.startsWith('/quiz/') || classifiedPage === '/student/class';
   const isConsentEvent = CONSENT_EVENT_TYPES.has(resolvedEventType);
   const stripFingerprint = isStudentRoute || isConsentEvent;
@@ -72,19 +74,26 @@ function buildPageViewDoc(body) {
   const { platform } = body || {};
   const resolvedPlatform = isConsentEvent && ALLOWED_PLATFORMS.has(platform) ? platform : null;
 
+  // Coarse device/browser buckets derived server-side, then the raw values are discarded (never
+  // stored). Gated on stripFingerprint (eng review): on /quiz*, /student/class and consent events
+  // we deliberately don't classify the device at all — those routes are minimised, and
+  // aggregateTraffic already treats 'unknown'/'other' as "we don't know" there.
+  const device  = stripFingerprint ? 'unknown' : classifyDevice(screenWidth);
+  const browser = stripFingerprint ? 'other'   : classifyBrowser(userAgent);
+
   const doc = {
-    page:         classifiedPage,
-    eventType:    resolvedEventType,
-    teacherId:    typeof teacherId  === 'string' ? teacherId.slice(0, 100)  : 'anonymous',
-    sessionId:    typeof sessionId  === 'string' ? sessionId.slice(0, 100)  : null,
-    quizId:       isStudentRoute && typeof quizId === 'string' ? quizId.slice(0, MAX_QUIZ_ID_LENGTH) : null,
-    referrer:     stripFingerprint ? null : (typeof referrer   === 'string' ? referrer.slice(0, 500)   : null),
-    userAgent:    stripFingerprint ? null : (typeof userAgent  === 'string' ? userAgent.slice(0, 500)  : null),
-    language:     stripFingerprint ? null : (typeof language   === 'string' ? language.slice(0, 20)    : null),
-    timezone:     stripFingerprint ? null : (typeof timezone   === 'string' ? timezone.slice(0, 100)   : null),
-    screenWidth:  stripFingerprint ? null : (typeof screenWidth  === 'number' ? screenWidth  : null),
-    screenHeight: stripFingerprint ? null : (typeof screenHeight === 'number' ? screenHeight : null),
-    platform:     resolvedPlatform,
+    page:      classifiedPage,
+    eventType: resolvedEventType,
+    // Absent teacherId → null (NOT the old 'anonymous' sentinel): a pre-join visitor has no
+    // device id, and D3.2 counts unique visitors as devices that joined a class. A truthy
+    // sentinel would count every anonymous visit as one phantom visitor (aggregateTraffic guards
+    // on truthiness).
+    teacherId: typeof teacherId === 'string' ? teacherId.slice(0, 100) : null,
+    sessionId: typeof sessionId === 'string' ? sessionId.slice(0, 100) : null,
+    quizId:    isStudentRoute && typeof quizId === 'string' ? quizId.slice(0, MAX_QUIZ_ID_LENGTH) : null,
+    device,
+    browser,
+    platform:  resolvedPlatform,
   };
 
   return { doc };

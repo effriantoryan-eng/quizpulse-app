@@ -7,6 +7,7 @@ const { getTeacher } = require('./teacher');
 const crypto = require('crypto');
 const { runFuzzyMatch } = require('./fuzzyMatchHelper');
 const { assertScope, ScopeError } = require('./shared/authz');
+const { COLLECTION_NOTICE_VERSION, versionState, attestationRequiredNow } = require('./shared/legalVersions');
 
 const client = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -103,7 +104,7 @@ app.http('joinRequestCreate', {
         return respond(400, { error: 'Request body must be a JSON object' });
       }
 
-      const { joinCode, studentName, deviceId } = body;
+      const { joinCode, studentName, deviceId, noticeVersion } = body;
 
       if (typeof deviceId !== 'string' || !deviceId.trim()) {
         return respond(400, { error: 'deviceId is required' });
@@ -117,6 +118,13 @@ app.http('joinRequestCreate', {
       if (studentName.trim().length > STUDENT_NAME_MAX) {
         return respond(400, { error: `studentName must be ${STUDENT_NAME_MAX} characters or fewer` });
       }
+      // R3 Task 4 — noticeVersion is optional (D3.7: an old client, or one shown a still-pending
+      // notice, sends none → stored null). When PRESENT it must be the current version, so a stale
+      // client can't record a notice it never actually showed.
+      const noticeState = versionState(noticeVersion, COLLECTION_NOTICE_VERSION);
+      if (noticeState === 'stale') {
+        return respond(400, { error: 'Please reload the page and try again.' });
+      }
 
       // Brute-force protection: 10 wrong attempts/IP/hr
       const bruteKey = `join-brute:${ip}`;
@@ -126,6 +134,14 @@ app.http('joinRequestCreate', {
           return respond(429, { error: 'Too many incorrect join code attempts. Try again in an hour.' });
         }
         return respond(404, { error: 'Class not found. Check your join code.' });
+      }
+
+      // R3 Task 6 (D3.4) — a real, un-attested class stops accepting joins once the reviewer's
+      // cut-off date has passed. attestationRequiredNow() fails OPEN (never blocks) when no cut-off
+      // is configured — see api/shared/legalVersions.js. Demo classes are never joinable, so this
+      // never applies to them.
+      if (!cls.attestedAt && attestationRequiredNow()) {
+        return respond(409, { error: 'Your teacher needs to finish setting up this class.' });
       }
 
       // Per-device daily rate limit (stored in join_requests with Cosmos query)
@@ -163,6 +179,7 @@ app.http('joinRequestCreate', {
         status,
         matchedName,
         matchScore,
+        noticeVersion: noticeState === 'current' ? noticeVersion : null,
         createdAt: new Date().toISOString(),
       };
       const { resource } = await joinRequestsContainer.items.create(doc);
@@ -188,11 +205,21 @@ app.http('joinRequestStatus', {
     }
     try {
       const url = new URL(request.url);
-      const deviceId = url.searchParams.get('deviceId');
       const classId = url.searchParams.get('classId');
 
+      // R3 (audit #9): the device id comes from the X-Device-Id header — out of the query string,
+      // where request logs (Functions / App Insights) keep it. For ONE release we still accept the
+      // legacy ?deviceId= from old cached PWA clients, and warn so remaining usage is visible.
+      // Removal is diarised in TODOS.md for the release after v4.12.0.
+      const headerDeviceId = request.headers.get('x-device-id');
+      const queryDeviceId = url.searchParams.get('deviceId');
+      const deviceId = headerDeviceId || queryDeviceId;
+      if (!headerDeviceId && queryDeviceId) {
+        context.warn('deviceId via query string (legacy client)');
+      }
+
       if (!deviceId || !classId) {
-        return respond(400, { error: 'deviceId and classId query parameters are required' });
+        return respond(400, { error: 'deviceId and classId are required' });
       }
 
       const { resources } = await joinRequestsContainer.items.query({

@@ -1,9 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import API_BASE from '../api'
-import { getSessionId } from '../session'
-
-const DEVICE_ID_KEY = 'quizpulse_device_id'
+import { getDeviceId } from '../deviceId'
 
 // Per-tab session ID — groups page views within one browser tab session
 function getTabSessionId() {
@@ -24,15 +22,20 @@ function isStudentRoute(pathname) {
 }
 
 // Shared by the route-change beacon below and the PWA-install beacon (usePwaInstall) so the
-// two call sites can never drift on payload shape. Student routes (/quiz) never carry
-// browser-fingerprint fields (userAgent, screen size, language, timezone, referrer) — only
-// what's needed to join a quiz open to a send (quizId, from ?quizId= — pathname alone strips
-// it). Also enforced server-side (api/pageView.js) since nothing client-side can be trusted.
+// two call sites can never drift on payload shape.
+//
+// v4.12.0 (R3, audit B2): teacherId reads the device id but NEVER mints one — getDeviceId()
+// returns null until the student submits the join form (createDeviceId in JoinClass). So an
+// anonymous visitor to /, /join, /login etc. sends teacherId: null, and no permanent ID exists
+// before a join. We send only screenWidth + userAgent (for the server's coarse device/browser
+// bucketing) and DROP referrer, language, timezone and screenHeight entirely. Student routes
+// (/quiz) still carry only quizId. The server re-derives the coarse buckets and discards the raw
+// values, and strips both on student/consent routes regardless (api/pageView.js).
 export function buildPageViewPayload({ pathname, search = '', eventType = 'view' } = {}) {
   const base = {
     page:      pathname,
     eventType,
-    teacherId: getSessionId(DEVICE_ID_KEY),
+    teacherId: getDeviceId(),
     sessionId: getTabSessionId(),
   }
 
@@ -42,12 +45,8 @@ export function buildPageViewPayload({ pathname, search = '', eventType = 'view'
 
   return {
     ...base,
-    referrer:     document.referrer || null,
-    userAgent:    navigator.userAgent || null,
-    language:     navigator.language || null,
-    timezone:     Intl.DateTimeFormat().resolvedOptions().timeZone || null,
-    screenWidth:  window.screen.width  || null,
-    screenHeight: window.screen.height || null,
+    userAgent:   navigator.userAgent || null,
+    screenWidth: window.screen.width || null,
   }
 }
 

@@ -109,7 +109,11 @@ app.http('manageTraffic', {
       // ponytail: full-range scan + in-code aggregation; move to pre-aggregated daily rollup
       // docs if the container outgrows pilot scale.
       const { resources: docs } = await containers.pageviewsContainer.items.query({
-        query: `SELECT c.page, c.eventType, c.teacherId, c.sessionId, c.screenWidth, c.userAgent, c.quizId, c.visitedAt, c.platform
+        // v4.12.0 (R3): project the new coarse buckets c.device/c.browser AND keep the legacy raw
+        // c.screenWidth/c.userAgent — aggregateTraffic falls back to classifying the raw fields for
+        // docs written before R3 that are still inside the 180-day TTL. Dropping the raw fields here
+        // would silently regress every legacy doc to unknown/other.
+        query: `SELECT c.page, c.eventType, c.teacherId, c.sessionId, c.device, c.browser, c.screenWidth, c.userAgent, c.quizId, c.visitedAt, c.platform
                  FROM c WHERE c.visitedAt >= @rangeStart`,
         parameters: [{ name: '@rangeStart', value: rangeStart.toISOString() }],
       }).fetchAll();

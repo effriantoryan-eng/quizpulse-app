@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import API_BASE from '../../api'
 import { useAuth } from '../../contexts/AuthContext'
+import { ATTESTATION_VERSION, CLASS_ATTESTATION, isLegalPending } from '../../data/legalContent'
 
 const CLASS_NAME_MAX = 80
+const ATTESTATION_PENDING = isLegalPending(CLASS_ATTESTATION)
 
 function Classes() {
   const { login } = useAuth()
@@ -22,9 +24,14 @@ function Classes() {
   const [editError, setEditError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [creatingDemo, setCreatingDemo] = useState(false)
+  const [attesting, setAttesting] = useState(false)
+  const [attestError, setAttestError] = useState(null)
+  const [newAttested, setNewAttested] = useState(false)
 
   const realClasses = classes.filter(c => !c.isDemo)
   const hasDemoClass = classes.some(c => c.isDemo)
+  // R3 Task 6 — real classes created before attestation existed (or shells, which skip it).
+  const unattestedClasses = realClasses.filter(c => !c.attestedAt)
 
   useEffect(() => { fetchClasses() }, [])
 
@@ -49,6 +56,7 @@ function Classes() {
     const name = newName.trim()
     if (!name) { setCreateError('Class name is required.'); return }
     if (name.length > CLASS_NAME_MAX) { setCreateError(`Class name must be ${CLASS_NAME_MAX} characters or fewer.`); return }
+    if (!ATTESTATION_PENDING && !newAttested) { setCreateError('Please confirm your school has authorised QuizPulse.'); return }
 
     setSaving(true)
     setCreateError(null)
@@ -59,6 +67,7 @@ function Classes() {
         body: JSON.stringify({
           name,
           studentCount: newStudentCount !== '' ? parseInt(newStudentCount, 10) : 0,
+          ...(ATTESTATION_PENDING ? {} : { attestation: { schoolAuthorised: true, version: ATTESTATION_VERSION } }),
         }),
       })
       const data = await res.json()
@@ -66,12 +75,38 @@ function Classes() {
       setClasses(prev => [...prev, data])
       setNewName('')
       setNewStudentCount('')
+      setNewAttested(false)
       setCreating(false)
     } catch {
       setCreateError('Could not connect to the server. Please try again.')
     } finally {
       setSaving(false)
     }
+  }
+
+  // R3 Task 6 — one confirm attests every un-attested class at once (design review finding 7:
+  // per-class banner spam trains teachers to click without reading). Sequential, not Promise.all —
+  // same convention as school merge / class shells, so one failure doesn't corrupt the batch.
+  async function attestAll() {
+    setAttesting(true)
+    setAttestError(null)
+    const failed = []
+    for (const c of unattestedClasses) {
+      try {
+        const res = await fetch(`${API_BASE}/classes/${c.id}/attest`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version: ATTESTATION_VERSION }),
+        })
+        if (!res.ok) { failed.push(c.name); continue }
+        const updated = await res.json()
+        setClasses(prev => prev.map(x => x.id === c.id ? updated : x))
+      } catch {
+        failed.push(c.name)
+      }
+    }
+    if (failed.length > 0) setAttestError(`Couldn't confirm: ${failed.join(', ')}. Try again.`)
+    setAttesting(false)
   }
 
   async function handleCreateDemo() {
@@ -224,7 +259,25 @@ function Classes() {
             disabled={saving}
             style={{ width: '100%', padding: '8px 10px', fontSize: '14px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
           />
-          {createError && <p style={{ color: '#c0392b', fontSize: '13px', margin: '0 0 8px' }}>{createError}</p>}
+          {ATTESTATION_PENDING ? (
+            <p style={{ fontSize: '12px', color: '#888', margin: '0 0 10px', lineHeight: '1.5' }}>
+              The school-authorisation confirmation is being finalised — you can still create classes.
+            </p>
+          ) : (
+            <label htmlFor="attest-new-class" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: '0 0 10px', fontSize: '12px', lineHeight: '1.5' }}>
+              <input
+                id="attest-new-class"
+                type="checkbox"
+                checked={newAttested}
+                aria-required="true"
+                onChange={e => setNewAttested(e.target.checked)}
+                disabled={saving}
+                style={{ marginTop: '2px' }}
+              />
+              <span>{CLASS_ATTESTATION.text}</span>
+            </label>
+          )}
+          {createError && <p role="alert" style={{ color: '#c0392b', fontSize: '13px', margin: '0 0 8px' }}>{createError}</p>}
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               data-testid="class-create-submit"
@@ -243,6 +296,23 @@ function Classes() {
             </button>
           </div>
         </form>
+      )}
+
+      {unattestedClasses.length > 0 && !ATTESTATION_PENDING && (
+        <div style={{ background: '#fff8e6', border: '1px solid #f0d999', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+          <div style={{ fontSize: '13px', color: '#8a6d1a', marginBottom: '8px', lineHeight: '1.5' }}>
+            {unattestedClasses.length} class{unattestedClasses.length !== 1 ? 'es' : ''} need{unattestedClasses.length === 1 ? 's' : ''} you
+            to confirm your school has authorised QuizPulse before students keep joining.
+          </div>
+          {attestError && <p role="alert" style={{ color: '#c0392b', fontSize: '12px', margin: '0 0 8px' }}>{attestError}</p>}
+          <button
+            onClick={attestAll}
+            disabled={attesting}
+            style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', opacity: attesting ? 0.7 : 1 }}
+          >
+            {attesting ? 'Confirming…' : 'Confirm'}
+          </button>
+        </div>
       )}
 
       {classes.length === 0 && !creating && (

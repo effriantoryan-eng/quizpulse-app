@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import API_BASE from '../../api'
+import { getDeviceId } from '../../deviceId'
 import { queueResponse, registerResponseSync } from '../../offlineQueue'
 import ENCOURAGEMENTS from '../../data/encouragements'
 import { tallyConfidence, tallySummaryText } from '../../data/confidenceTally'
 import { submittedKey, saveSubmitted } from '../../data/submittedAnswers'
+import LegalFooter from '../../components/LegalFooter'
 
 // Decision: all questions render on one screen rather than one-at-a-time. These are short
 // (≤20 question) low-stakes formative quizzes, so a single scrollable page lets students see
@@ -12,12 +14,15 @@ import { submittedKey, saveSubmitted } from '../../data/submittedAnswers'
 // school wifi — the questions are fetched once up front.
 
 const CONFIDENCE_KEY = 'quizpulse_confidence_explained'
-const DEVICE_ID_KEY = 'quizpulse_device_id'
 // Per-quiz "this device already submitted" record (submittedKey + saveSubmitted from
 // data/submittedAnswers). The device UUID IS the student identity, so a local record matches the
 // server's duplicate check for the same device; if storage is cleared the server's 409 still
 // catches the duplicate at submit. What's stored is now the answer payload (for later review),
 // not a bare '1' — legacy '1' values degrade to "no detail saved" on the review screen.
+//
+// v4.12.0 (R3): this page NEVER mints a device id. The id is created only when a student submits
+// the join form (createDeviceId in JoinClass). A device with no id hasn't joined a class, so it
+// shows a "join first" state instead of loading the check-in.
 
 // Confidence levels shown to students — plain language, no score implication.
 const CONFIDENCE_LEVELS = [
@@ -25,15 +30,6 @@ const CONFIDENCE_LEVELS = [
   { value: 'pretty_sure', label: 'Pretty sure' },
   { value: 'guessing', label: 'Just guessing' },
 ]
-
-function getOrCreateDeviceId() {
-  let id = localStorage.getItem(DEVICE_ID_KEY)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(DEVICE_ID_KEY, id)
-  }
-  return id
-}
 
 // One-time explainer shown before the student's first confidence rating.
 function ConfidenceExplainer({ onDone }) {
@@ -99,8 +95,9 @@ function ConfidenceSelector({ questionId, value, onChange }) {
 
 function TakeQuiz() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const quizId = searchParams.get('quizId')
-  const studentId = getOrCreateDeviceId()
+  const studentId = getDeviceId() // null until this device has joined a class (R3 — never minted here)
 
   const [quiz, setQuiz] = useState(null)
   const [questions, setQuestions] = useState([])
@@ -136,7 +133,7 @@ function TakeQuiz() {
   }, [])
 
   useEffect(() => {
-    if (!quizId) return
+    if (!quizId || !studentId) return
 
     // Already submitted from this device — go straight to the done screen instead of
     // making the student re-answer everything only to hit the duplicate check at submit.
@@ -171,7 +168,7 @@ function TakeQuiz() {
       }
     }
     load()
-  }, [quizId])
+  }, [quizId, studentId])
 
   function handleExplainerDone() {
     localStorage.setItem(CONFIDENCE_KEY, '1')
@@ -265,8 +262,25 @@ function TakeQuiz() {
   if (!quizId) {
     return (
       <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Couldn't load this quiz</h2>
-        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No quiz specified.</p>
+        <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Couldn't load this check-in</h2>
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No check-in was specified.</p>
+        <LegalFooter />
+      </div>
+    )
+  }
+
+  // R3: no device id means this device hasn't joined a class — send them to join first rather
+  // than loading a check-in they can't submit.
+  if (!studentId) {
+    return (
+      <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px', textAlign: 'center' }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: '20px' }}>Join your class first</h2>
+        <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>
+          This check-in is for students in a class. Join with the code your teacher gave you, then
+          your check-ins will show up here.
+        </p>
+        <button onClick={() => navigate('/join')} className="btn btn-primary">Join a class</button>
+        <LegalFooter />
       </div>
     )
   }
@@ -406,6 +420,8 @@ function TakeQuiz() {
         >
           {submitting ? 'Submitting…' : 'Submit answers'}
         </button>
+
+        <LegalFooter />
       </div>
     </>
   )

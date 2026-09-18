@@ -15,6 +15,33 @@ Fixed:
   `public/install-prompt-capture.js`, loaded as a same-origin classic script in `<head>`. CSP
   stays strict — no `'unsafe-inline'`, nonce, or hash. **Frontend-only; no API redeploy needed.**
 
+## [v4.12.0] — R3: Notice, consent and minimisation
+
+Third of the 2026-09-17 audit remediation sprints. Closes the pre-consent fingerprinting and
+missing-disclosure gaps: page views no longer store browser details or a pre-join device ID, the
+notification prompt needs a tap instead of firing automatically, the device ID moves out of URLs
+and into a request header, and legal pages, a join-form notice, teacher terms acceptance and
+class-level school authorisation now exist in the app. **Release is blocked pending reviewer-
+supplied legal wording** — see CLAUDE.md's v4.12.0 blurb.
+
+Changed:
+- Page views no longer store browser details (referrer, user agent, screen size, language,
+  timezone) — only coarse device/browser buckets, and neither of those on student or consent
+  routes. No persistent visitor ID exists until a device joins a class.
+- The notification permission prompt no longer fires automatically on approval — a button with a
+  one-line explanation triggers it instead.
+- The device ID for join-request status and student-quiz lookups moves from a URL query string to
+  a request header (`X-Device-Id`); the old query param is accepted for one release.
+
+Added:
+- Legal pages (`/privacy`, `/collection-notice`, `/terms`) and a footer linking to them across the
+  public, student and sign-in surfaces.
+- A short collection notice on the student join form.
+- Teacher terms acceptance at onboarding, and a one-screen re-acceptance prompt for existing
+  teachers when the terms change.
+- Class-level school-authorisation attestation, required on new classes, with a grace period and
+  banner for classes created before it existed.
+
 ## [v4.11.0] — R2: Erasure and notification opt-out
 
 Second of the 2026-09-17 audit remediation sprints. Backfills the erasure and opt-out paths the

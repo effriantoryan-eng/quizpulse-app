@@ -169,6 +169,19 @@ export default function Sidebar() {
                 Sign in
               </button>
             )}
+
+            {/* R3 — legal links, always reachable from the teacher shell too. */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', marginTop: '12px' }}>
+              {[['Privacy', '/privacy'], ['Collection notice', '/collection-notice'], ['Terms', '/terms']].map(([label, path]) => (
+                <button
+                  key={path}
+                  onClick={() => go(path)}
+                  style={{ background: 'none', border: 'none', padding: 0, color: 'var(--muted)', fontSize: '11px', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </nav>
       </aside>

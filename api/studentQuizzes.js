@@ -37,10 +37,19 @@ app.http('studentQuizzes', {
       }
 
       const url = new URL(request.url);
-      const deviceId = url.searchParams.get('deviceId');
       const classId = url.searchParams.get('classId');
+
+      // R3 (audit #9): device id from the X-Device-Id header, with a one-release ?deviceId=
+      // fallback (+ warn) for old cached clients. Removal diarised in TODOS.md.
+      const headerDeviceId = request.headers.get('x-device-id');
+      const queryDeviceId = url.searchParams.get('deviceId');
+      const deviceId = headerDeviceId || queryDeviceId;
+      if (!headerDeviceId && queryDeviceId) {
+        context.warn('deviceId via query string (legacy client)');
+      }
+
       if (!deviceId || !classId) {
-        return respond(400, { error: 'deviceId and classId query parameters are required' });
+        return respond(400, { error: 'deviceId and classId are required' });
       }
 
       // Never leak whether the class exists — uniform 403, matching the 404/403-on-mismatch
