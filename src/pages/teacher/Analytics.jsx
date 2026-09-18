@@ -44,7 +44,7 @@ function TimelineChart({ timeline, classSize }) {
       <div className="bp-label" style={{ marginBottom: '10px' }}>
         Response timeline
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <svg role="img" aria-label={`Response timeline chart — ${timeline.length} responses recorded out of ${classSize} students`} viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
         {/* Y gridlines */}
         {[0, 0.5, 1].map(frac => (
           <line key={frac} x1={PAD_L} y1={ty(maxCount * frac)} x2={W - PAD_R} y2={ty(maxCount * frac)}
@@ -221,7 +221,7 @@ function Analytics() {
 
   if (error) return (
     <div style={{ padding: '24px', textAlign: 'center' }}>
-      <p style={{ color: 'var(--danger)', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
+      <p role="alert" style={{ color: 'var(--danger)', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
       <button
         onClick={() => { setLoading(true); setRetryKey(k => k + 1) }}
         style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -275,7 +275,7 @@ function Analytics() {
       )}
 
       {exportError && (
-        <div style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
+        <div role="alert" style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
           {exportError}
         </div>
       )}

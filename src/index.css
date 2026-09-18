@@ -686,6 +686,26 @@ code {
   border: 0;
 }
 
+/* Skip-navigation link — visually hidden until focused by keyboard. */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 10px 16px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: var(--bw) solid var(--border);
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
 /* Inline links that look like text links but need keyboard access. */
 .link-button {
   background: none;

@@ -2,6 +2,47 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.13.0] — R4: Accessibility (WCAG 2.1 AA)
+
+Fourth of the 2026-09-17 audit remediation sprints. No new features, no API changes — every
+change makes an existing interaction meet the standard it already claimed.
+
+Changed:
+- **Contrast tokens** — `--primary` raised to `#ca2910` (5.47:1 on white, was `#ec3013` 3.98:1);
+  `--muted` raised to `#6b6868` (≥4.52:1 on white, was `#888`/`#999`). All 600+ token call sites
+  restyled automatically. `fourCell.js` hardcoded hex updated to AA-compliant borders.
+  Grey-text sweep across 19 `src/` files + 10 `admin/src/` files. `DESIGN.md` token table updated.
+- **SubNav** semantic rewrite — `role="tablist"/"tab"` → `<nav>` + `<Link aria-current="page">`.
+  (These are real routes, not tab panels; tablist here violated ARIA.)
+- **TakeQuiz** — questions wrapped in `<fieldset><legend>`. `ConfidenceSelector` rewritten as
+  `role="radiogroup"` with `role="radio"` per button, `aria-checked`, and roving tabindex
+  (arrow-key navigation).
+- **ConfidenceExplainer** — `role="dialog" aria-modal="true" aria-labelledby`; focus on mount;
+  Escape key closes; focus trap (single focusable element).
+- **Skip link** (`<a href="#main-content" class="skip-link">`) rendered at the top of every page;
+  `id="main-content" tabIndex={-1}` on the main content landmark.
+- **`useRouteFocus`** hook — focuses `#main-content` on every route change so keyboard and SR users
+  land at the new page, not stranded at the last element from the previous route.
+- **Mobile drawer** — `inert` attribute applied to `<aside>` when closed; focus moves to first nav
+  item on open; Escape returns focus to the hamburger button.
+- **Live regions** — `role="status"` on loading spinners (App.jsx, GenerateQuiz, ReviewDraft);
+  `role="alert"` on error messages (JoinClass, SendQuiz, TakeQuiz, Analytics, Classes, Onboarding,
+  TermsUpdate, ClassRoster — where not already present).
+- **Analytics SVG chart** — `role="img"` + descriptive `aria-label` on the response timeline.
+- **Document titles** — 16 new route titles added to `useDocumentTitle.js`.
+- **Decorative emoji** — wrapped in `<span aria-hidden="true">` across 4 pages.
+- **Form label/id wiring** — `htmlFor`/`id` pairs on Onboarding school-name, ProfileWizard class
+  count, ClassSettings name-list textarea; `aria-label` on Classes create/edit inputs.
+- **`aria-label="Show tips"`** on `?` hint buttons across Build, Analytics, QuestionBank,
+  QuizHistory, SendQuiz.
+- **ClassSettings toggle** — `aria-pressed` + `aria-labelledby`.
+
+Added:
+- `@axe-core/playwright` dev dependency (D4.2).
+- `tests/e2e/a11y.spec.js` — axe-core/playwright, 6 public routes × 2 viewports, WCAG 2.1 AA.
+- `tests/unit/useRouteFocus.test.js` — 3 cases for the `shouldMoveFocus` pure function.
+- `src/hooks/useRouteFocus.js`.
+
 ## [Unreleased]
 
 Fixed:

@@ -35,6 +35,7 @@ import ClassRoster from './pages/teacher/ClassRoster'
 import ClassSettings from './pages/teacher/ClassSettings'
 import { usePageView, usePwaInstallTracking } from './hooks/usePageView'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
+import { useRouteFocus } from './hooks/useRouteFocus'
 import SWUpdateBanner from './components/SWUpdateBanner'
 import IosInstallBanner from './components/IosInstallBanner'
 import StudentClass from './pages/student/StudentClass'
@@ -46,7 +47,7 @@ import { PRIVACY_POLICY, COLLECTION_NOTICE, TERMS } from './data/legalContent'
 function RequireAuth({ children }) {
   const { isAuthenticated, loading } = useAuth()
   if (loading) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
+    return <div role="status" style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
   if (!isAuthenticated) {
     return <Login />
@@ -88,11 +89,11 @@ function RequireTeacher({ children }) {
   }, [isAuthenticated, loading, teacherId, navigate])
 
   if (loading) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
+    return <div role="status" style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
   if (!isAuthenticated) return <Login />
   if (status === null) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
+    return <div role="status" style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
   if (status === false) return null // navigate to /onboarding already in flight
   if (termsCurrent === false) {
@@ -108,6 +109,7 @@ function AppRoutes() {
   usePageView()
   usePwaInstallTracking()
   useDocumentTitle()
+  useRouteFocus()
   const { pathname } = useLocation()
   const hideSidebar = FULL_WIDTH_ROUTES.some(p => pathname === p || pathname.startsWith(p + '/'))
 
@@ -151,10 +153,13 @@ function AppRoutes() {
 
   return (
     <>
-      {hideSidebar ? routes : (
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+      {hideSidebar ? (
+        <div id="main-content" tabIndex={-1}>{routes}</div>
+      ) : (
         <div className="app-shell">
           <DemoNav />
-          <main className="app-content">
+          <main id="main-content" tabIndex={-1} className="app-content">
             <div className="app-content-inner">
               <SubNav />
               {routes}
