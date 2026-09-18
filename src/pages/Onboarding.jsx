@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { setOnboarded as markOnboarded } from '../onboardingCache'
 import API_BASE from '../api'
 import ProfileWizardSteps from '../components/onboarding/ProfileWizardSteps'
+import { Link } from 'react-router-dom'
+import LegalFooter from '../components/LegalFooter'
+import { TERMS_VERSION, TERMS, PRIVACY_POLICY, isLegalPending } from '../data/legalContent'
+
+// Design review 1: a teacher must not be able to "accept" terms whose text is still a placeholder.
+// When either doc is pending, the checkbox is replaced with a being-finalised notice and Continue
+// is disabled — acceptance of a placeholder is impossible by construction (the rc1 gate also
+// blocks release on the marker, but this stops it reaching a user in the build-before-wording window).
+const TERMS_PENDING = isLegalPending(TERMS) || isLegalPending(PRIVACY_POLICY)
 
 const SCHOOL_NAME_MAX = 120
 
@@ -15,6 +24,7 @@ function Onboarding() {
   const navigate = useNavigate()
   const [schoolDone, setSchoolDone] = useState(false)
   const [schoolName, setSchoolName] = useState('')
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -23,6 +33,7 @@ function Onboarding() {
     const name = schoolName.trim()
     if (!name) { setError('School name is required.'); return }
     if (name.length > SCHOOL_NAME_MAX) { setError(`School name must be ${SCHOOL_NAME_MAX} characters or fewer.`); return }
+    if (!agreed) { setError('Please agree to the Terms and Privacy Policy to continue.'); return }
 
     setSubmitting(true)
     setError(null)
@@ -30,7 +41,7 @@ function Onboarding() {
       const res = await fetch(`${API_BASE}/onboarding`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ schoolName: name }),
+        body: JSON.stringify({ schoolName: name, acceptedTermsVersion: TERMS_VERSION }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -74,13 +85,39 @@ function Onboarding() {
               }}
               disabled={submitting}
             />
+            {/* R3 Task 5 — required terms acceptance. Disabled (and Continue blocked) while wording
+                is still pending, so a teacher can never accept a placeholder. */}
+            {TERMS_PENDING ? (
+              <div style={{ marginTop: '16px', padding: '12px', border: 'var(--bw) solid var(--border)', background: 'var(--surface2)', fontSize: '13px', color: 'var(--muted)', lineHeight: '1.6' }}>
+                Our Terms and Privacy Policy are being finalised. You'll be able to finish setting up
+                your account once they're published.
+              </div>
+            ) : (
+              <label htmlFor="agree-terms" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '16px', fontSize: '13px', lineHeight: '1.5' }}>
+                <input
+                  id="agree-terms"
+                  data-testid="onboarding-agree"
+                  type="checkbox"
+                  checked={agreed}
+                  aria-required="true"
+                  onChange={e => setAgreed(e.target.checked)}
+                  disabled={submitting}
+                  style={{ marginTop: '2px' }}
+                />
+                <span>
+                  I agree to the{' '}
+                  <Link to="/terms" target="_blank" style={{ color: 'var(--primary)' }}>Terms</Link>{' '}and{' '}
+                  <Link to="/privacy" target="_blank" style={{ color: 'var(--primary)' }}>Privacy Policy</Link>.
+                </span>
+              </label>
+            )}
             {error && (
-              <p style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '8px', fontWeight: 600 }}>{error}</p>
+              <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '8px', fontWeight: 600 }}>{error}</p>
             )}
             <button
               data-testid="onboarding-submit"
               type="submit"
-              disabled={submitting}
+              disabled={submitting || TERMS_PENDING}
               style={{
                 width: '100%', marginTop: '20px', padding: '12px',
                 background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
@@ -95,6 +132,7 @@ function Onboarding() {
       ) : (
         <ProfileWizardSteps startStepNumber={2} onDone={() => navigate('/teacher/first-run', { replace: true })} />
       )}
+      <LegalFooter />
     </div>
   )
 }

@@ -1,22 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
 import ClassJoinQR from '../../components/ClassJoinQR'
+import LegalFooter from '../../components/LegalFooter'
 import { getApprovedClasses, addApprovedClass, getPendingClasses, addPendingClass, removePendingClass, reconcileApprovals } from '../../studentClasses'
 import { autoSubscribe } from '../../pushSubscribe'
+import { createDeviceId, getDeviceId } from '../../deviceId'
+import { JOIN_NOTICE_SHORT, COLLECTION_NOTICE_VERSION, isLegalPending } from '../../data/legalContent'
 
 const STUDENT_NAME_MAX = 80
 
-function getOrCreateDeviceId() {
-  const key = 'quizpulse_device_id'
-  let id = localStorage.getItem(key)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(key, id)
-  }
-  return id
-}
+// R3: the collection notice on the join form. When the reviewer hasn't supplied wording yet
+// (isLegalPending), we DON'T render the raw "[LEGAL TEXT PENDING]" marker and we DON'T record that
+// a notice was shown — a neutral line links to the (also-pending) collection-notice page, and the
+// POST omits noticeVersion (server stores null, D3.7). Joining is never blocked by a passive notice.
+const NOTICE_PENDING = isLegalPending(JOIN_NOTICE_SHORT)
 
 function JoinClass() {
   const navigate = useNavigate()
@@ -41,7 +40,6 @@ function JoinClass() {
   const [reconciling, setReconciling] = useState(() => getPendingClasses().length > 0)
 
   const pollRef = useRef(null)
-  const deviceId = getOrCreateDeviceId()
   const knownClasses = getApprovedClasses()
 
   // On load, reconcile any request the teacher decided while this device's tab was closed. This is
@@ -49,13 +47,15 @@ function JoinClass() {
   // has no client-side path back into the class.
   useEffect(() => {
     if (getPendingClasses().length === 0) return
+    const deviceId = getDeviceId() // a pending record implies a prior submit → id exists
+    if (!deviceId) { setReconciling(false); return }
     let cancelled = false
     ;(async () => {
-      const { newlyApproved } = await reconcileApprovals(deviceId, API_BASE)
+      await reconcileApprovals(deviceId, API_BASE)
       if (cancelled) return
-      // Enrol push for anyone who just got in here — the surface where a student who missed the
-      // live approval finally gets subscribed. autoSubscribe never throws.
-      newlyApproved.forEach(cid => autoSubscribe(cid, deviceId).catch(() => {}))
+      // R3 (D3.6): notifications are NO LONGER auto-enabled on reconcile. The student turns them on
+      // with an explicit button (approval screen here, or /student/class) — the tap supplies the
+      // user gesture Safari requires and follows the explanation.
       // Still waiting? Restore the "Request sent" screen and let the existing poll resume, so the
       // student doesn't re-submit into a duplicate request.
       const stillPending = getPendingClasses()
@@ -75,10 +75,16 @@ function JoinClass() {
   useEffect(() => {
     if (!submitted || !requestId || !classId) return
     if (status === 'approved' || status === 'rejected') return
+    const deviceId = getDeviceId()
+    if (!deviceId) return
 
     pollRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`${API_BASE}/join-request/status?deviceId=${encodeURIComponent(deviceId)}&classId=${encodeURIComponent(classId)}`)
+        // R3 (audit #9): the device id travels in the X-Device-Id header, never a query string
+        // (request logs keep query strings). classId stays in the query — it isn't sensitive.
+        const res = await fetch(`${API_BASE}/join-request/status?classId=${encodeURIComponent(classId)}`, {
+          headers: { 'X-Device-Id': deviceId },
+        })
         if (!res.ok) return
         const data = await res.json()
         setStatus(data.status)
@@ -91,19 +97,27 @@ function JoinClass() {
     }, 5000)
 
     return () => clearInterval(pollRef.current)
-  }, [submitted, requestId, classId, status, deviceId])
+  }, [submitted, requestId, classId, status])
 
   // Fires once the student is approved: persists the class locally (fixes the dead-end — this
-  // is what lets /student/class and /join's "Continue to my class" shortcut recognise the
-  // device later) and enrols push. autoSubscribe is guarded to never throw; a denied/unsupported
-  // outcome is a normal, expected state here, not an error banner.
+  // is what lets /student/class and /join's "Continue to my class" shortcut recognise the device
+  // later). R3 (D3.6): push is NO LONGER auto-enabled here — the student turns it on with the
+  // explicit button below, after the one-line explanation, so the browser prompt follows a gesture.
   useEffect(() => {
     if (status !== 'approved' || !classId) return
     addApprovedClass(classId, className, joinCode.trim().toUpperCase() || undefined)
     removePendingClass(classId)
+  }, [status, classId, className, joinCode])
+
+  // D3.6 — explicit, button-triggered notification opt-in. The tap is the user gesture Safari
+  // requires, and it follows the explanation line. autoSubscribe never throws; denied/unsupported
+  // are soft states shown as copy, not error banners.
+  async function turnOnNotifications() {
+    const deviceId = getDeviceId()
+    if (!deviceId) return
     setSubscribeState('priming')
-    autoSubscribe(classId, deviceId).then(setSubscribeState)
-  }, [status, classId, className, deviceId, joinCode])
+    setSubscribeState(await autoSubscribe(classId, deviceId))
+  }
 
   if (reconciling) {
     return (
@@ -150,11 +164,23 @@ function JoinClass() {
     setSubmitting(true)
     setError(null)
 
+    // R3 (audit B2): the permanent device id is minted HERE — the first time a student actually
+    // submits the join form — never on a page view before any notice. createDeviceId is idempotent.
+    const deviceId = createDeviceId()
+
     try {
       const res = await fetch(`${API_BASE}/join-request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ joinCode: code, studentName: name, deviceId }),
+        // noticeVersion records which collection-notice version the student was shown. Omitted
+        // while wording is still pending (server stores null, D3.7) so we never claim a real
+        // notice was shown when only a placeholder existed.
+        body: JSON.stringify({
+          joinCode: code,
+          studentName: name,
+          deviceId,
+          ...(NOTICE_PENDING ? {} : { noticeVersion: COLLECTION_NOTICE_VERSION }),
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -203,21 +229,55 @@ function JoinClass() {
             <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>
               You've joined <strong style={{ color: 'var(--text)' }}>{className}</strong>.
             </p>
-            {subscribeState === 'priming' && (
-              <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '12px' }}>
-                Turning on notifications so you don't miss a check-in — your browser may ask to confirm.
+
+            {/* D3.6 — explicit notification opt-in. Primary action: it's the product's main way of
+                reaching students. One line of what-and-why before the button, and a plain
+                "you can turn it off" reassurance. */}
+            {subscribeState !== 'subscribed' && (
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '10px', lineHeight: '1.6' }}>
+                  Turn on notifications so you know the moment your teacher sends a check-in. You can
+                  turn them off any time on your class page.
+                </p>
+                <button
+                  onClick={turnOnNotifications}
+                  disabled={subscribeState === 'priming'}
+                  className="btn btn-primary btn-block"
+                  style={{ justifyContent: 'center' }}
+                >
+                  {subscribeState === 'priming' ? 'Turning on…' : 'Turn on notifications'}
+                </button>
+                {subscribeState === 'denied' && (
+                  <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: '1.6' }}>
+                    Notifications are turned off in your browser. You can allow them in your browser
+                    settings, or just open your class page to see new check-ins.
+                  </p>
+                )}
+                {subscribeState === 'unsupported' && (
+                  <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: '1.6' }}>
+                    This device can't show notifications here — open your class page to see new check-ins.
+                  </p>
+                )}
+                {subscribeState === 'error' && (
+                  <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: '1.6' }}>
+                    Couldn't turn notifications on just now — you can try again from your class page.
+                  </p>
+                )}
+              </div>
+            )}
+            {subscribeState === 'subscribed' && (
+              <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '16px' }}>
+                Notifications are on — we'll let you know when a check-in arrives.
               </p>
             )}
+
             <button
               onClick={() => navigate('/student/class')}
-              className="btn btn-primary btn-block"
-              style={{ marginBottom: '10px' }}
+              className="btn btn-secondary btn-block"
+              style={{ justifyContent: 'center', marginBottom: joinCode.trim() ? '24px' : 0 }}
             >
               Go to my class
             </button>
-            <p style={{ color: 'var(--muted)', fontSize: '12px', marginBottom: joinCode.trim() ? '24px' : 0 }}>
-              We'll notify you when your teacher sends a check-in.
-            </p>
             {joinCode.trim() && (
               <ClassJoinQR joinCode={joinCode.trim().toUpperCase()} className={className} />
             )}
@@ -294,8 +354,9 @@ function JoinClass() {
 
       <form onSubmit={handleSubmit}>
         <div className="field" style={{ marginBottom: '16px' }}>
-          <label>Join code</label>
+          <label htmlFor="join-code">Join code</label>
           <input
+            id="join-code"
             className="input"
             type="text"
             value={joinCode}
@@ -309,8 +370,9 @@ function JoinClass() {
         </div>
 
         <div className="field" style={{ marginBottom: '16px' }}>
-          <label>Your name</label>
+          <label htmlFor="student-name">Your name</label>
           <input
+            id="student-name"
             className="input"
             type="text"
             value={studentName}
@@ -321,8 +383,18 @@ function JoinClass() {
           />
         </div>
 
+        {/* R3 collection notice — plain, ≤2 sentences, below the fields (so the form leads with
+            the action, not a legal wall). When wording is still pending we show a neutral line, not
+            the raw marker. The link always points to the collection-notice page. */}
+        <p style={{ color: 'var(--muted)', fontSize: '12px', margin: '0 0 12px', lineHeight: '1.6' }}>
+          {NOTICE_PENDING
+            ? 'How we look after your info is being finalised.'
+            : JOIN_NOTICE_SHORT.text}{' '}
+          <Link to="/collection-notice" style={{ color: 'var(--primary)' }}>How we look after your info</Link>
+        </p>
+
         {error && (
-          <p style={{ color: 'var(--danger)', fontSize: '13px', margin: '0 0 12px' }}>{error}</p>
+          <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px', margin: '0 0 12px' }}>{error}</p>
         )}
 
         <button
@@ -334,6 +406,8 @@ function JoinClass() {
           {submitting ? 'Sending request…' : 'Request to join'}
         </button>
       </form>
+
+      <LegalFooter />
     </div>
   )
 }

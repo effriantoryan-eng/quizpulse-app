@@ -6,7 +6,8 @@ const { authenticateTeacher } = require('./auth');
 const { getTeacher } = require('./teacher');
 const { getCallerScope, assertScope, ScopeError } = require('./shared/authz');
 const { selectDemoStudents, DEMO_STUDENT_COUNT } = require('./shared/demoNames');
-const { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, generateJoinCode, createRealClass } = require('./shared/createClass');
+const { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, AttestationError, generateJoinCode, createRealClass } = require('./shared/createClass');
+const { ATTESTATION_VERSION, versionState } = require('./shared/legalVersions');
 const { deleteSubscriptions, deleteJoinRequests, deidentifyResponses, removeStudentFromClass } = require('./shared/studentDataCleanup');
 const crypto = require('crypto');
 
@@ -141,8 +142,8 @@ app.http('classesCreate', {
         return respond(201, resource, teacherId);
       }
 
-      // Real class: joinCode/schoolId/cap logic lives in shared/createClass.js — the single
-      // place adopted by both this endpoint and the v4.2.0 onboarding-wizard class shells.
+      // Real class: joinCode/schoolId/cap/attestation logic lives in shared/createClass.js — the
+      // single place adopted by both this endpoint and the v4.2.0 onboarding-wizard class shells.
       let resource;
       try {
         resource = await createRealClass(classesContainer, {
@@ -150,9 +151,11 @@ app.http('classesCreate', {
           schoolId: teacher?.schoolId,
           name,
           studentCount,
+          attestation: body.attestation,
         });
       } catch (err) {
         if (err instanceof ClassLimitError) return respond(429, { error: err.message }, teacherId);
+        if (err instanceof AttestationError) return respond(400, { error: err.message }, teacherId);
         throw err;
       }
 
@@ -208,10 +211,14 @@ app.http('classesCreateShells', {
       let created = 0;
       for (let i = 1; i <= count; i++) {
         try {
+          // R3 — shells are empty, server-named batches with no per-class UI to attest with;
+          // skipAttestation creates them un-attested. They show the same un-attested banner as any
+          // other class on Classes.jsx and are gated by the same join-time cut-off check.
           await createRealClass(classesContainer, {
             teacherId,
             schoolId: teacher?.schoolId,
             name: `My Class ${i}`,
+            skipAttestation: true,
           });
           created++;
         } catch (err) {
@@ -339,6 +346,61 @@ app.http('classesRegenerateCode', {
       return respond(200, updated, teacherId);
     } catch (err) {
       context.error('classesRegenerateCode error:', err.message);
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
+// PUT /api/classes/{id}/attest — a teacher confirms school authorisation for a class created
+// before attestation existed (a legacy class, or a server-created onboarding shell). Shares the
+// classes rate-limit bucket (Security limits table).
+app.http('classesAttest', {
+  methods: ['PUT'],
+  authLevel: 'anonymous',
+  route: 'classes/{id}/attest',
+  handler: async (request, context) => {
+    const start = Date.now();
+    const classId = request.params.id;
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: `classes/${classId}/attest`, method: 'PUT', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const { teacherId } = auth;
+      const caller = getCallerScope(auth.claims);
+
+      if (!rateLimit(`classes:${teacherId}`, 30, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      const body = await request.json().catch(() => ({}));
+      if (versionState(body.version, ATTESTATION_VERSION) !== 'current') {
+        return respond(400, { error: 'Please reload the page and try again.' }, teacherId);
+      }
+
+      let existing;
+      try {
+        const { resource } = await classesContainer.item(classId, teacherId).read();
+        existing = resource;
+      } catch (err) {
+        if (err.code === 404) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
+      }
+      try {
+        assertScope(existing, caller, { mutate: true });
+      } catch (err) {
+        if (err instanceof ScopeError) return respond(404, { error: 'Class not found' }, teacherId);
+        throw err;
+      }
+
+      existing.attestedAt = new Date().toISOString();
+      existing.attestationVersion = ATTESTATION_VERSION;
+      const { resource: updated } = await classesContainer.item(classId, teacherId).replace(existing);
+      return respond(200, updated, teacherId);
+    } catch (err) {
+      context.error('classesAttest error:', err.message);
       return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
     }
   },
