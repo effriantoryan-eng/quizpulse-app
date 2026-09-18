@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { SkeletonLines } from '../../components/Skeleton'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
 
@@ -172,7 +173,7 @@ function Population() {
       </select>
 
       {loading && (
-        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
+        <div style={{ padding: '24px' }}><SkeletonLines lines={4} /></div>
       )}
 
       {sessionExpired && (

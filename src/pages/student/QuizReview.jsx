@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import API_BASE from '../../api'
 import ENCOURAGEMENTS from '../../data/encouragements'
 import { readSubmitted } from '../../data/submittedAnswers'
@@ -110,7 +111,7 @@ export default function QuizReview({ mode }) {
   }
 
   if (questions === null) {
-    return <div style={{ ...centered, color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
+    return <div style={{ ...centered, padding: '24px' }}><SkeletonLines lines={4} /></div>
   }
 
   // Review mode with no saved detail (legacy '1' flag, or storage cleared): be honest, and offer

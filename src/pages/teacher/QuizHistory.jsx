@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import { useAuth } from '../../contexts/AuthContext'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
@@ -49,7 +50,7 @@ export default function QuizHistory() {
     fetchQuizzes()
   }, [teacherId])
 
-  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading quizzes…</div>
+  if (loading) return <div style={{ padding: '24px' }}><SkeletonLines lines={4} /></div>
 
   if (sessionExpired) return (
     <div style={{ padding: '24px', textAlign: 'center' }}>

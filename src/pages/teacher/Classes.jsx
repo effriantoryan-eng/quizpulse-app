@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import API_BASE from '../../api'
 import { useAuth } from '../../contexts/AuthContext'
 import { ATTESTATION_VERSION, CLASS_ATTESTATION, isLegalPending } from '../../data/legalContent'
@@ -172,7 +173,7 @@ function Classes() {
     }
   }
 
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading classes…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}><SkeletonLines lines={4} /></div>
 
   if (sessionExpired) return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>

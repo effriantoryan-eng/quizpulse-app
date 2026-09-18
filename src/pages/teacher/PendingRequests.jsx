@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
+import { SkeletonLines } from '../../components/Skeleton'
 
 function matchBadge(req) {
   if (!req.matchedName) {
@@ -200,7 +201,7 @@ function PendingRequests() {
 
   if (!classId) {
     if (candidateClasses === null) {
-      return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
+      return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}><SkeletonLines lines={3} /></div>
     }
     if (candidateClasses.length === 0) {
       return (
@@ -236,7 +237,7 @@ function PendingRequests() {
       </div>
     )
   }
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading requests…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}><SkeletonLines lines={3} /></div>
 
   if (sessionExpired) return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>

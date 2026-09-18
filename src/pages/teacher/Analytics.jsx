@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import { useAuth } from '../../contexts/AuthContext'
@@ -205,7 +206,7 @@ function Analytics() {
     }
   }
 
-  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading analytics...</div>
+  if (loading) return <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px' }}><SkeletonLines lines={5} /></div>
 
   if (sessionExpired) return (
     <div style={{ padding: '24px', textAlign: 'center' }}>

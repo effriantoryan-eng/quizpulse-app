@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import API_BASE from '../../api'
+import { SkeletonLines } from '../../components/Skeleton'
 import { ATTESTATION_VERSION, isLegalPending, CLASS_ATTESTATION } from '../../data/legalContent'
 
 const ATTESTATION_PENDING = isLegalPending(CLASS_ATTESTATION)
@@ -118,7 +119,7 @@ function ClassRoster() {
   if (!classId) {
     return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#555', fontSize: '14px' }}>Pick a class first — open <Link to="/teacher/classes">Classes</Link> and choose Roster on the class you want.</div>
   }
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading roster…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}><SkeletonLines lines={4} /></div>
   if (error) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#c0392b', fontSize: '14px' }}>Failed to load roster: {error}</div>
 
   const approved = requests.filter(r => r.status === 'approved')

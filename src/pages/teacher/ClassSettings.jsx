@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import { useAuth } from '../../contexts/AuthContext'
 import API_BASE from '../../api'
 
@@ -83,7 +84,7 @@ function ClassSettings() {
   }
 
   if (!classId) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#555', fontSize: '14px' }}>Pick a class first — open <Link to="/teacher/classes">Classes</Link>, choose Roster on the class you want, then switch to this tab.</div>
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}><SkeletonLines lines={3} /></div>
 
   if (sessionExpired) return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>

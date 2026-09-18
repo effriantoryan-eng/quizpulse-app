@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { SkeletonLines } from '../../components/Skeleton'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import API_BASE from '../../api'
@@ -420,7 +421,7 @@ function QuestionBank() {
     }
   }
 
-  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading questions...</div>
+  if (loading) return <div style={{ padding: '24px' }}><SkeletonLines lines={4} /></div>
   if (error) return <div style={{ padding: '24px', color: '#A32D2D' }}>{error}</div>
 
   return (

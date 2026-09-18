@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import API_BASE from '../../api'
 import InstallButton from '../../components/InstallButton'
 import ClassJoinQR from '../../components/ClassJoinQR'
@@ -172,7 +173,7 @@ function ClassSection({ cls, navigate, onLeft }) {
       </div>
 
       {quizzes === null && !error && (
-        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
+        <div style={{ padding: '24px' }}><SkeletonLines lines={3} /></div>
       )}
 
       {error === 'transient' && (
