@@ -3,7 +3,7 @@
 // The repo has no DOM test library (RTL/jsdom), so FE components are verified by their pure
 // exported logic plus a source-level assertion of what the public branch renders — the same
 // pattern used by tests/unit/encouragements.test.js. This guards the v3.2.2 requirement:
-// "renders only logo + Preview gallery link when isAuthenticated=false".
+// "renders only logo when isAuthenticated=false" (the Preview gallery link was removed in v4.14.0).
 
 const fs = require('fs');
 const path = require('path');
@@ -27,16 +27,6 @@ describe('DemoNav — public (signed-out) branch', () => {
   it('renders the existing teacher Sidebar when authenticated', () => {
     // Authenticated branch returns <Sidebar /> unchanged.
     expect(SRC).toMatch(/if \(!showPublicNav\(isAuthenticated\)\)\s*\{\s*return <Sidebar \/>/);
-  });
-
-  it('public branch exposes exactly one nav link: Preview gallery → /demo', () => {
-    const navMatch = SRC.match(/PUBLIC_NAV\s*=\s*\[([^\]]*)\]/);
-    expect(navMatch).not.toBeNull();
-    const body = navMatch[1];
-    expect(body).toContain("label: 'Preview gallery'");
-    expect(body).toContain("path: '/demo'");
-    // Only one link object in the public nav.
-    expect(body.match(/path:/g)).toHaveLength(1);
   });
 
   it('public branch renders no teacher pages (no Create/Build/Send/Bank links, no Sign out)', () => {

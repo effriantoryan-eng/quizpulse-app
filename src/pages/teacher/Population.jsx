@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { SkeletonLines } from '../../components/Skeleton'
 import API_BASE from '../../api'
 import TOPIC_TAGS from '../../data/topicTags'
 
@@ -172,7 +173,7 @@ function Population() {
       </select>
 
       {loading && (
-        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
+        <div style={{ padding: '24px' }}><SkeletonLines lines={4} /></div>
       )}
 
       {sessionExpired && (
@@ -246,7 +247,7 @@ function Population() {
         <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px' }}>
           <div
             data-testid="population-seed-pill"
-            style={{ display: 'inline-block', fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', background: '#EEEDFE', color: '#3C3489', marginBottom: '10px' }}
+            className="tag tag-neutral" style={{ display: 'inline-block', marginBottom: '10px' }}
           >
             Benchmark data
           </div>

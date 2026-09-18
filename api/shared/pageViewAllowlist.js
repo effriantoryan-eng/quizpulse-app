@@ -3,7 +3,6 @@
 // every declared route is covered here — a route added to App.jsx without a matching
 // entry silently buckets to 'other' forever, so that test fails loudly instead.
 const ALLOWED_PREFIXES = [
-  '/demo',
   '/pricing',
   '/login',
   '/onboarding',

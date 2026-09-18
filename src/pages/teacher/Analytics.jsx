@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import { useHint } from '../../hooks/useHint'
 import HintBanner from '../../components/HintBanner'
 import { useAuth } from '../../contexts/AuthContext'
@@ -187,7 +188,7 @@ function Analytics() {
       const res = await fetch(`${API_BASE}/analytics/export?quizId=${quizId}${classQuery}`)
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || `Export failed (${res.status})`)
+        throw new Error(res.status === 429 ? 'Too many exports in the last hour. Try again later.' : "Couldn't export. Try again.")
       }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -199,13 +200,13 @@ function Analytics() {
       a.remove()
       URL.revokeObjectURL(url)
     } catch (err) {
-      setExportError(err.message)
+      setExportError(err.message || "Couldn't export. Try again.")
     } finally {
       setExporting(false)
     }
   }
 
-  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading analytics...</div>
+  if (loading) return <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px' }}><SkeletonLines lines={5} /></div>
 
   if (sessionExpired) return (
     <div style={{ padding: '24px', textAlign: 'center' }}>
@@ -248,13 +249,12 @@ function Analytics() {
             {isDemo && (
               <span
                 data-testid="analytics-demo-pill"
-                style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
+                className="tag tag-neutral" style={{ flexShrink: 0 }}
               >
                 Demo data
               </span>
             )}
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>Quiz ID: {quizId}</div>
         </div>
         <button
           onClick={handleExportCsv}

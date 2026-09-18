@@ -15,7 +15,6 @@ const I = {
   quizzes: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
   results: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
   evidence: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z M14 2v6h6 M9 13h6M9 17h6M9 9h1',
-  preview: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z',
 }
 
 function Icon({ d }) {
@@ -33,7 +32,6 @@ function Icon({ d }) {
 const NAV = [
   { label: 'Home', path: '/teacher/home', icon: 'home' },
   ...HUBS.map(h => ({ label: h.label, path: h.path, icon: h.icon, hubId: h.id })),
-  { label: 'Preview', path: '/demo', icon: 'preview' },
 ]
 
 function Logo({ onClick }) {

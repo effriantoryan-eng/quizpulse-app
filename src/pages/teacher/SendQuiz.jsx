@@ -477,7 +477,7 @@ function SendQuiz() {
           {sendingToDemo && (
             <div
               data-testid="send-demo-note"
-              style={{ padding: '12px 14px', background: '#EEEDFE', border: '1px solid #d6d2f5', borderRadius: '8px', fontSize: '13px', color: '#3C3489', marginTop: '12px' }}
+              style={{ padding: '12px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', fontSize: '13px', marginTop: '12px' }}
             >
               This is a demo class. Responses are generated automatically — no one is notified.
             </div>

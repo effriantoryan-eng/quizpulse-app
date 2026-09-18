@@ -37,9 +37,9 @@ function SWUpdateBanner() {
   return (
     <div style={{
       position: 'fixed', bottom: '16px', left: '50%', transform: 'translateX(-50%)',
-      background: 'var(--primary)', color: 'white', borderRadius: '10px',
+      background: 'var(--primary)', color: 'white',
       padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '12px',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.18)', zIndex: 9999,
+      zIndex: 9999,
       fontSize: '14px', whiteSpace: 'nowrap',
     }}>
       <span>Update available</span>
@@ -47,7 +47,7 @@ function SWUpdateBanner() {
         onClick={applyUpdate}
         style={{
           background: 'white', color: 'var(--primary)', border: 'none',
-          borderRadius: '6px', padding: '6px 14px', fontSize: '13px',
+          padding: '6px 14px', fontSize: '13px',
           fontWeight: '600', cursor: 'pointer',
         }}
       >

@@ -3,19 +3,14 @@ import { useAuth } from '../contexts/AuthContext'
 import Sidebar from './Sidebar'
 import BrandMark from './BrandMark'
 
-// The only link a signed-out visitor sees in the nav. Kept as a tiny data model so the
-// branch decision is unit-testable without a DOM (see tests/unit/demoNav.test.js).
-export const PUBLIC_NAV = [{ label: 'Preview gallery', path: '/demo' }]
-
-// Returns true when the minimal public nav (logo + Preview gallery) should be shown instead
+// Returns true when the minimal public nav (logo only) should be shown instead
 // of the full teacher nav. Pure — exported for tests.
 export function showPublicNav(isAuthenticated) {
   return !isAuthenticated
 }
 
 // Top-level navigation chrome. Signed-in teachers get the existing Sidebar unchanged.
-// Signed-out visitors get a minimal rail: the logo (home) plus a single "Preview gallery"
-// link — no teacher pages, no sign-out.
+// Signed-out visitors get a minimal rail: logo only — no teacher pages, no sign-out.
 export default function DemoNav() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
@@ -40,18 +35,6 @@ export default function DemoNav() {
         <span className="sidebar-badge">beta</span>
       </div>
 
-      <nav className="sidebar-nav open">
-        {PUBLIC_NAV.map(({ label, path }) => (
-          <button
-            key={path}
-            data-testid="demonav-preview-link"
-            className="nav-item"
-            onClick={() => navigate(path)}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
     </aside>
   )
 }

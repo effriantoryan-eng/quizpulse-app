@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { SkeletonLines } from '../../components/Skeleton'
 import API_BASE from '../../api'
 import { getDeviceId } from '../../deviceId'
 import { queueResponse, registerResponseSync } from '../../offlineQueue'
@@ -316,7 +317,7 @@ function TakeQuiz() {
   }
 
   if (loading) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading quiz…</div>
+    return <div style={{ padding: '48px' }}><SkeletonLines lines={4} /></div>
   }
 
   if (loadError) {
