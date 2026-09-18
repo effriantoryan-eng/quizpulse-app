@@ -101,7 +101,7 @@ app.http('teacherMe', {
       const profile = teacher.profile || {};
       const featureIntros = teacher.featureIntros || {};
       // R3 Task 5 — termsCurrent is false for a legacy teacher (no field) or a stale acceptance.
-      const termsCurrent = teacher.termsAcceptedVersion === TERMS_VERSION;
+      const termsCurrent = !TERMS_VERSION || teacher.termsAcceptedVersion === TERMS_VERSION;
       const eligibleIntros = await computeEligibleIntros({ teacherId, teacher, classesContainer, quizzesContainer });
       const gettingStarted = await computeGettingStarted({ teacherId, teacher, classesContainer, quizzesContainer });
 
