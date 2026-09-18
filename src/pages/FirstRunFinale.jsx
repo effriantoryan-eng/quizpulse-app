@@ -57,7 +57,7 @@ function FirstRunFinale() {
   if (stage === 'loading') {
     return (
       <div style={{ maxWidth: 480, margin: '120px auto', padding: '32px', textAlign: 'center' }}>
-        <div role="status" aria-live="polite" style={{ padding: '14px 18px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: '10px', fontSize: '14px', color: 'var(--primary)', fontWeight: 600 }}>
+        <div role="status" aria-live="polite" style={{ padding: '14px 18px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '14px', color: 'var(--primary)', fontWeight: 600 }}>
           {stageText}
         </div>
       </div>
@@ -81,7 +81,7 @@ function FirstRunFinale() {
         {result.totalConfidentButIncorrect > 0 && (
           <div
             data-testid="finale-misconception-hero"
-            style={{ background: MISCONCEPTION_BG, border: `2px solid ${MISCONCEPTION_BORDER}`, borderRadius: '12px', padding: '18px 20px', marginBottom: '20px' }}
+            style={{ background: MISCONCEPTION_BG, border: `2px solid ${MISCONCEPTION_BORDER}`, borderRadius: 'var(--radius)', padding: '18px 20px', marginBottom: '20px' }}
           >
             <div style={{ fontSize: '12px', color: MISCONCEPTION_BORDER, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: 700 }}>
               Misconception signal
@@ -99,7 +99,7 @@ function FirstRunFinale() {
 
         {aggTotal > 0 && (
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', height: '14px', borderRadius: '7px', overflow: 'hidden', border: '1px solid #eee', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', height: '14px', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid #eee', marginBottom: '10px' }}>
               {FOUR_CELL.map((cell) => {
                 const count = agg[cell.key] || 0
                 const w = (count / aggTotal) * 100
@@ -111,7 +111,7 @@ function FirstRunFinale() {
                 const count = agg[cell.key] || 0
                 const percent = aggTotal > 0 ? Math.round((count / aggTotal) * 100) : 0
                 return (
-                  <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: cell.bg, border: `1px solid ${cell.border}`, borderRadius: '6px' }}>
+                  <div key={cell.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: cell.bg, border: `1px solid ${cell.border}`, borderRadius: 'var(--radius)' }}>
                     <span style={{ fontSize: '12px', color: cell.border, flex: 1 }}>{cell.label}</span>
                     <span style={{ fontSize: '13px', fontWeight: 600, color: cell.border }}>{count} ({percent}%)</span>
                   </div>
@@ -125,14 +125,14 @@ function FirstRunFinale() {
           <button
             data-testid="finale-see-full-results"
             onClick={() => navigate(`/teacher/analytics/${result.quizId}`)}
-            style={{ flex: 1, minWidth: '160px', padding: '14px 18px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}
+            style={{ flex: 1, minWidth: '160px', padding: '14px 18px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 'var(--radius)', fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}
           >
             See full results
           </button>
           <button
             data-testid="finale-continue"
             onClick={() => navigate('/teacher/create')}
-            style={{ flex: 1, minWidth: '160px', padding: '14px 18px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--primary)', borderRadius: '10px', fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}
+            style={{ flex: 1, minWidth: '160px', padding: '14px 18px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--primary)', borderRadius: 'var(--radius)', fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}
           >
             Continue to your account
           </button>
@@ -157,7 +157,7 @@ function FirstRunFinale() {
         onClick={runReadyMade}
         style={{
           width: '100%', textAlign: 'left', padding: '20px 22px', marginBottom: '14px',
-          background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '14px',
+          background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 'var(--radius)',
           fontSize: '16px', fontWeight: 700, cursor: 'pointer',
         }}
       >
@@ -177,7 +177,7 @@ function FirstRunFinale() {
           onClick={() => navigate('/teacher/generate')}
           style={{
             width: '100%', textAlign: 'left', padding: '18px 20px', marginBottom: '20px',
-            background: 'white', color: 'inherit', border: 'var(--bw) solid var(--border)', borderRadius: '14px',
+            background: 'white', color: 'inherit', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
             fontSize: '15px', fontWeight: 600, cursor: 'pointer',
           }}
         >

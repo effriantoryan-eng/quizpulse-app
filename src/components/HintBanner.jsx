@@ -8,7 +8,7 @@ export default function HintBanner({ text, onDismiss }) {
       color: 'var(--text)', lineHeight: '1.5',
     }}>
       <span style={{
-        width: '30px', height: '30px', borderRadius: '9px', flex: 'none',
+        width: '30px', height: '30px', borderRadius: 'var(--radius)', flex: 'none',
         background: 'var(--primarySoft)', color: 'var(--primary)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>

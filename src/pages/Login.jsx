@@ -141,7 +141,7 @@ function Login() {
           target="_blank"
           rel="noreferrer"
           style={{
-            display: 'block', width: '100%', padding: '12px', borderRadius: '8px',
+            display: 'block', width: '100%', padding: '12px', borderRadius: 'var(--radius)',
             fontSize: '14px', fontWeight: '500', background: 'var(--primary)', color: 'white',
             textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box',
             marginTop: '8px',

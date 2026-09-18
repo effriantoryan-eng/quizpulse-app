@@ -11,7 +11,7 @@ const REGISTRATION_OPTIONS = [
 
 const cardStyle = (selected) => ({
   padding: '12px 16px',
-  borderRadius: '10px',
+  borderRadius: 'var(--radius)',
   border: 'var(--bw) solid var(--border)',
   background: selected ? 'var(--primary)' : 'var(--surface)',
   color: selected ? '#fff' : 'inherit',
@@ -94,7 +94,7 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
           <span
             key={i}
             style={{
-              width: '8px', height: '8px', borderRadius: '50%',
+              width: '8px', height: '8px', borderRadius: 'var(--radius)',
               background: i + 1 < stepNumber ? 'var(--primary)' : i + 1 === stepNumber ? 'var(--primary)' : 'var(--border)',
               opacity: i + 1 <= stepNumber ? 1 : 0.4,
             }}
@@ -154,7 +154,7 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
             onChange={(e) => setClassCount(e.target.value)}
             placeholder="e.g. 4"
             style={{
-              width: '100%', padding: '10px 12px', borderRadius: '8px',
+              width: '100%', padding: '10px 12px', borderRadius: 'var(--radius)',
               border: 'var(--bw) solid var(--border)', fontSize: '14px', boxSizing: 'border-box',
             }}
           />
@@ -196,7 +196,7 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
             style={{
               padding: '12px 18px',
               background: 'white', color: 'var(--text)', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-              borderRadius: '8px', fontSize: '14px', fontWeight: '500',
+              borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: '500',
               cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1,
             }}
           >
@@ -211,7 +211,7 @@ function ProfileWizardSteps({ startStepNumber = 2, onDone }) {
           style={{
             flex: 1, padding: '12px',
             background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-            borderRadius: '8px', fontSize: '14px', fontWeight: '500',
+            borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: '500',
             cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1,
           }}
         >

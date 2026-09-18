@@ -72,7 +72,7 @@ function CreateQuestion() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <h1 style={{ margin: 0 }}>Create question</h1>
         {!hintVisible && (
-          <button onClick={showHint} aria-label="Show tips" style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', color: 'var(--primary)', fontSize: '15px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadowField)', flex: 'none' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', width: '32px', height: '32px', cursor: 'pointer', color: 'var(--primary)', fontSize: '15px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadowField)', flex: 'none' }}>?</button>
         )}
       </div>
       {hintVisible && (

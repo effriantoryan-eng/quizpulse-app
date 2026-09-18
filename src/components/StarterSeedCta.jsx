@@ -36,7 +36,7 @@ function StarterSeedCta({ onSeeded }) {
         disabled={seeding}
         style={{
           padding: '9px 16px', background: 'var(--primary)', color: 'white', border: 'none',
-          borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+          borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: 600,
           cursor: seeding ? 'default' : 'pointer', opacity: seeding ? 0.7 : 1,
         }}
       >

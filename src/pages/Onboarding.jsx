@@ -82,7 +82,7 @@ function Onboarding() {
               maxLength={SCHOOL_NAME_MAX}
               placeholder="e.g. Westfield Secondary College"
               style={{
-                width: '100%', padding: '10px 12px', borderRadius: '8px',
+                width: '100%', padding: '10px 12px', borderRadius: 'var(--radius)',
                 border: 'var(--bw) solid var(--border)', fontSize: '14px', boxSizing: 'border-box',
               }}
               disabled={submitting}
@@ -123,7 +123,7 @@ function Onboarding() {
               style={{
                 width: '100%', marginTop: '20px', padding: '12px',
                 background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-                borderRadius: '8px', fontSize: '14px', fontWeight: '500',
+                borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: '500',
                 cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
               }}
             >

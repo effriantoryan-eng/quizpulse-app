@@ -18,7 +18,7 @@ function ComparisonBar({ label, yourValue, normValue, higherIsConcern }) {
         <span>{label}</span>
         <span>{yourValue}% vs {normValue}% (norm)</span>
       </div>
-      <div style={{ position: 'relative', height: '10px', background: '#f0f0f0', borderRadius: '5px', marginBottom: '6px' }}>
+      <div style={{ position: 'relative', height: '10px', background: '#f0f0f0', borderRadius: 'var(--radius)', marginBottom: '6px' }}>
         <div
           data-testid="comparison-marker-norm"
           style={{ position: 'absolute', left: `${normValue}%`, top: '-3px', width: '2px', height: '16px', background: '#888' }}
@@ -26,8 +26,8 @@ function ComparisonBar({ label, yourValue, normValue, higherIsConcern }) {
         <div
           data-testid="comparison-marker-you"
           style={{
-            position: 'absolute', left: `calc(${yourValue}% - 6px)`, top: '-5px', width: '12px', height: '12px', borderRadius: '50%',
-            background: concern ? '#B5482E' : 'var(--primary)', border: '2px solid white', boxShadow: '0 0 0 1px #ccc',
+            position: 'absolute', left: `calc(${yourValue}% - 6px)`, top: '-5px', width: '12px', height: '12px', borderRadius: 'var(--radius)',
+            background: concern ? '#B5482E' : 'var(--primary)', border: '2px solid #ccc',
           }}
         />
       </div>
@@ -75,7 +75,7 @@ function QuadrantScatter({ school, population }) {
   const youY = hasYou ? ty(school.pctConfidentIncorrect) : null
 
   return (
-    <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
+    <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: '16px' }}>
       <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--muted)', marginBottom: '4px' }}>
         Where this sits, compared to other schools
       </div>
@@ -107,8 +107,8 @@ function QuadrantScatter({ school, population }) {
         <text x="18" y="20" fontSize="9" fill="#aaa">40%</text>
       </svg>
       <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: 'var(--muted)', marginTop: '8px' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 9, height: 9, borderRadius: '50%', background: '#b3b3b3', display: 'inline-block' }} /> Sample schools (illustrative)</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 9, height: 9, borderRadius: '50%', background: '#B5482E', display: 'inline-block' }} /> Your school</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 9, height: 9, borderRadius: 'var(--radius)', background: '#b3b3b3', display: 'inline-block' }} /> Sample schools (illustrative)</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 9, height: 9, borderRadius: 'var(--radius)', background: '#B5482E', display: 'inline-block' }} /> Your school</span>
       </div>
     </div>
   )
@@ -165,7 +165,7 @@ function Population() {
         data-testid="population-topic-select"
         value={topic}
         onChange={e => setTopic(e.target.value)}
-        style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '24px', background: 'white' }}
+        style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxSizing: 'border-box', marginBottom: '24px', background: 'white' }}
       >
         {TOPIC_TAGS.map(t => (
           <option key={t} value={t}>{t}</option>
@@ -177,11 +177,11 @@ function Population() {
       )}
 
       {sessionExpired && (
-        <div style={{ padding: '16px', textAlign: 'center', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px' }}>
+        <div style={{ padding: '16px', textAlign: 'center', background: '#fdecea', border: '1px solid #c0392b', borderRadius: 'var(--radius)' }}>
           <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#c0392b' }}>Your session has ended. Sign in again to continue.</p>
           <button
             onClick={() => login()}
-            style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+            style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
           >
             Sign in
           </button>
@@ -189,11 +189,11 @@ function Population() {
       )}
 
       {error && !sessionExpired && (
-        <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', textAlign: 'center' }}>
+        <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: 'var(--radius)', fontSize: '13px', color: '#c0392b', textAlign: 'center' }}>
           {error}{' '}
           <button
             onClick={() => setRetryKey(k => k + 1)}
-            style={{ marginLeft: '8px', padding: '4px 10px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+            style={{ marginLeft: '8px', padding: '4px 10px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer' }}
           >
             Try again
           </button>
@@ -201,13 +201,13 @@ function Population() {
       )}
 
       {!loading && !error && data && !hasPopulationData && (
-        <div style={{ textAlign: 'center', padding: '32px 20px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '32px 20px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: 'var(--radius)' }}>
           No benchmark data for {topic} yet.
         </div>
       )}
 
       {!loading && !error && data && hasPopulationData && !hasSchoolData && (
-        <div style={{ padding: '14px', background: '#f8f8f8', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)', marginBottom: '20px', textAlign: 'center' }}>
+        <div style={{ padding: '14px', background: '#f8f8f8', borderRadius: 'var(--radius)', fontSize: '13px', color: 'var(--muted)', marginBottom: '20px', textAlign: 'center' }}>
           You haven't sent a quiz tagged {topic} yet — pick a topic when you send a quiz to see your own comparison here. (Practice quizzes sent to a demo class don't count.)
         </div>
       )}
@@ -218,7 +218,7 @@ function Population() {
       {!loading && !error && data && hasPopulationData && hasSchoolData && (
         <div
           data-testid="population-headline"
-          style={{ background: '#FBEDE8', border: '1px solid #B5482E', borderRadius: '12px', padding: '20px', textAlign: 'center', marginBottom: '16px' }}
+          style={{ background: '#FBEDE8', border: '1px solid #B5482E', borderRadius: 'var(--radius)', padding: '20px', textAlign: 'center', marginBottom: '16px' }}
         >
           <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#5A2416', marginBottom: '8px' }}>
             Confident but wrong
@@ -244,7 +244,7 @@ function Population() {
       )}
 
       {!loading && !error && data && hasPopulationData && (
-        <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px' }}>
+        <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '20px' }}>
           <div
             data-testid="population-seed-pill"
             className="tag tag-neutral" style={{ display: 'inline-block', marginBottom: '10px' }}

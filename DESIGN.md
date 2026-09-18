@@ -59,7 +59,14 @@ the new palette automatically since they reference the same `var()` tokens.
 
 ## Scope of this pass
 
-Not every hardcoded hex in the repo was swept — only the screens v4.7.0 touches (Home, Analytics,
-student flow) plus `src/data/fourCell.js` (the misconception chart colors were hardcoded, not
-`var()`, so the free restyle didn't reach them). ~339 hardcoded hex values exist repo-wide;
-sweeping all of them is out of scope for this sprint — a future pass can migrate the rest opportunistically.
+**v4.7.0 (Design overhaul):** only the screens it touched (Home, Analytics, student flow) plus
+`src/data/fourCell.js` (misconception chart colours were hardcoded, not `var()`). ~339 hardcoded
+hex values existed repo-wide at that point; the rest were deferred.
+
+**v4.14.0 (R5 brand coherence):** a mechanical sweep of `src/**/*.jsx` (excluding
+`GenerateQuiz.jsx` and `ReviewDraft.jsx` per D5.4). 172 `borderRadius` literals replaced with
+`var(--radius)` (only `'50%'` for circular badges preserved), all `boxShadow` raw literals
+removed, emoji removed from JSX outside `aria-hidden` spans, and indigo remnants replaced with
+`.tag.tag-neutral` / `.btn.btn-secondary`. The `BrandMark` SVG component lives in
+`src/components/BrandMark.jsx`. A regression guard — `tests/unit/designGuard.test.js` —
+now fails the unit suite if any of the swept patterns are reintroduced.

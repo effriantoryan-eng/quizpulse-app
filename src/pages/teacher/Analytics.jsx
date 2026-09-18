@@ -213,7 +213,7 @@ function Analytics() {
       <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
-        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Sign in
       </button>
@@ -225,7 +225,7 @@ function Analytics() {
       <p role="alert" style={{ color: 'var(--danger)', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
       <button
         onClick={() => { setLoading(true); setRetryKey(k => k + 1) }}
-        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Try again
       </button>
@@ -264,7 +264,7 @@ function Analytics() {
           {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
         {!hintVisible && (
-          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -446,7 +446,7 @@ function Analytics() {
                   <div key={i} style={{ marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                       <span style={{
-                        width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
+                        width: '24px', height: '24px', borderRadius: 'var(--radius)', flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '11px', fontWeight: '600',
                         background: isCorrect ? CORRECT_BG : OPTION_COLORS[i],
