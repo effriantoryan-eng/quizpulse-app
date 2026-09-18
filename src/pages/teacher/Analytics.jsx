@@ -188,7 +188,7 @@ function Analytics() {
       const res = await fetch(`${API_BASE}/analytics/export?quizId=${quizId}${classQuery}`)
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || `Export failed (${res.status})`)
+        throw new Error(res.status === 429 ? 'Too many exports in the last hour. Try again later.' : "Couldn't export. Try again.")
       }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -200,7 +200,7 @@ function Analytics() {
       a.remove()
       URL.revokeObjectURL(url)
     } catch (err) {
-      setExportError(err.message)
+      setExportError(err.message || "Couldn't export. Try again.")
     } finally {
       setExporting(false)
     }
@@ -255,7 +255,6 @@ function Analytics() {
               </span>
             )}
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>Quiz ID: {quizId}</div>
         </div>
         <button
           onClick={handleExportCsv}
