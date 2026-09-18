@@ -70,17 +70,34 @@ function ConfidenceExplainer({ onDone }) {
 }
 
 // 3-button confidence selector for a single question.
+// Uses radiogroup/radio roles with roving tabindex so arrow keys navigate between levels.
 function ConfidenceSelector({ questionId, value, onChange }) {
+  const refs = useRef([])
+  function handleKeyDown(e, idx) {
+    let next = null
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % CONFIDENCE_LEVELS.length
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + CONFIDENCE_LEVELS.length) % CONFIDENCE_LEVELS.length
+    if (next !== null) {
+      e.preventDefault()
+      onChange(questionId, CONFIDENCE_LEVELS[next].value)
+      refs.current[next]?.focus()
+    }
+  }
   return (
     <div style={{ marginTop: '12px' }}>
-      <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>How sure are you?</div>
-      <div className="seg" style={{ width: '100%' }}>
-        {CONFIDENCE_LEVELS.map(({ value: cv, label }) => {
+      <div id={`conf-label-${questionId}`} style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '6px' }}>How sure are you?</div>
+      <div role="radiogroup" aria-labelledby={`conf-label-${questionId}`} className="seg" style={{ width: '100%' }}>
+        {CONFIDENCE_LEVELS.map(({ value: cv, label }, idx) => {
           const selected = value === cv
           return (
             <button
               key={cv}
+              ref={el => refs.current[idx] = el}
+              role="radio"
+              aria-checked={selected}
+              tabIndex={selected || (value === undefined && idx === 0) ? 0 : -1}
               onClick={() => onChange(questionId, cv)}
+              onKeyDown={e => handleKeyDown(e, idx)}
               className={`seg-opt${selected ? ' active' : ''}`}
               style={{ flex: 1, justifyContent: 'center' }}
             >
@@ -366,10 +383,10 @@ function TakeQuiz() {
         </p>
 
         {questions.map((q, qi) => (
-          <div key={q.id} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '18px', marginBottom: '16px' }}>
-            <div className="bp-label" style={{ marginBottom: '8px' }}>
+          <fieldset key={q.id} style={{ background: 'var(--surface)', border: 'var(--bw) solid var(--border)', padding: '18px', marginBottom: '16px' }}>
+            <legend style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', padding: '0 4px', marginBottom: '4px' }}>
               Question {qi + 1}
-            </div>
+            </legend>
             <div style={{ fontSize: '15px', fontWeight: '500', marginBottom: '14px' }}>{q.text}</div>
 
             {(q.options || []).map((opt, i) => {
@@ -403,7 +420,7 @@ function TakeQuiz() {
                 onChange={selectConfidence}
               />
             )}
-          </div>
+          </fieldset>
         ))}
 
         {submitError && (

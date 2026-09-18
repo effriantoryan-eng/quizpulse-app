@@ -296,7 +296,7 @@ function SendQuiz() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Send quiz</h2>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -314,7 +314,7 @@ function SendQuiz() {
 
       {/* Quiz summary */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', background: '#f8f8f8', borderRadius: '10px', marginBottom: '24px', border: 'var(--bw) solid var(--border)' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}>📋</div>
+        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}><span aria-hidden="true">📋</span></div>
         <div>
           <div style={{ fontSize: '14px', fontWeight: '500' }}>{quizName}</div>
           <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{questionIds.length} question{questionIds.length !== 1 ? 's' : ''}</div>

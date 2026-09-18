@@ -81,7 +81,7 @@ export default function QuizHistory() {
         <h2 style={{ margin: 0, fontSize: '20px' }}>Quiz history</h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {!hintVisible && (
-            <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+            <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
           )}
           <button
             onClick={() => navigate('/teacher/build')}
@@ -170,7 +170,7 @@ export default function QuizHistory() {
                   width: '40px', height: '40px', borderRadius: '10px',
                   background: 'var(--surface2)', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', fontSize: '18px', flexShrink: 0,
-                }}>📋</div>
+                }}><span aria-hidden="true">📋</span></div>
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>

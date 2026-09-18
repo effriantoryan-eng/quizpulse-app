@@ -127,9 +127,11 @@ function ClassSettings() {
 
       <form onSubmit={handleSave}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <label style={{ fontSize: '14px', fontWeight: '500' }}>Name list validation</label>
+          <span style={{ fontSize: '14px', fontWeight: '500' }} id="namelist-label">Name list validation</span>
           <button
             type="button"
+            aria-pressed={nameListEnabled}
+            aria-labelledby="namelist-label"
             onClick={() => setNameListEnabled(v => !v)}
             style={{
               padding: '4px 14px', fontSize: '13px', border: 'var(--bw) solid var(--border)', borderRadius: '20px',
@@ -142,10 +144,11 @@ function ClassSettings() {
           </button>
         </div>
 
-        <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+        <label htmlFor="class-name-list" style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
           Student names (one per line, max {NAME_LIST_MAX})
         </label>
         <textarea
+          id="class-name-list"
           value={nameListText}
           onChange={e => setNameListText(e.target.value)}
           placeholder={'Alice Smith\nBob Jones\nCarol Williams'}

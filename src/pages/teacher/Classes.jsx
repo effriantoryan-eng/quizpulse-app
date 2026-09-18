@@ -241,6 +241,7 @@ function Classes() {
           <input
             data-testid="class-name-input"
             type="text"
+            aria-label="Class name"
             value={newName}
             onChange={e => setNewName(e.target.value)}
             placeholder="Class name (e.g. Year 9 Science)"
@@ -251,6 +252,7 @@ function Classes() {
           />
           <input
             type="number"
+            aria-label="Estimated number of students (optional)"
             value={newStudentCount}
             onChange={e => setNewStudentCount(e.target.value)}
             placeholder="Estimated students (optional, for simulation)"
@@ -327,6 +329,7 @@ function Classes() {
             <div>
               <input
                 type="text"
+                aria-label="Class name"
                 value={editName}
                 onChange={e => setEditName(e.target.value)}
                 maxLength={CLASS_NAME_MAX}
@@ -335,6 +338,7 @@ function Classes() {
               />
               <input
                 type="number"
+                aria-label="Student count"
                 value={editStudentCount}
                 onChange={e => setEditStudentCount(e.target.value)}
                 placeholder="Student count"
