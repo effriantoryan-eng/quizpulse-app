@@ -7,7 +7,6 @@ const TITLES = [
   { path: '/',                         title: 'QuizPulse — Classroom check-ins for teachers' },
   { path: '/login',                    title: 'Sign in · QuizPulse' },
   { path: '/onboarding',               title: 'Set up your account · QuizPulse' },
-  { path: '/demo',                     title: 'Preview Gallery · QuizPulse' },
   { path: '/join',                     title: 'Join a class · QuizPulse' },
   { path: '/quiz/review',              title: 'Review your answers · QuizPulse' },
   { path: '/quiz/practice',            title: 'Practice quiz · QuizPulse' },
