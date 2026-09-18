@@ -20,10 +20,13 @@ shell or App Store. Capacitor/App Store packaging is a possible future step only
 explicitly requires store presence — nothing in the current plan depends on it.
 
 **[CURRENT] state of the app — v4.8.0 (Student Quiz History & Own-Answer Review) is the latest
-tagged and deployed release. v4.9.0 (Admin Teacher-Data Drill-down + Consent Telemetry) is IN
-PROGRESS on `main` — backend and admin frontend code-complete, tests written; not yet tagged.
-See per-version blurbs below for exact status. v4.6.0 rc1 gate still open (skip-path/failure-
-recovery E2E legs unexercised). v4.6.1 (Tasks 9-11) not yet started.**
+tagged and deployed release. v4.14.0 (R5 Brand Coherence) is IN PROGRESS on
+`release/v4.14-brand-coherence` — all 6 tasks code-complete, 757/757 unit tests pass,
+`npm run build` clean; rc1 tag, manual E2E walk, and deploy pending. v4.9.0 (Admin Teacher-Data
+Drill-down + Consent Telemetry) is IN PROGRESS on `main` — backend and admin frontend
+code-complete, tests written; not yet tagged. See per-version blurbs below for exact status.
+v4.6.0 rc1 gate still open (skip-path/failure-recovery E2E legs unexercised). v4.6.1 (Tasks
+9-11) not yet started.**
 Sprint 1 (v1.0.0) complete: teachers sign in via Microsoft Entra External ID (CIAM), complete
 onboarding, manage real classes (CRUD), build quizzes, and send them. Sprint 2 adds student join
 requests, teacher approval UI, name-list validation (fuse.js), class roster, and join code
@@ -600,6 +603,47 @@ several taste/critical findings folded in before the build).
   approved wording for all 5 legal strings, a real `ATTESTATION_REQUIRED_FROM` cut-off date (told
   to pilot teachers first), and the manual E2E walk.
 
+**v4.14.0 (R5 — Brand Coherence) is [IN PROGRESS] on `release/v4.14-brand-coherence` — all
+6 tasks code-complete, 757/757 unit tests pass, `npm run build` clean; rc1 tag, manual E2E
+visual walk (7 screens × 2 viewports), and deploy pending.** Fifth and final of the R1–R5
+remediation sprints (2026-09-17 audit, Part C). No API changes — frontend-only deploy. Built
+per `C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R5_Brand_and_design_debt.md` as amended by
+the autoplan review addendum (2026-09-18). No breaking changes.
+- **Task 1 — Brand mark** (`src/components/BrandMark.jsx`): inline SVG wordmark + icon,
+  exported as a React component. Used on Login, Onboarding, Join, and TakeQuiz pages.
+  `docs/design/BRAND_ASSETS.md` documents the SVG source, colour rules, and clear-space
+  requirements.
+- **Task 2 — Indigo replacement + first-touch surfaces**: all residual indigo values
+  (`#4F46E5`, `#6366F1`, `#818CF8`, etc.) replaced with `.tag.tag-neutral` / `.btn.btn-secondary`
+  equivalents and `var(--primary)` / `var(--surface2)` tokens. Login, Join, and TakeQuiz pages
+  restyled to use the Modernist system rather than the one-off palette they carried from v3.x.
+- **Task 3 — Remove Preview Gallery + `/demo` route**: `DemoGallery.jsx` deleted;
+  `/demo` route removed from `App.jsx`; the `?preview=true` sign-out branch in Login retired;
+  `pageViewAllowlist.js` entry removed. `DemoNav` stub (the signed-out landing nav) is kept
+  since it underpins the student/teacher landing-card split.
+- **Task 4 — Skeleton component** (`src/components/Skeleton.jsx`, exports `SkeletonLines` +
+  `SkeletonCard`): replaces "Loading…" text states on every page that had them (QuizHistory,
+  Population, ClassRoster, PendingRequests, Results, Analytics) with uniform skeleton rows/cards.
+  Uses `var(--surface2)` + a CSS `@keyframes` shimmer; no library.
+- **Task 5 — Debug UI removal + export error messages**: quiz-ID debug label removed from
+  Analytics; `evidenceExport`/`evidenceAnnualLog` error responses now forward the server's
+  plain-language message rather than a generic fallback.
+- **Task 6 — Phase 2 design debt sweep**: mechanical `src/**/*.jsx` sweep (excluding
+  `GenerateQuiz.jsx`/`ReviewDraft.jsx` per D5.4) — 172 `borderRadius` numeric literals replaced
+  with `var(--radius)` (`50%` for circular badges preserved), all raw `boxShadow` literals
+  removed (Population's comparison-marker dot changed from `boxShadow: '0 0 0 1px #ccc'` to
+  `border: '2px solid #ccc'`), emoji removed outside `aria-hidden` spans (replaced with inline
+  SVGs in QuizHistory, SendQuiz, QuestionBank, AiBadge, BuildQuiz). QuizHistory hover-lift
+  animation (`translate(-2px,-2px)` + `boxShadow: '6px 6px 0 #111111'`) removed — violates
+  Modernist no-shadow convention. `tests/unit/designGuard.test.js` (156 cases) now fails the
+  unit suite if any of these patterns are reintroduced. `DESIGN.md` updated with the v4.14.0
+  scope note.
+- **Tests:** 757/757 unit pass (156 new design-guard cases). `npm run build` clean. Manual E2E
+  visual walk (7 screens: `/`, `/login`, `/join`, `/student/class`, `/teacher/home`,
+  `/teacher/analytics/:id`, `/teacher/send` at 1280px and 375px) — **not yet run** (run before
+  rc1 tag). No API changes → no integration tests.
+- **Deploy:** frontend-only (SWA GitHub Actions on push to `main`); no API publish needed.
+
 **v4.13.0 (R4 — Accessibility WCAG 2.1 AA) is [CURRENT] on `release/v4.13-accessibility` —
 Tasks 1–4 code-complete, 603/603 unit tests pass, `npm run build` clean; rc1 tag and deploy
 pending the manual axe-core/playwright E2E run (no API changes — frontend-only deploy).**
@@ -847,6 +891,7 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 18 | v4.11.0 | R2 Erasure and opt-out (remediation) — student leave-class + notification off/on + rotated-subscription resync, teacher self-service account deletion (`DELETE /api/me`), owner erasure tool (device or teacher account) + runbook, after-hours send warning; three shared erasure helpers on `studentDataCleanup.js` (deployed 2026-09-18) |
 | 19 | v4.12.0 | R3 Notice, consent and minimisation (remediation) — page-view fingerprint removal + coarse device/browser buckets, device id out of URLs, legal pages (`/privacy`/`/collection-notice`/`/terms`) + footer, join-form collection notice, button-triggered notification prompt, teacher terms acceptance + interstitial, class school-authorisation attestation with a fail-open cut-off (deployed 2026-09-18 with legal wording as placeholders — see Known issues) |
 | 20 | v4.13.0 | R4 Accessibility (WCAG 2.1 AA remediation) — contrast tokens (`--primary #ca2910`, `--muted #6b6868`), grey-text sweep, fourCell AA colours, SubNav semantic rewrite (`<nav>` + `aria-current`), TakeQuiz fieldset/radiogroup, ConfidenceExplainer dialog + focus trap, skip link + `useRouteFocus`, mobile drawer `inert` + focus management, live regions (`role="status"`/`"alert"`), SVG chart `role="img"`, document titles, `@axe-core/playwright` E2E suite |
+| 21 | v4.14.0 | R5 Brand coherence — BrandMark SVG component, indigo-to-Modernist replacement, Preview Gallery + `/demo` removal, Skeleton loading component, debug UI removal + export error messages, Phase 2 design debt sweep (172 borderRadius literals → `var(--radius)`, boxShadow raw literals removed, emoji → SVG, hover-lift removed), `tests/unit/designGuard.test.js` regression guard (156 cases) |
 
 ### Rules
 
@@ -2030,6 +2075,12 @@ step — `docs/privacy/ERASURE_RUNBOOK.md`).
 | Join-form collection notice + button-triggered notification prompt (D3.6) | [CURRENT] v4.12.0 deployed 2026-09-18 — notice text pending |
 | Teacher terms acceptance + re-accept interstitial (`PUT /api/me/terms`, `TermsUpdate.jsx`) | [CURRENT] v4.12.0 deployed 2026-09-18 — terms text pending |
 | Class school-authorisation attestation (`PUT /api/classes/{id}/attest`, fail-open cut-off) | [CURRENT] v4.12.0 deployed 2026-09-18 — `ATTESTATION_REQUIRED_FROM` unset (fails open), checkbox text pending |
+| BrandMark SVG component (`src/components/BrandMark.jsx`) + brand assets doc | [IN PROGRESS — v4.14.0 code-complete, rc1/deploy pending] |
+| Indigo-to-Modernist replacement + first-touch surface reskin (Login, Join, TakeQuiz) | [IN PROGRESS — v4.14.0 code-complete] |
+| Preview Gallery + `/demo` route removed (`DemoGallery.jsx` deleted) | [IN PROGRESS — v4.14.0 code-complete] |
+| Skeleton component (`src/components/Skeleton.jsx`, `SkeletonLines` + `SkeletonCard`) replacing text loading states | [IN PROGRESS — v4.14.0 code-complete] |
+| Debug UI removal (Analytics quiz-ID label) + export error message forwarding | [IN PROGRESS — v4.14.0 code-complete] |
+| Design debt sweep (172 borderRadius → `var(--radius)`, raw boxShadow removed, emoji → SVG, hover-lift removed) + `designGuard.test.js` | [IN PROGRESS — v4.14.0 code-complete; 757/757 unit tests pass] |
 | Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0 features sprint (distinct from the shipped v4.8.0 above)] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 

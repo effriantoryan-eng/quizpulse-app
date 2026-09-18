@@ -2,6 +2,41 @@
 
 All notable changes to QuizPulse are documented in this file.
 
+## [v4.14.0] — R5: Brand Coherence
+
+Fifth and final of the 2026-09-17 audit remediation sprints. No API changes — frontend-only
+deploy. Closes the gap between the Modernist design system and the actual rendered app.
+
+Added:
+- **BrandMark component** (`src/components/BrandMark.jsx`) — inline SVG wordmark + icon, used
+  on Login, Onboarding, Join, and TakeQuiz pages. Documented in `docs/design/BRAND_ASSETS.md`.
+- **Skeleton component** (`src/components/Skeleton.jsx`, exports `SkeletonLines` + `SkeletonCard`)
+  — CSS `@keyframes` shimmer on `var(--surface2)`, no library. Replaces "Loading…" text on
+  QuizHistory, Population, ClassRoster, PendingRequests, Results, and Analytics.
+- **`tests/unit/designGuard.test.js`** (156 cases) — fails the unit suite if disallowed
+  `borderRadius` literals, raw `boxShadow` literals, or emoji code points are reintroduced in
+  any `src/**/*.jsx` file outside the two D5.4 exclusions.
+
+Changed:
+- **Indigo replacement** — all residual indigo values replaced with Modernist system tokens
+  (`var(--primary)`, `var(--surface2)`, `.tag.tag-neutral`, `.btn.btn-secondary`). Login, Join,
+  and TakeQuiz first-touch surfaces restyled.
+- **Phase 2 design debt sweep** — 172 `borderRadius` numeric literals replaced with
+  `var(--radius)` across `src/**/*.jsx` (`'50%'` for circular badges preserved). All raw
+  `boxShadow` string literals removed (Population comparison-marker dot now uses `border`).
+  Emoji outside `aria-hidden` spans replaced with inline SVGs in QuizHistory, SendQuiz,
+  QuestionBank, AiBadge, and BuildQuiz.
+- **QuizHistory hover-lift animation removed** — the `translate(-2px,-2px)` + `boxShadow: '6px
+  6px 0 #111111'` onMouseEnter effect violated the Modernist no-shadow convention.
+- **Analytics** — quiz-ID debug label removed from the analytics drill-down header.
+- **Evidence export error messages** — `evidenceExport`/`evidenceAnnualLog` now forward the
+  server's plain-language message rather than a generic fallback.
+
+Removed:
+- **Preview Gallery + `/demo` route** — `DemoGallery.jsx` deleted, `/demo` route removed from
+  `App.jsx`, `?preview=true` sign-out branch retired, pageView allowlist entry removed.
+  `DemoNav` (the signed-out landing nav) is kept.
+
 ## [v4.13.0] — R4: Accessibility (WCAG 2.1 AA)
 
 Fourth of the 2026-09-17 audit remediation sprints. No new features, no API changes — every

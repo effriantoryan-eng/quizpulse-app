@@ -657,3 +657,33 @@ npx playwright test tests/e2e/a11y.spec.js
 **Gate status:** unit ✅ (603/603, 2026-09-18); build ✅ (`npm run build` clean); E2E spec written,
 manual run pending before rc1 tag.
 
+
+---
+
+# v4.14.0 — R5 Brand Coherence
+
+Report: `tests/reports/v4.14.0-report.html`. Unit suite **757/757 pass** (156 new in
+`designGuard.test.js` — 52 JSX files × 3 checks each).
+
+## Unit — `tests/unit/designGuard.test.js` (156 cases, Task 6)
+
+All 156 pass — no disallowed `borderRadius` literals, no raw `boxShadow` literals, no emoji
+code points in any `src/**/*.jsx` file (excluding `GenerateQuiz.jsx`/`ReviewDraft.jsx`).
+
+## Manual E2E visual walk — 7 screens × 2 viewports
+
+**Not yet run.** Verify no indigo, gradient tile, emoji, rounded cards or shadows; loading shows
+skeletons; BrandMark appears on Login/Join/Onboarding/TakeQuiz.
+
+| # | Screen | 1280px | 375px |
+|---|--------|--------|-------|
+| 1 | `/` (landing) | ⬜ | ⬜ |
+| 2 | `/login` | ⬜ | ⬜ |
+| 3 | `/join` | ⬜ | ⬜ |
+| 4 | `/student/class` | ⬜ | ⬜ |
+| 5 | `/teacher/home` | ⬜ | ⬜ |
+| 6 | `/teacher/analytics/:id` | ⬜ | ⬜ |
+| 7 | `/teacher/send` | ⬜ | ⬜ |
+
+**Gate status:** unit ✅ (757/757, 2026-09-18); build ✅ (`npm run build` clean); manual E2E walk
+pending before rc1 tag. No API changes → no integration tests required.
