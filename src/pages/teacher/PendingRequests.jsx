@@ -7,16 +7,16 @@ import { SkeletonLines } from '../../components/Skeleton'
 function matchBadge(req) {
   if (!req.matchedName) {
     if (req.matchScore === 0) return null // no name list configured
-    return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#fdecea', color: '#c0392b', borderRadius: '10px' }}>not on list</span>
+    return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#fdecea', color: '#c0392b', borderRadius: 'var(--radius)' }}>not on list</span>
   }
   const pct = Math.round(req.matchScore * 100)
   if (req.matchScore >= 0.85) {
-    return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#eafaf1', color: '#27ae60', borderRadius: '10px' }}>likely: {req.matchedName} ({pct}%)</span>
+    return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#eafaf1', color: '#27ae60', borderRadius: 'var(--radius)' }}>likely: {req.matchedName} ({pct}%)</span>
   }
   if (req.matchScore >= 0.60) {
-    return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#fef9e7', color: '#e67e22', borderRadius: '10px' }}>partial: {req.matchedName} ({pct}%)</span>
+    return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#fef9e7', color: '#e67e22', borderRadius: 'var(--radius)' }}>partial: {req.matchedName} ({pct}%)</span>
   }
-  return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#fdecea', color: '#c0392b', borderRadius: '10px' }}>not on list</span>
+  return <span style={{ fontSize: '11px', padding: '2px 7px', background: '#fdecea', color: '#c0392b', borderRadius: 'var(--radius)' }}>not on list</span>
 }
 
 function sortRequests(requests) {
@@ -225,7 +225,7 @@ function PendingRequests() {
             style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%',
               textAlign: 'left', cursor: 'pointer', padding: '14px 16px', marginBottom: '8px',
-              background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '10px',
+              background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
             }}
           >
             <span style={{ fontSize: '14px', fontWeight: 500 }}>{c.name}</span>
@@ -244,7 +244,7 @@ function PendingRequests() {
       <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
-        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Sign in
       </button>
@@ -256,7 +256,7 @@ function PendingRequests() {
       <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
       <button
         onClick={fetchRequests}
-        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Try again
       </button>
@@ -276,7 +276,7 @@ function PendingRequests() {
             <button
               onClick={approveSelected}
               disabled={actionInProgress}
-              style={{ padding: '7px 14px', background: '#27ae60', color: 'white', border: 'none', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', opacity: actionInProgress ? 0.6 : 1 }}
+              style={{ padding: '7px 14px', background: '#27ae60', color: 'white', border: 'none', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer', opacity: actionInProgress ? 0.6 : 1 }}
             >
               Accept selected ({selected.size})
             </button>
@@ -285,7 +285,7 @@ function PendingRequests() {
             <button
               onClick={approveAll}
               disabled={actionInProgress}
-              style={{ padding: '7px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '7px', fontSize: '13px', cursor: 'pointer', opacity: actionInProgress ? 0.6 : 1 }}
+              style={{ padding: '7px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer', opacity: actionInProgress ? 0.6 : 1 }}
             >
               Accept all ({pendingCount})
             </button>
@@ -302,7 +302,7 @@ function PendingRequests() {
       )}
 
       {sorted.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #eee', borderRadius: 'var(--radius)' }}>
           No pending join requests.
         </div>
       )}
@@ -324,7 +324,7 @@ function PendingRequests() {
           key={req.id}
           style={{
             display: 'flex', alignItems: 'center', gap: '12px',
-            border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '12px 14px',
+            border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '12px 14px',
             marginBottom: '8px', background: req.status === 'queued' ? '#fafafa' : 'white',
             opacity: req.status === 'queued' ? 0.75 : 1,
           }}
@@ -356,7 +356,7 @@ function PendingRequests() {
             <button
               onClick={() => rejectRequest(req.id)}
               disabled={actionInProgress}
-              style={{ padding: '5px 12px', background: 'white', color: '#c0392b', border: '1px solid #e8b4b0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0, opacity: actionInProgress ? 0.5 : 1 }}
+              style={{ padding: '5px 12px', background: 'white', color: '#c0392b', border: '1px solid #e8b4b0', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', flexShrink: 0, opacity: actionInProgress ? 0.5 : 1 }}
             >
               Reject
             </button>

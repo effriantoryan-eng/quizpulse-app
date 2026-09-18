@@ -43,7 +43,7 @@ function ProfileNudge() {
       data-testid="profile-nudge"
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
-        background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: '10px',
+        background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
         padding: '12px 16px', marginBottom: '16px',
       }}
     >
@@ -55,7 +55,7 @@ function ProfileNudge() {
         <button
           type="button"
           onClick={() => navigate('/onboarding/profile')}
-          style={{ padding: '8px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+          style={{ padding: '8px 14px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
         >
           Answer now
         </button>

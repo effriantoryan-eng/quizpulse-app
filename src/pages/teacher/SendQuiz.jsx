@@ -34,11 +34,11 @@ function ShareLink({ quizId }) {
           readOnly
           value={link}
           onClick={(e) => e.target.select()}
-          style={{ flex: 1, padding: '8px 10px', fontSize: '12px', border: '1px solid #1a7a5e', borderRadius: '8px', background: 'white', color: '#085041' }}
+          style={{ flex: 1, padding: '8px 10px', fontSize: '12px', border: '1px solid #1a7a5e', borderRadius: 'var(--radius)', background: 'white', color: '#085041' }}
         />
         <button
           onClick={copy}
-          style={{ padding: '8px 14px', background: '#085041', color: 'white', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+          style={{ padding: '8px 14px', background: '#085041', color: 'white', border: 'none', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
         >
           {copied ? 'Copied!' : 'Copy'}
         </button>
@@ -155,7 +155,7 @@ function SendQuiz() {
         </p>
         <button
           onClick={() => navigate('/teacher/build')}
-          style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
+          style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '14px', cursor: 'pointer' }}
         >
           Go to Build quiz
         </button>
@@ -296,7 +296,7 @@ function SendQuiz() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Send quiz</h2>
         {!hintVisible && (
-          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -307,14 +307,16 @@ function SendQuiz() {
       )}
 
       {incomingQuizId && (
-        <div data-testid="send-approved-banner" style={{ padding: '12px 14px', background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: '8px', fontSize: '13px', color: '#085041', marginBottom: '16px' }}>
+        <div data-testid="send-approved-banner" style={{ padding: '12px 14px', background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: 'var(--radius)', fontSize: '13px', color: '#085041', marginBottom: '16px' }}>
           Approved — pick who gets it.
         </div>
       )}
 
       {/* Quiz summary */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', background: '#f8f8f8', borderRadius: '10px', marginBottom: '24px', border: 'var(--bw) solid var(--border)' }}>
-        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}><span aria-hidden="true">📋</span></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', background: '#f8f8f8', borderRadius: 'var(--radius)', marginBottom: '24px', border: 'var(--bw) solid var(--border)' }}>
+        <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius)', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="2" width="6" height="4" rx="0"/><path d="M4 4h16v18H4z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+        </div>
         <div>
           <div style={{ fontSize: '14px', fontWeight: '500' }}>{quizName}</div>
           <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{questionIds.length} question{questionIds.length !== 1 ? 's' : ''}</div>
@@ -322,8 +324,8 @@ function SendQuiz() {
       </div>
 
       {sentResult ? (
-        <div style={{ background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: '10px', padding: '24px' }}>
-          <div style={{ fontSize: '22px', marginBottom: '10px' }}>{sentResult.scheduled ? '🕐' : '🎉'}</div>
+        <div style={{ background: '#E1F5EE', border: '1px solid #1a7a5e', borderRadius: 'var(--radius)', padding: '24px' }}>
+          <div style={{ marginBottom: '10px' }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{sentResult.scheduled ? <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></> : <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>}</svg></div>
           <div style={{ fontSize: '16px', fontWeight: '600', color: '#085041', marginBottom: '8px' }}>
             {sentResult.scheduled ? 'Quiz scheduled!' : 'Quiz sent!'}
           </div>
@@ -347,13 +349,13 @@ function SendQuiz() {
           )}
           <button
             onClick={() => navigate(`/teacher/analytics/${sentResult.quizId}`)}
-            style={{ width: '100%', padding: '11px', background: '#085041', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+            style={{ width: '100%', padding: '11px', background: '#085041', color: 'white', border: 'none', borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
           >
             View analytics →
           </button>
           <button
             onClick={() => navigate('/teacher/quizzes')}
-            style={{ width: '100%', marginTop: '8px', padding: '11px', background: 'white', color: '#085041', border: '1px solid #085041', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
+            style={{ width: '100%', marginTop: '8px', padding: '11px', background: 'white', color: '#085041', border: '1px solid #085041', borderRadius: 'var(--radius)', fontSize: '14px', cursor: 'pointer' }}
           >
             All quizzes
           </button>
@@ -367,7 +369,7 @@ function SendQuiz() {
             data-testid="send-topic-select"
             value={topicTag}
             onChange={e => setTopicTag(e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '8px', background: 'white' }}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxSizing: 'border-box', marginBottom: '8px', background: 'white' }}
           >
             <option value="">No topic</option>
             {matchedTopics.length > 0 ? (
@@ -414,11 +416,11 @@ function SendQuiz() {
           )}
 
           {classesSessionExpired && (
-            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: '8px', marginBottom: '16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: 'var(--radius)', marginBottom: '16px', textAlign: 'center' }}>
               <p style={{ margin: '0 0 8px' }}>Your session has ended. Sign in again to continue.</p>
               <button
                 onClick={() => login()}
-                style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}
+                style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}
               >
                 Sign in
               </button>
@@ -426,11 +428,11 @@ function SendQuiz() {
           )}
 
           {classesError && !classesSessionExpired && (
-            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: '8px', marginBottom: '16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '13px', color: '#c0392b', padding: '12px', background: '#fdecea', borderRadius: 'var(--radius)', marginBottom: '16px', textAlign: 'center' }}>
               {classesError}{' '}
               <button
                 onClick={fetchClasses}
-                style={{ marginLeft: '8px', padding: '4px 10px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                style={{ marginLeft: '8px', padding: '4px 10px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer' }}
               >
                 Try again
               </button>
@@ -438,7 +440,7 @@ function SendQuiz() {
           )}
 
           {!classesLoading && !classesError && !classesSessionExpired && classes.length === 0 && (
-            <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: 'var(--radius)', marginBottom: '16px' }}>
               No classes yet.{' '}
               <button type="button" className="link-button" onClick={() => navigate('/teacher/classes')}>
                 Create a class first
@@ -456,7 +458,7 @@ function SendQuiz() {
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '12px 14px', marginBottom: '8px',
                   border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
-                  borderRadius: '8px', background: isSelected ? 'var(--surface2)' : 'white',
+                  borderRadius: 'var(--radius)', background: isSelected ? 'var(--surface2)' : 'white',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
@@ -491,7 +493,7 @@ function SendQuiz() {
               aria-pressed={mode === 'now'}
               onClick={() => setMode('now')}
               style={{
-                padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
+                padding: '14px', textAlign: 'center', borderRadius: 'var(--radius)', cursor: 'pointer',
                 border: `2px solid ${mode === 'now' ? 'var(--primary)' : '#e0e0e0'}`,
                 background: mode === 'now' ? 'var(--surface2)' : '#fafafa',
                 fontWeight: '500', fontSize: '13px',
@@ -506,7 +508,7 @@ function SendQuiz() {
               aria-pressed={mode === 'schedule'}
               onClick={() => setMode('schedule')}
               style={{
-                padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
+                padding: '14px', textAlign: 'center', borderRadius: 'var(--radius)', cursor: 'pointer',
                 border: `2px solid ${mode === 'schedule' ? 'var(--primary)' : '#e0e0e0'}`,
                 background: mode === 'schedule' ? 'var(--surface2)' : '#fafafa',
                 fontWeight: '500', fontSize: '13px',
@@ -525,7 +527,7 @@ function SendQuiz() {
             min={5}
             value={durationMinutes}
             onChange={e => setDurationMinutes(Number(e.target.value))}
-            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxSizing: 'border-box', marginBottom: '16px' }}
           />
 
           {mode === 'schedule' && (
@@ -537,7 +539,7 @@ function SendQuiz() {
                 type="datetime-local"
                 value={scheduledFor}
                 onChange={e => setScheduledFor(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '16px' }}
+                style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxSizing: 'border-box', marginBottom: '16px' }}
               />
             </>
           )}
@@ -551,27 +553,27 @@ function SendQuiz() {
             placeholder="e.g. 2, 7, 21 (days after send)"
             value={spacedRepeatsInput}
             onChange={e => setSpacedRepeatsInput(e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '4px' }}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', boxSizing: 'border-box', marginBottom: '4px' }}
           />
           <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: 0, marginBottom: '16px' }}>
             After you send this quiz, we'll resend practice on the days you list here.
           </p>
 
           {sending && sendingMsg && (
-            <div style={{ padding: '10px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', color: 'var(--primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '10px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', color: 'var(--primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>⏳</span>
               {sendingMsg}
             </div>
           )}
 
           {error && (
-            <div role="alert" style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
+            <div role="alert" style={{ padding: '10px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: 'var(--radius)', fontSize: '13px', color: '#c0392b', marginBottom: '16px' }}>
               {error}
             </div>
           )}
 
           {anyAfterHours && (
-            <div data-testid="after-hours-warning" role="status" style={{ padding: '10px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', color: 'var(--text)', marginBottom: '16px' }}>
+            <div data-testid="after-hours-warning" role="status" style={{ padding: '10px 14px', background: 'var(--surface2)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', color: 'var(--text)', marginBottom: '16px' }}>
               Students may get this notification outside school hours.
             </div>
           )}
@@ -581,7 +583,7 @@ function SendQuiz() {
             style={{
               width: '100%', padding: '12px',
               background: selectedClasses.length === 0 || sending ? '#ccc' : 'var(--primary)',
-              color: 'white', border: 'none', borderRadius: '8px',
+              color: 'white', border: 'none', borderRadius: 'var(--radius)',
               fontSize: '15px', fontWeight: '500',
               cursor: selectedClasses.length === 0 || sending ? 'not-allowed' : 'pointer',
             }}

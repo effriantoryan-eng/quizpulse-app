@@ -57,7 +57,7 @@ export default function QuizHistory() {
       <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
-        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Sign in
       </button>
@@ -69,7 +69,7 @@ export default function QuizHistory() {
       <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
       <button
         onClick={fetchQuizzes}
-        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Try again
       </button>
@@ -82,11 +82,11 @@ export default function QuizHistory() {
         <h2 style={{ margin: 0, fontSize: '20px' }}>Quiz history</h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {!hintVisible && (
-            <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+            <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
           )}
           <button
             onClick={() => navigate('/teacher/build')}
-            style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+            style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
           >
             + New quiz
           </button>
@@ -105,7 +105,7 @@ export default function QuizHistory() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search quizzes by name…"
-          style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '10px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px' }}
+          style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '10px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)' }}
         />
       )}
 
@@ -116,7 +116,7 @@ export default function QuizHistory() {
               key={s}
               onClick={() => setStatusFilter(s)}
               style={{
-                padding: '5px 12px', borderRadius: '20px', border: '1px solid', textTransform: 'capitalize',
+                padding: '5px 12px', borderRadius: 'var(--radius)', border: '1px solid', textTransform: 'capitalize',
                 borderColor: statusFilter === s ? 'var(--primary)' : '#ddd',
                 background: statusFilter === s ? 'var(--primary)' : 'white',
                 color: statusFilter === s ? 'white' : '#555',
@@ -135,7 +135,7 @@ export default function QuizHistory() {
           .filter(q => statusFilter === 'All' || q.status === statusFilter)
           .filter(q => !term || (q.name || '').toLowerCase().includes(term))
         return quizzes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #ddd', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #ddd', borderRadius: 'var(--radius)' }}>
           No quizzes sent yet.{' '}
           <button type="button" className="link-button" onClick={() => navigate('/teacher/build')}>
             Build your first quiz
@@ -160,18 +160,17 @@ export default function QuizHistory() {
                   display: 'flex', alignItems: 'center', gap: '16px',
                   padding: '16px 18px', marginBottom: '10px',
                   background: 'var(--surface)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
-                  boxShadow: 'var(--shadow)',
-                  textDecoration: 'none', color: 'inherit', transition: 'transform 0.1s, box-shadow 0.1s',
+                  textDecoration: 'none', color: 'inherit',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = '6px 6px 0 #111111' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = 'var(--shadow)' }}
               >
                 {/* Icon */}
                 <div style={{
-                  width: '40px', height: '40px', borderRadius: '10px',
+                  width: '40px', height: '40px', borderRadius: 'var(--radius)',
                   background: 'var(--surface2)', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', fontSize: '18px', flexShrink: 0,
-                }}><span aria-hidden="true">📋</span></div>
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="2" width="6" height="4" rx="0" /><path d="M4 4h16v18H4z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+                </div>
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>

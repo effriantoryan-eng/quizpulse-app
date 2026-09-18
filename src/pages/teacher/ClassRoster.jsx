@@ -134,7 +134,7 @@ function ClassRoster() {
       </p>
 
       {cls && !cls.attestedAt && !ATTESTATION_PENDING && (
-        <div style={{ background: '#fff8e6', border: '1px solid #f0d999', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+        <div style={{ background: '#fff8e6', border: '1px solid #f0d999', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '16px' }}>
           <div style={{ fontSize: '13px', color: '#8a6d1a', marginBottom: '8px', lineHeight: '1.5' }}>
             {CLASS_ATTESTATION.text}
           </div>
@@ -142,7 +142,7 @@ function ClassRoster() {
           <button
             onClick={attest}
             disabled={attesting}
-            style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', opacity: attesting ? 0.7 : 1 }}
+            style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer', opacity: attesting ? 0.7 : 1 }}
           >
             {attesting ? 'Confirming…' : 'Confirm'}
           </button>
@@ -150,7 +150,7 @@ function ClassRoster() {
       )}
 
       {/* Join code panel */}
-      <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+      <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '16px' }}>
         <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>Join code</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontFamily: 'monospace', fontSize: '22px', letterSpacing: '2px', fontWeight: '600', color: 'var(--primary)' }}>
@@ -159,7 +159,7 @@ function ClassRoster() {
           <button
             onClick={regenerateCode}
             disabled={regenerating}
-            style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', opacity: regenerating ? 0.5 : 1 }}
+            style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', opacity: regenerating ? 0.5 : 1 }}
           >
             {regenerating ? '…' : 'Regenerate'}
           </button>
@@ -167,7 +167,7 @@ function ClassRoster() {
       </div>
 
       {/* Name list toggle */}
-      <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px' }}>
+      <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: '13px', fontWeight: '500' }}>Name list validation</div>
@@ -188,7 +188,7 @@ function ClassRoster() {
               onClick={() => toggleNameList(!cls.nameListEnabled)}
               disabled={togglingNameList}
               style={{
-                padding: '4px 12px', fontSize: '12px', border: 'var(--bw) solid var(--border)', borderRadius: '6px',
+                padding: '4px 12px', fontSize: '12px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
                 background: cls.nameListEnabled ? 'var(--primary)' : 'white',
                 color: cls.nameListEnabled ? 'white' : '#555',
                 cursor: 'pointer', opacity: togglingNameList ? 0.5 : 1,
@@ -218,7 +218,7 @@ function ClassRoster() {
       </h3>
 
       {approved.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '13px', border: '1px dashed #eee', borderRadius: '10px' }}>
+        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '13px', border: '1px dashed #eee', borderRadius: 'var(--radius)' }}>
           No approved students yet.{' '}
           <Link to={`/teacher/pending-requests?classId=${classId}`} style={{ color: 'var(--primary)' }}>
             Review join requests
@@ -229,7 +229,7 @@ function ClassRoster() {
       {approved.map(req => (
         <div
           key={req.id}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '10px 14px', marginBottom: '8px', background: 'white' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: '8px', background: 'white' }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.studentName}</div>
@@ -240,7 +240,7 @@ function ClassRoster() {
           <button
             onClick={() => removeStudent(req.id, req.studentName)}
             disabled={removingId === req.id}
-            style={{ padding: '5px 12px', background: 'white', color: '#c0392b', border: '1px solid #e8b4b0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0, opacity: removingId === req.id ? 0.5 : 1 }}
+            style={{ padding: '5px 12px', background: 'white', color: '#c0392b', border: '1px solid #e8b4b0', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', flexShrink: 0, opacity: removingId === req.id ? 0.5 : 1 }}
           >
             {removingId === req.id ? '…' : 'Remove'}
           </button>

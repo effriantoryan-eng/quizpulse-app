@@ -6,11 +6,11 @@ function AiBadge() {
       data-testid="ai-badge"
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '4px',
-        fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px',
+        fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: 'var(--radius)',
         background: '#E8F1FB', color: '#2C6BAA',
       }}
     >
-      🤖 AI-drafted
+      AI-drafted
     </span>
   )
 }

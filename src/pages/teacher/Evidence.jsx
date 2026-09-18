@@ -79,7 +79,7 @@ function ExportPanel({ quiz, className, onClose }) {
   }
 
   return (
-    <div style={{ border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginTop: '10px', background: '#fafafa' }}>
+    <div style={{ border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '20px', marginTop: '10px', background: '#fafafa' }}>
       {step === 1 && (
         <>
           <h4 style={{ marginTop: 0 }}>Screen 1 — Activity details</h4>
@@ -99,10 +99,10 @@ function ExportPanel({ quiz, className, onClose }) {
           <input data-testid="evidence-duration" type="number" step="0.1" min="0" value={durationHours} onChange={e => setDurationHours(Number(e.target.value))} style={fieldStyle} />
 
           <div style={{ margin: '14px 0 6px', fontSize: '12px', color: '#555' }}>VTLM 2.0 alignment (pre-populated)</div>
-          <div style={{ fontSize: '12px', color: '#333', background: 'white', border: '1px solid #ddd', borderRadius: '6px', padding: '8px' }}>{VTLM_ALIGNMENT}</div>
+          <div style={{ fontSize: '12px', color: '#333', background: 'white', border: '1px solid #ddd', borderRadius: 'var(--radius)', padding: '8px' }}>{VTLM_ALIGNMENT}</div>
 
           <div style={{ margin: '14px 0 6px', fontSize: '12px', color: '#555' }}>APST descriptors</div>
-          <div style={{ maxHeight: '220px', overflowY: 'auto', background: 'white', border: '1px solid #ddd', borderRadius: '6px', padding: '8px' }}>
+          <div style={{ maxHeight: '220px', overflowY: 'auto', background: 'white', border: '1px solid #ddd', borderRadius: 'var(--radius)', padding: '8px' }}>
             {APST_DESCRIPTORS.map(d => (
               <label key={d.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12px', padding: '4px 0' }}>
                 <input type="checkbox" checked={descriptorIds.includes(d.id)} onChange={() => toggleDescriptor(d.id)} data-testid={`apst-check-${d.id}`} />
@@ -183,7 +183,7 @@ function AnnualLogPanel({ onClose }) {
   }
 
   return (
-    <div style={{ border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginBottom: '20px', background: '#fafafa' }}>
+    <div style={{ border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: '20px', background: '#fafafa' }}>
       <h4 style={{ marginTop: 0 }}>Generate annual log</h4>
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <div>
@@ -224,9 +224,9 @@ function AnnualLogPanel({ onClose }) {
   )
 }
 
-const fieldStyle = { width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box', background: 'white' }
-const primaryBtnStyle = { marginTop: '14px', padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }
-const secondaryBtnStyle = { marginTop: '14px', padding: '8px 16px', background: 'white', color: '#333', border: '1px solid #ddd', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }
+const fieldStyle = { width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #ddd', borderRadius: 'var(--radius)', boxSizing: 'border-box', background: 'white' }
+const primaryBtnStyle = { marginTop: '14px', padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }
+const secondaryBtnStyle = { marginTop: '14px', padding: '8px 16px', background: 'white', color: '#333', border: '1px solid #ddd', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }
 
 export default function Evidence() {
   const { login } = useAuth()
@@ -286,25 +286,25 @@ export default function Evidence() {
 
       {loading && <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>}
       {sessionExpired && (
-        <div style={{ padding: '16px', textAlign: 'center', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px' }}>
+        <div style={{ padding: '16px', textAlign: 'center', background: '#fdecea', border: '1px solid #c0392b', borderRadius: 'var(--radius)' }}>
           <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#c0392b' }}>Your session has ended. Sign in again to continue.</p>
           <button onClick={() => login()} style={primaryBtnStyle}>Sign in</button>
         </div>
       )}
       {error && !sessionExpired && (
-        <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px', fontSize: '13px', color: '#c0392b' }}>
+        <div style={{ padding: '12px 14px', background: '#fdecea', border: '1px solid #c0392b', borderRadius: 'var(--radius)', fontSize: '13px', color: '#c0392b' }}>
           {error}{' '}
           <button onClick={load} style={{ ...secondaryBtnStyle, marginTop: 0, marginLeft: '8px', padding: '4px 10px' }}>Try again</button>
         </div>
       )}
       {!loading && !error && !sessionExpired && quizzes.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px 20px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '32px 20px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: 'var(--radius)' }}>
           No sent quizzes yet — send a quiz to generate evidence from it.
         </div>
       )}
 
       {!loading && !error && !sessionExpired && quizzes.map(quiz => (
-        <div key={quiz.id} data-testid="evidence-quiz-card" style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '16px', marginBottom: '12px' }}>
+        <div key={quiz.id} data-testid="evidence-quiz-card" style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div>
               <div style={{ fontWeight: '600', fontSize: '14px' }}>{quiz.name}</div>

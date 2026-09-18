@@ -38,7 +38,7 @@ function StepRow({ step, index, skipped, onNavigate, onSkip }) {
       <span
         aria-hidden="true"
         style={{
-          width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
+          width: '20px', height: '20px', borderRadius: 'var(--radius)', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700,
           background: step.done ? 'var(--primary)' : 'transparent',
           border: step.done ? 'none' : '1.5px solid var(--border)',
@@ -133,7 +133,7 @@ function GettingStartedChecklist({ gettingStarted, variant, onChange }) {
           ✕
         </button>
       </div>
-      <div style={{ height: '6px', borderRadius: '3px', background: 'var(--surface2)', marginBottom: '14px', overflow: 'hidden' }}>
+      <div style={{ height: '6px', borderRadius: 'var(--radius)', background: 'var(--surface2)', marginBottom: '14px', overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${(doneCount / steps.length) * 100}%`, background: 'var(--primary)' }} />
       </div>
       {steps.map((step, i) => (

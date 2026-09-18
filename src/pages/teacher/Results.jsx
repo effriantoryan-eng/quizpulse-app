@@ -60,7 +60,7 @@ export default function Results() {
       </div>
 
       {classes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: 'var(--radius)' }}>
           You don't have any classes yet. Create one to start sending quizzes.
         </div>
       ) : (
@@ -71,7 +71,7 @@ export default function Results() {
           <select
             value={classId}
             onChange={e => setClassId(e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', borderRadius: '8px', border: 'var(--bw) solid var(--border)', marginBottom: '20px', background: 'white' }}
+            style={{ width: '100%', padding: '10px 12px', fontSize: '14px', borderRadius: 'var(--radius)', border: 'var(--bw) solid var(--border)', marginBottom: '20px', background: 'white' }}
           >
             {classes.map(c => (
               <option key={c.id} value={c.id}>{c.name}{c.isDemo ? ' (demo)' : ''}</option>
@@ -83,7 +83,7 @@ export default function Results() {
           {listLoading ? (
             <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading…</div>
           ) : quizzes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+            <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: 'var(--radius)' }}>
               No quizzes have been sent to this class yet.
             </div>
           ) : (
@@ -94,7 +94,7 @@ export default function Results() {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
                   width: '100%', textAlign: 'left', cursor: 'pointer',
-                  background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px',
+                  background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
                   padding: '16px 20px', marginBottom: '12px',
                 }}
               >

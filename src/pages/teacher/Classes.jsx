@@ -180,7 +180,7 @@ function Classes() {
       <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to see your classes.</p>
       <button
         onClick={() => login()}
-        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Sign in
       </button>
@@ -192,7 +192,7 @@ function Classes() {
       <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
       <button
         onClick={fetchClasses}
-        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Try again
       </button>
@@ -223,7 +223,7 @@ function Classes() {
             title={realClasses.length >= 20 ? 'Maximum 20 classes reached' : 'Add a new class'}
             style={{
               padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-              borderRadius: '8px', fontSize: '13px', fontWeight: '500',
+              borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500',
               cursor: realClasses.length >= 20 ? 'not-allowed' : 'pointer',
               opacity: realClasses.length >= 20 ? 0.5 : 1,
             }}
@@ -234,7 +234,7 @@ function Classes() {
       </div>
 
       {creating && (
-        <form onSubmit={handleCreate} style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
+        <form onSubmit={handleCreate} style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
           <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '10px' }}>New class</div>
           <input
             data-testid="class-name-input"
@@ -246,7 +246,7 @@ function Classes() {
             maxLength={CLASS_NAME_MAX}
             autoFocus
             disabled={saving}
-            style={{ width: '100%', padding: '8px 10px', fontSize: '14px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
+            style={{ width: '100%', padding: '8px 10px', fontSize: '14px', borderRadius: 'var(--radius)', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
           />
           <input
             type="number"
@@ -257,7 +257,7 @@ function Classes() {
             min={0}
             max={40}
             disabled={saving}
-            style={{ width: '100%', padding: '8px 10px', fontSize: '14px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
+            style={{ width: '100%', padding: '8px 10px', fontSize: '14px', borderRadius: 'var(--radius)', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
           />
           {ATTESTATION_PENDING ? (
             <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 10px', lineHeight: '1.5' }}>
@@ -283,14 +283,14 @@ function Classes() {
               data-testid="class-create-submit"
               type="submit"
               disabled={saving}
-              style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}
+              style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}
             >
               {saving ? 'Creating…' : 'Create'}
             </button>
             <button
               type="button"
               onClick={() => { setCreating(false); setNewName(''); setNewStudentCount(''); setCreateError(null) }}
-              style={{ padding: '8px 16px', background: 'white', color: 'var(--muted)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+              style={{ padding: '8px 16px', background: 'white', color: 'var(--muted)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer' }}
             >
               Cancel
             </button>
@@ -299,7 +299,7 @@ function Classes() {
       )}
 
       {unattestedClasses.length > 0 && !ATTESTATION_PENDING && (
-        <div style={{ background: '#fff8e6', border: '1px solid #f0d999', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+        <div style={{ background: '#fff8e6', border: '1px solid #f0d999', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '16px' }}>
           <div style={{ fontSize: '13px', color: '#8a6d1a', marginBottom: '8px', lineHeight: '1.5' }}>
             {unattestedClasses.length} class{unattestedClasses.length !== 1 ? 'es' : ''} need{unattestedClasses.length === 1 ? 's' : ''} you
             to confirm your school has authorised QuizPulse before students keep joining.
@@ -308,7 +308,7 @@ function Classes() {
           <button
             onClick={attestAll}
             disabled={attesting}
-            style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', opacity: attesting ? 0.7 : 1 }}
+            style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer', opacity: attesting ? 0.7 : 1 }}
           >
             {attesting ? 'Confirming…' : 'Confirm'}
           </button>
@@ -316,13 +316,13 @@ function Classes() {
       )}
 
       {classes.length === 0 && !creating && (
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #eee', borderRadius: 'var(--radius)' }}>
           No classes yet. Click <strong>+ New class</strong> to get started.
         </div>
       )}
 
       {classes.map(c => (
-        <div key={c.id} style={{ border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '10px', background: 'white' }}>
+        <div key={c.id} style={{ border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '10px', background: 'white' }}>
           {editingId === c.id ? (
             <div>
               <input
@@ -332,7 +332,7 @@ function Classes() {
                 onChange={e => setEditName(e.target.value)}
                 maxLength={CLASS_NAME_MAX}
                 disabled={saving}
-                style={{ width: '100%', padding: '6px 10px', fontSize: '14px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
+                style={{ width: '100%', padding: '6px 10px', fontSize: '14px', borderRadius: 'var(--radius)', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
               />
               <input
                 type="number"
@@ -343,20 +343,20 @@ function Classes() {
                 min={0}
                 max={40}
                 disabled={saving}
-                style={{ width: '100%', padding: '6px 10px', fontSize: '14px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
+                style={{ width: '100%', padding: '6px 10px', fontSize: '14px', borderRadius: 'var(--radius)', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
               />
               {editError && <p style={{ color: '#c0392b', fontSize: '13px', margin: '0 0 8px' }}>{editError}</p>}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={() => handleUpdate(c.id)}
                   disabled={saving}
-                  style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}
+                  style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer', opacity: saving ? 0.7 : 1 }}
                 >
                   {saving ? 'Saving…' : 'Save'}
                 </button>
                 <button
                   onClick={() => { setEditingId(null); setEditError(null) }}
-                  style={{ padding: '6px 14px', background: 'white', color: 'var(--muted)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ padding: '6px 14px', background: 'white', color: 'var(--muted)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -388,7 +388,7 @@ function Classes() {
               {!c.isDemo && (
                 <Link
                   to={`/teacher/roster?classId=${c.id}`}
-                  style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0, textDecoration: 'none' }}
+                  style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', flexShrink: 0, textDecoration: 'none' }}
                 >
                   Roster
                 </Link>
@@ -396,7 +396,7 @@ function Classes() {
               <button
                 data-testid={`class-edit-${c.id}`}
                 onClick={() => { setEditingId(c.id); setEditName(c.name); setEditStudentCount(String(c.studentCount ?? '')); setEditError(null) }}
-                style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0 }}
+                style={{ padding: '5px 12px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', flexShrink: 0 }}
               >
                 Edit
               </button>
@@ -404,7 +404,7 @@ function Classes() {
                 data-testid={`class-delete-${c.id}`}
                 onClick={() => handleDelete(c.id, c.name)}
                 disabled={deletingId === c.id}
-                style={{ padding: '5px 12px', background: 'white', color: '#c0392b', border: '1px solid #e8b4b0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', flexShrink: 0, opacity: deletingId === c.id ? 0.5 : 1 }}
+                style={{ padding: '5px 12px', background: 'white', color: '#c0392b', border: '1px solid #e8b4b0', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', flexShrink: 0, opacity: deletingId === c.id ? 0.5 : 1 }}
               >
                 {deletingId === c.id ? '…' : 'Delete'}
               </button>

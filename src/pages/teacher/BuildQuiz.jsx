@@ -125,7 +125,7 @@ function BuildQuiz() {
         <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
         <button
           onClick={() => login()}
-          style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
         >
           Sign in
         </button>
@@ -139,7 +139,7 @@ function BuildQuiz() {
         <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
         <button
           onClick={fetchQuestions}
-          style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
         >
           Try again
         </button>
@@ -152,7 +152,7 @@ function BuildQuiz() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Build quiz</h2>
         {!hintVisible && (
-          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -170,18 +170,18 @@ function BuildQuiz() {
         onClick={() => navigate('/teacher/generate')}
         style={{
           display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 18px',
-          background: '#E8F1FB', border: '1px solid #2C6BAA', borderRadius: '10px',
+          background: '#E8F1FB', border: '1px solid #2C6BAA', borderRadius: 'var(--radius)',
           marginBottom: '20px', cursor: 'pointer',
         }}
       >
-        <span style={{ fontSize: '20px' }}>🤖</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2C6BAA" strokeWidth="2" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="0"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="15" x2="8" y2="17"/><line x1="16" y1="15" x2="16" y2="17"/></svg>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#123A5C' }}>Have a document? Draft a quiz from it</div>
           <div style={{ fontSize: '12px', color: '#2C6BAA' }}>Upload a PDF, Word doc, or text file and review AI-drafted questions.</div>
         </div>
         <span style={{
           flexShrink: 0, padding: '8px 14px', background: '#2C6BAA', color: 'white',
-          borderRadius: '8px', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap',
+          borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap',
         }}>Upload &amp; draft →</span>
       </div>
 
@@ -206,7 +206,7 @@ function BuildQuiz() {
             </div>
 
             {selected.length === 0 && (
-              <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: 'var(--radius)' }}>
                 No questions added yet
                 {allQuestions.length === 0 && (
                   <StarterSeedCta onSeeded={(seeded) => { setAllQuestions(seeded); setSelected(seeded) }} />
@@ -228,7 +228,7 @@ function BuildQuiz() {
                     padding: '10px 14px',
                     marginBottom: '8px',
                     border: `1px solid ${previewIndex === i ? 'var(--primary)' : '#e0e0e0'}`,
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius)',
                     background: previewIndex === i ? 'var(--surface2)' : 'white',
                     cursor: 'pointer',
                     fontSize: '13px',
@@ -236,9 +236,9 @@ function BuildQuiz() {
                     textAlign: 'left',
                   }}
                 >
-                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: 'var(--muted)', flexShrink: 0 }}>{i + 1}</span>
+                  <span style={{ width: '20px', height: '20px', borderRadius: 'var(--radius)', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: 'var(--muted)', flexShrink: 0 }}>{i + 1}</span>
                   <span style={{ flex: 1, lineHeight: '1.4' }}>{q.text}</span>
-                  <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color, flexShrink: 0 }}>{q.topic}</span>
+                  <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: 'var(--radius)', background: topicStyle.bg, color: topicStyle.color, flexShrink: 0 }}>{q.topic}</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <button type="button" aria-label="Move question up" onClick={e => { e.stopPropagation(); moveUp(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', padding: '1px 4px' }}>▲</button>
                     <button type="button" aria-label="Move question down" onClick={e => { e.stopPropagation(); moveDown(i) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', padding: '1px 4px' }}>▼</button>
@@ -250,7 +250,7 @@ function BuildQuiz() {
 
             <button
               type="button"
-              style={{ border: '1px dashed #ddd', borderRadius: '8px', padding: '12px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer', marginTop: '4px', width: '100%', background: 'none' }}
+              style={{ border: '1px dashed #ddd', borderRadius: 'var(--radius)', padding: '12px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)', cursor: 'pointer', marginTop: '4px', width: '100%', background: 'none' }}
               onClick={() => navigate('/teacher/bank')}
             >
               + Add more from bank
@@ -263,17 +263,17 @@ function BuildQuiz() {
           <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', marginBottom: '10px' }}>
             Preview — student view
           </div>
-          <div style={{ background: '#f8f8f8', borderRadius: '12px', padding: '16px', border: 'var(--bw) solid var(--border)' }}>
+          <div style={{ background: '#f8f8f8', borderRadius: 'var(--radius)', padding: '16px', border: 'var(--bw) solid var(--border)' }}>
             {previewQuestion ? (
               <>
                 <div style={{ fontSize: '11px', color: 'var(--muted)', textAlign: 'center', marginBottom: '10px' }}>
                   Question {previewIndex + 1} of {selected.length}
                 </div>
-                <div style={{ background: 'white', borderRadius: '8px', padding: '14px', marginBottom: '12px', fontSize: '14px', lineHeight: '1.5' }}>
+                <div style={{ background: 'white', borderRadius: 'var(--radius)', padding: '14px', marginBottom: '12px', fontSize: '14px', lineHeight: '1.5' }}>
                   {previewQuestion.text}
                 </div>
                 {(previewQuestion.options || []).map((opt, i) => (
-                  <div key={i} style={{ background: i === previewQuestion.correctIndex ? 'var(--surface2)' : 'white', border: `1px solid ${i === previewQuestion.correctIndex ? 'var(--primary)' : '#eee'}`, borderRadius: '8px', padding: '10px 14px', marginBottom: '8px', fontSize: '13px', color: i === previewQuestion.correctIndex ? 'var(--text)' : '#333' }}>
+                  <div key={i} style={{ background: i === previewQuestion.correctIndex ? 'var(--surface2)' : 'white', border: `1px solid ${i === previewQuestion.correctIndex ? 'var(--primary)' : '#eee'}`, borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: '8px', fontSize: '13px', color: i === previewQuestion.correctIndex ? 'var(--text)' : '#333' }}>
                     {opt}
                   </div>
                 ))}
@@ -285,7 +285,7 @@ function BuildQuiz() {
 
           <button
             disabled={selected.length === 0 || !quizName.trim() || savingDraft}
-            style={{ width: '100%', marginTop: '16px', padding: '12px', background: selected.length === 0 || !quizName.trim() || savingDraft ? '#ccc' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: selected.length === 0 || !quizName.trim() || savingDraft ? 'not-allowed' : 'pointer' }}
+            style={{ width: '100%', marginTop: '16px', padding: '12px', background: selected.length === 0 || !quizName.trim() || savingDraft ? '#ccc' : 'var(--primary)', color: 'white', border: 'none', borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: '500', cursor: selected.length === 0 || !quizName.trim() || savingDraft ? 'not-allowed' : 'pointer' }}
             onClick={saveAndGoToSend}
           >
             {savingDraft ? 'Saving…' : 'Save & go to send →'}

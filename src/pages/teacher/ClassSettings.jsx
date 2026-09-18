@@ -91,7 +91,7 @@ function ClassSettings() {
       <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
-        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Sign in
       </button>
@@ -103,7 +103,7 @@ function ClassSettings() {
       <p style={{ color: '#c0392b', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
       <button
         onClick={fetchClass}
-        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+        style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
       >
         Try again
       </button>
@@ -135,7 +135,7 @@ function ClassSettings() {
             aria-labelledby="namelist-label"
             onClick={() => setNameListEnabled(v => !v)}
             style={{
-              padding: '4px 14px', fontSize: '13px', border: 'var(--bw) solid var(--border)', borderRadius: '20px',
+              padding: '4px 14px', fontSize: '13px', border: 'var(--bw) solid var(--border)', borderRadius: 'var(--radius)',
               background: nameListEnabled ? 'var(--primary)' : 'white',
               color: nameListEnabled ? 'white' : '#555',
               cursor: 'pointer',
@@ -157,7 +157,7 @@ function ClassSettings() {
           disabled={saving}
           style={{
             width: '100%', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit',
-            border: `1px solid ${overLimit ? '#c0392b' : '#ddd'}`, borderRadius: '8px',
+            border: `1px solid ${overLimit ? '#c0392b' : '#ddd'}`, borderRadius: 'var(--radius)',
             boxSizing: 'border-box', resize: 'vertical', lineHeight: '1.5',
           }}
         />
@@ -173,7 +173,7 @@ function ClassSettings() {
           disabled={saving || overLimit}
           style={{
             padding: '10px 24px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',
-            borderRadius: '8px', fontSize: '14px', fontWeight: '500',
+            borderRadius: 'var(--radius)', fontSize: '14px', fontWeight: '500',
             cursor: saving || overLimit ? 'not-allowed' : 'pointer',
             opacity: saving || overLimit ? 0.6 : 1,
           }}
