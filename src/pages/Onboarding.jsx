@@ -34,7 +34,7 @@ function Onboarding() {
     const name = schoolName.trim()
     if (!name) { setError('School name is required.'); return }
     if (name.length > SCHOOL_NAME_MAX) { setError(`School name must be ${SCHOOL_NAME_MAX} characters or fewer.`); return }
-    if (!agreed) { setError('Please agree to the Terms and Privacy Policy to continue.'); return }
+    if (!TERMS_PENDING && !agreed) { setError('Please agree to the Terms and Privacy Policy to continue.'); return }
 
     setSubmitting(true)
     setError(null)
@@ -89,12 +89,7 @@ function Onboarding() {
             />
             {/* R3 Task 5 — required terms acceptance. Disabled (and Continue blocked) while wording
                 is still pending, so a teacher can never accept a placeholder. */}
-            {TERMS_PENDING ? (
-              <div style={{ marginTop: '16px', padding: '12px', border: 'var(--bw) solid var(--border)', background: 'var(--surface2)', fontSize: '13px', color: 'var(--muted)', lineHeight: '1.6' }}>
-                Our Terms and Privacy Policy are being finalised. You'll be able to finish setting up
-                your account once they're published.
-              </div>
-            ) : (
+            {!TERMS_PENDING && (
               <label htmlFor="agree-terms" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '16px', fontSize: '13px', lineHeight: '1.5' }}>
                 <input
                   id="agree-terms"
@@ -119,7 +114,7 @@ function Onboarding() {
             <button
               data-testid="onboarding-submit"
               type="submit"
-              disabled={submitting || TERMS_PENDING}
+              disabled={submitting}
               style={{
                 width: '100%', marginTop: '20px', padding: '12px',
                 background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)',

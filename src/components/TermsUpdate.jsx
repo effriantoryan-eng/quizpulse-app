@@ -41,9 +41,12 @@ export default function TermsUpdate({ onDone }) {
       <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 12px' }}>We've updated our terms</h1>
 
       {pending ? (
-        <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: '1.6' }}>
-          Our Terms and Privacy Policy are being finalised — check back soon.
-        </p>
+        <>
+          <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
+            Our Terms and Privacy Policy are being finalised.
+          </p>
+          <button onClick={onDone} className="btn btn-primary btn-block" style={{ justifyContent: 'center' }}>Continue</button>
+        </>
       ) : (
         <>
           <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
