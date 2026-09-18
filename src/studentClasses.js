@@ -102,8 +102,10 @@ export async function reconcileApprovals(deviceId, apiBase) {
   const newlyApproved = []
   await Promise.all(pending.map(async ({ classId, className }) => {
     try {
+      // R3 (audit #9): device id in the X-Device-Id header, not the query string.
       const res = await fetch(
-        `${apiBase}/join-request/status?deviceId=${encodeURIComponent(deviceId)}&classId=${encodeURIComponent(classId)}`
+        `${apiBase}/join-request/status?classId=${encodeURIComponent(classId)}`,
+        { headers: { 'X-Device-Id': deviceId } }
       )
       // 404 = the server has no such request (definitive, not transient) — drop the bogus record
       // so it can't re-lock the join screen forever. Other non-OK (5xx/rate-limit) is transient.
