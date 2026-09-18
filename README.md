@@ -15,7 +15,7 @@ associate a school before accessing the dashboard.
 Operator tooling — school management, merge tool, traffic monitor, audit log, role management.
 Requires a separate admin CIAM account.
 
-**Current version:** v4.11.0 (beta)
+**Current version:** v4.12.0 (beta)
 
 ---
 
@@ -63,6 +63,12 @@ Requires a separate admin CIAM account.
 | Teacher self-service account deletion (step-up re-auth + confirm word) | ✅ |
 | Owner erasure tool — erase one device or a whole teacher account on request, audited | ✅ |
 | After-hours send warning (warn, never block) | ✅ |
+| Page-view data minimisation — no fingerprint fields anywhere, coarse device/browser buckets, no ID before joining | ✅ |
+| Device ID out of URLs — moved to a request header | ✅ |
+| Legal pages (privacy, collection notice, terms) + footer | ⚠️ content pending |
+| Join-form collection notice + button-triggered notification prompt | ⚠️ notice text pending |
+| Teacher terms acceptance + re-accept interstitial | ⚠️ terms text pending |
+| Class school-authorisation attestation (fail-open cut-off) | ⚠️ checkbox text pending |
 
 ---
 
@@ -129,7 +135,7 @@ func azure functionapp publish quizpulse-app-api-av5z18
 ## Running tests
 
 ```powershell
-# Unit tests (no stack required) — 560/560 passing
+# Unit tests (no stack required) — 593/593 passing
 npx jest --config jest.config.cjs tests/unit/
 
 # Integration tests (requires func start + Azurite + Cosmos emulator)
@@ -171,3 +177,4 @@ npx playwright test
 | v4.9.0 | Admin teacher-data drill-down + consent & install telemetry | ✅ shipped |
 | v4.9.1 | R1 remediation — class-delete cascade, removed-student notify fix, retired usage-log dump | ✅ shipped |
 | v4.11.0 | R2 remediation — student leave/opt-out, teacher account deletion, owner erasure tool, after-hours warning | ✅ shipped |
+| v4.12.0 | R3 remediation — page-view minimisation, device id out of URLs, legal pages, join notice, teacher terms, class attestation | ✅ shipped (legal wording pending) |

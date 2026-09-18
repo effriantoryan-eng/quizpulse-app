@@ -332,6 +332,29 @@ local.settings.json — push isn't locally testable, expected). Browser-pane scr
 all session and injected clicks intermittently didn't land (tooling flake on this machine —
 verified app handlers fine via programmatic dispatch; page reads/console/network all worked).
 
+## v4.12.0 R3 — deployed with legal wording as placeholders (2026-09-18)
+
+**Deployed by explicit instruction, ahead of the plan's own gate.** v4.12.0 was tagged and merged
+to `main`, API published, with every legal string still `"[LEGAL TEXT PENDING]"` and
+`ATTESTATION_REQUIRED_FROM` unset (fails open — no class is blocked from accepting joins). A
+dedicated follow-up session will supply the real wording. Before that session closes out:
+
+- [ ] **Get the reviewer's approved wording** for `PRIVACY_POLICY`, `COLLECTION_NOTICE`, `TERMS`,
+  `JOIN_NOTICE_SHORT`, `CLASS_ATTESTATION` in `src/data/legalContent.js` — replace every
+  `LEGAL_PENDING` marker. `grep -r "LEGAL TEXT PENDING" src/` must return nothing before this is
+  truly done.
+- [ ] **Decide and set `ATTESTATION_REQUIRED_FROM`** in `api/shared/legalVersions.js` (or via the
+  `ATTESTATION_REQUIRED_FROM` env var) once the reviewer picks a real cut-off date, and confirm
+  pilot teachers were told before it takes effect.
+- [ ] **Bump the version constants** in both `src/data/legalContent.js` and
+  `api/shared/legalVersions.js` if the approved wording differs meaningfully from a placeholder
+  in a way that should invalidate any acceptance recorded in the meantime — in practice this
+  won't matter yet, since no real acceptance has been recorded against a placeholder (every accept
+  action is disabled while `isLegalPending()` is true).
+- [ ] **Redeploy the API and frontend** once the wording lands — the version constants moving is a
+  content-only change per document (no schema change), so a normal deploy is enough.
+- [ ] Walk the manual E2E rows in `SPRINT_TEST_CHECKLIST.md`'s v4.12.0 section (not yet done).
+
 ## v4.12.0 R3 — dated removals
 
 - [ ] **Remove the `?deviceId=` query-param fallback** in `api/joinRequests.js` (`joinRequestStatus`)

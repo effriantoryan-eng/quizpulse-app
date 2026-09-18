@@ -436,11 +436,16 @@ single-session convention).
   script dry-run against production and get the counts signed off → `--apply` → enable `join_requests`
   TTL → merge release → develop → main → tag `v4.9.1`.
 
-**v4.11.0 (R2 — Erasure and notification opt-out) is [IN PROGRESS] on
-`release/v4.11-erasure-opt-out` (cut from `main` after v4.9.1) — all 5 tasks code-complete;
-unit (560/560), integration (15/15, 2026-09-17) and the manual E2E walk (4/4, 2026-09-18, all
-against `quizpulse-int-test-db`) pass; deploy is the one remaining human-gated step.** Second
-of the R1–R5 remediation sprints (2026-09-17 audit, Part B: B1/B4).
+**v4.11.0 (R2 — Erasure and notification opt-out) is [CURRENT] — merged, tagged `v4.11.0`, and
+deployed live in production 2026-09-18** (`accountDelete`, `manageErasureCandidates`,
+`manageErasureDevice`, `manageErasureTeacher`, `studentLeaveClass`, `unsubscribe` confirmed on the
+live Function App via `az functionapp function list`; `DELETE /api/me` and
+`GET /api/manage/erasure/candidates` both return 401 unauthenticated, not 404/503 — the API
+publish that shipped v4.12.0 below carried this sprint's previously-unpublished endpoints too,
+since both were sitting on `main` together by the time either was deployed). All 5 tasks
+code-complete; unit (560/560), integration (15/15, 2026-09-17) and the manual E2E walk (4/4,
+2026-09-18, all against `quizpulse-int-test-db`) pass. Second of the R1–R5 remediation sprints
+(2026-09-17 audit, Part B: B1/B4).
 Built per `C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R2_Erasure_and_opt-out.md`, decisions
 D2.1–D2.6 at their defaults, as staged per-task feature branches merged into the release branch
 (gstack autopilot plan review run first — codex unavailable, so subagent-only; 1 taste decision on
@@ -490,10 +495,16 @@ the DELETE-route registration, 5 execution-note findings, all folded in).
 - **Deploy (human-gated):** publish the API (Node 22) → deploy the admin portal (as v4.9.0's admin
   pages were) → merge release → develop → main → tag `v4.11.0`.
 
-**v4.12.0 (R3 — Notice, consent and data minimisation) is [IN PROGRESS] on
-`release/v4.12-notice-consent` (cut from `main` after v4.11.0) — code + unit tests complete;
-**release is blocked on legal wording** (see below), which is why this is not yet tagged/deployed.**
-Third of the R1–R5 remediation sprints (2026-09-17 audit, Part B: B2/B3/B6). Built per
+**v4.12.0 (R3 — Notice, consent and data minimisation) is [CURRENT] — merged, tagged `v4.12.0`,
+and deployed live in production 2026-09-18, WITH LEGAL WORDING STILL AS PLACEHOLDERS** —
+`updateTerms` and `classesAttest` confirmed on the live Function App via
+`az functionapp function list`; `PUT /api/me/terms` returns 401 unauthenticated, not 404/503.
+**Deployed by explicit instruction, ahead of the plan's own rc1 gate** (which would otherwise have
+blocked on the placeholder text) — see the "No legal wording" bullet below and the
+`## v4.12.0 R3 — deployed with legal wording as placeholders` entry in `TODOS.md` for what a
+follow-up session still needs to do. `ATTESTATION_REQUIRED_FROM` is unset in production, so it
+fails open — no class is blocked from accepting joins. Third of the R1–R5 remediation sprints
+(2026-09-17 audit, Part B: B2/B3/B6). Built per
 `C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R3_Notice_consent_minimisation.md`, decisions
 D3.1–D3.7 at their defaults (no reviewer overrides supplied), following the plan review via
 `/autoplan` (Codex unavailable — subagent-only CEO/Eng/Design voices; no user-challenge escalations,
@@ -580,11 +591,14 @@ several taste/critical findings folded in before the build).
   including the fail-open cut-off row (a placeholder past date exercised the code path only, not
   the reviewer's real decision). `npm run build` is clean. E2E is not yet walked. See
   `SPRINT_TEST_CHECKLIST.md`'s v4.12.0 section for the full per-row status.
-- **Deploy (human-gated, and additionally BLOCKED on legal wording):** get the reviewer's approved
-  wording for all 5 legal strings + confirm the `ATTESTATION_REQUIRED_FROM` cut-off date and that
-  pilot teachers were told → run a manual E2E walk → publish the API
-  (Node 22; it accepts old and new client shapes) → deploy the admin portal (Traffic copy) → merge
-  release → develop → main → tag `v4.12.0`.
+- **Deployed 2026-09-18** (by explicit instruction, ahead of the legal-wording gate): API published
+  from Node 22 (`func azure functionapp publish quizpulse-app-api-av5z18`; confirmed
+  `updateTerms`/`classesAttest` live, both 401 unauthenticated not 404/503 — this publish also
+  carried v4.11.0's previously-unpublished endpoints, since both sprints were on `main` together
+  by then); admin portal deployed (Traffic "Joined devices" copy); merged release → develop → main;
+  tagged `v4.12.0-rc1` then `v4.12.0`. **Still outstanding, tracked in `TODOS.md`:** the reviewer's
+  approved wording for all 5 legal strings, a real `ATTESTATION_REQUIRED_FROM` cut-off date (told
+  to pilot teachers first), and the manual E2E walk.
 
 ---
 
@@ -779,8 +793,8 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 15 | v4.8.0 | Student quiz history & own-answer review — persist-on-submit, `/quiz/review` + `/quiz/practice`, confidence-trend strip, tappable answered cards (client-only; one pageView privacy line) |
 | 16 | v4.9.0 | Admin teacher-data drill-down + consent & install telemetry — `api/manageTeacherData.js` (overview + per-quiz analytics, fail-closed audit, GROUP BY response counts), admin Teachers/TeacherData pages, 5 new pageView eventTypes, coarse platform field, `aggregateConsentFunnel`, admin Traffic consent strip (IN PROGRESS) |
 | 17 | v4.9.1 | R1 Stop the leaks (remediation) — class-delete cascade + remove-student cleanup (de-identify responses, delete subscriptions/join requests), send-time approval re-check, 7-day TTL on rejected requests, retire `/admin/log` + `GET /api/usageLog`, founder-run orphan-cleanup script, `STUDENT_DATA.md` truth pass (IN PROGRESS — rc1 tagged, deploy human-gated) |
-| 18 | v4.11.0 | R2 Erasure and opt-out (remediation) — student leave-class + notification off/on + rotated-subscription resync, teacher self-service account deletion (`DELETE /api/me`), owner erasure tool (device or teacher account) + runbook, after-hours send warning; three shared erasure helpers on `studentDataCleanup.js` (IN PROGRESS — code + unit tests complete, integration written-but-unrun, deploy human-gated) |
-| 19 | v4.12.0 | R3 Notice, consent and minimisation (remediation) — page-view fingerprint removal + coarse device/browser buckets, device id out of URLs, legal pages (`/privacy`/`/collection-notice`/`/terms`) + footer, join-form collection notice, button-triggered notification prompt, teacher terms acceptance + interstitial, class school-authorisation attestation with a fail-open cut-off (IN PROGRESS — code + unit tests complete; **release blocked on reviewer-supplied legal wording**, integration written-but-unrun) |
+| 18 | v4.11.0 | R2 Erasure and opt-out (remediation) — student leave-class + notification off/on + rotated-subscription resync, teacher self-service account deletion (`DELETE /api/me`), owner erasure tool (device or teacher account) + runbook, after-hours send warning; three shared erasure helpers on `studentDataCleanup.js` (deployed 2026-09-18) |
+| 19 | v4.12.0 | R3 Notice, consent and minimisation (remediation) — page-view fingerprint removal + coarse device/browser buckets, device id out of URLs, legal pages (`/privacy`/`/collection-notice`/`/terms`) + footer, join-form collection notice, button-triggered notification prompt, teacher terms acceptance + interstitial, class school-authorisation attestation with a fail-open cut-off (deployed 2026-09-18 with legal wording as placeholders — see Known issues) |
 
 ### Rules
 
@@ -1954,16 +1968,16 @@ step — `docs/privacy/ERASURE_RUNBOOK.md`).
 | Class-delete cascade + remove-student cleanup (`api/shared/studentDataCleanup.js`, de-identify responses, delete subscriptions/join requests) | [IN PROGRESS — v4.9.1 code+tests complete, rc1 tagged, deploy human-gated] |
 | Send-time approval re-check (`selectEligibleSubscriptions`, removed students never notified, stale subs pruned) | [IN PROGRESS — v4.9.1 code+tests complete] |
 | Rejected-request 7-day TTL (`applyRejection`), retire `/admin/log` + `GET /api/usageLog`, orphan-cleanup script | [IN PROGRESS — v4.9.1 code+tests complete; TTL enablement + cleanup `--apply` are deploy steps] |
-| Shared erasure helpers (`removeStudentFromClass`/`eraseDevice`/`deleteTeacherAccount` on `studentDataCleanup.js`; `classesRemoveStudent` delegates) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
-| Student leave-class + per-class notification off/on + rotated-subscription resync (`api/studentPrivacy.js`, `/student/class` buttons, `pushSubscribe.js`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
-| Teacher self-service account deletion (`DELETE /api/me`, `/teacher/account`, fail-closed `runAccountDeletion`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
-| Owner erasure tool (`api/manageErasure.js` device/teacher erasure + candidates, admin `Erasure.jsx`, `ERASURE_RUNBOOK.md`, fail-closed `runErasure`) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
-| After-hours send warning (`src/data/schoolHours.js`, SendQuiz "Send anyway", D2.5 warn-not-block) | [IN PROGRESS — v4.11.0 code + unit + integration tests complete] |
-| Page-view data minimisation (no fingerprint fields anywhere, coarse device/browser buckets, `teacherId` null pre-join, device id out of URLs) | [IN PROGRESS — v4.12.0 code + unit tests complete, integration written-but-unrun] |
-| Legal pages + footer (`/privacy`, `/collection-notice`, `/terms`, `LegalFooter.jsx`) | [IN PROGRESS — v4.12.0 code complete; **content is `[LEGAL TEXT PENDING]` — blocks rc1/deploy**] |
-| Join-form collection notice + button-triggered notification prompt (D3.6) | [IN PROGRESS — v4.12.0 code complete] |
-| Teacher terms acceptance + re-accept interstitial (`PUT /api/me/terms`, `TermsUpdate.jsx`) | [IN PROGRESS — v4.12.0 code complete] |
-| Class school-authorisation attestation (`PUT /api/classes/{id}/attest`, fail-open cut-off) | [IN PROGRESS — v4.12.0 code complete] |
+| Shared erasure helpers (`removeStudentFromClass`/`eraseDevice`/`deleteTeacherAccount` on `studentDataCleanup.js`; `classesRemoveStudent` delegates) | [CURRENT] v4.11.0 deployed 2026-09-18 |
+| Student leave-class + per-class notification off/on + rotated-subscription resync (`api/studentPrivacy.js`, `/student/class` buttons, `pushSubscribe.js`) | [CURRENT] v4.11.0 deployed 2026-09-18 |
+| Teacher self-service account deletion (`DELETE /api/me`, `/teacher/account`, fail-closed `runAccountDeletion`) | [CURRENT] v4.11.0 deployed 2026-09-18 |
+| Owner erasure tool (`api/manageErasure.js` device/teacher erasure + candidates, admin `Erasure.jsx`, `ERASURE_RUNBOOK.md`, fail-closed `runErasure`) | [CURRENT] v4.11.0 deployed 2026-09-18 |
+| After-hours send warning (`src/data/schoolHours.js`, SendQuiz "Send anyway", D2.5 warn-not-block) | [CURRENT] v4.11.0 deployed 2026-09-18 |
+| Page-view data minimisation (no fingerprint fields anywhere, coarse device/browser buckets, `teacherId` null pre-join, device id out of URLs) | [CURRENT] v4.12.0 deployed 2026-09-18 |
+| Legal pages + footer (`/privacy`, `/collection-notice`, `/terms`, `LegalFooter.jsx`) | [CURRENT] v4.12.0 deployed 2026-09-18 — **content is `[LEGAL TEXT PENDING]`, real wording pending a dedicated session (see Known issues)** |
+| Join-form collection notice + button-triggered notification prompt (D3.6) | [CURRENT] v4.12.0 deployed 2026-09-18 — notice text pending |
+| Teacher terms acceptance + re-accept interstitial (`PUT /api/me/terms`, `TermsUpdate.jsx`) | [CURRENT] v4.12.0 deployed 2026-09-18 — terms text pending |
+| Class school-authorisation attestation (`PUT /api/classes/{id}/attest`, fail-open cut-off) | [CURRENT] v4.12.0 deployed 2026-09-18 — `ATTESTATION_REQUIRED_FROM` unset (fails open), checkbox text pending |
 | Multi-class trend grid, nudge non-submitters, device-scoped "Your activity", device linking | [PLANNED — v4.8.0 features sprint (distinct from the shipped v4.8.0 above)] |
 | Companion Layer Phase 2 (creature/room, monthly cadence, depth/breadth, adoption loop) | [PLANNED — post-pilot, requires student accounts] |
 
@@ -1973,6 +1987,17 @@ step — `docs/privacy/ERASURE_RUNBOOK.md`).
 
 ### Open
 
+- **v4.12.0 (R3) — deployed to production 2026-09-18 with legal wording still as placeholders.**
+  Every string in `src/data/legalContent.js` (Privacy Policy, Collection Notice, Terms, the
+  join-form notice, the class-attestation checkbox) is the literal `"[LEGAL TEXT PENDING]"`
+  marker, live in production right now — `isLegalPending()` prevents any of it from being shown as
+  real text or accepted as if it were (every affected page shows a neutral "being finalised" state
+  instead, and every accept action is disabled), but the pages themselves are reachable and a
+  visitor can see the placeholder state. `ATTESTATION_REQUIRED_FROM` is also unset, so it fails
+  open — no real class is currently blocked from accepting joins. **This was a deliberate,
+  explicit deploy decision** (the plan's own rc1 gate would otherwise have blocked it) — a
+  dedicated follow-up session will supply the real wording and cut-off date. Full remaining
+  checklist: `TODOS.md`'s `## v4.12.0 R3 — deployed with legal wording as placeholders` entry.
 - **v4.9.1 (R1) — code + tests done, `v4.9.1-rc1` tagged; production deploy is human-gated.**
   Remaining, in order (see the v4.9.1 blurb near the top and the plan's GIT/DEPLOY): publish the API
   from Node 22 → run `node api/scripts/cleanupOrphanedStudentData.js` (dry run) against **production**,
