@@ -48,13 +48,9 @@ export default function InstallButton({ description, align = 'center' }) {
       )}
       <button
         onClick={handleInstall}
-        style={{
-          padding: '10px 18px', background: '#fff', color: '#534AB7',
-          border: '1px solid #534AB7', borderRadius: '10px',
-          fontSize: '14px', fontWeight: '600', cursor: 'pointer',
-        }}
+        className="btn btn-secondary"
       >
-        📲 Add to your phone
+        Add to your phone
       </button>
     </div>
   )

@@ -209,11 +209,8 @@ function Classes() {
               onClick={handleCreateDemo}
               disabled={creatingDemo}
               title="Create a class with practice students so you can try sending a quiz right away"
-              style={{
-                padding: '8px 16px', background: '#EEEDFE', color: '#3C3489', border: '1px solid #d6d2f5',
-                borderRadius: '8px', fontSize: '13px', fontWeight: '500',
-                cursor: creatingDemo ? 'wait' : 'pointer', opacity: creatingDemo ? 0.7 : 1,
-              }}
+              className="btn btn-secondary"
+              style={{ cursor: creatingDemo ? 'wait' : 'pointer', opacity: creatingDemo ? 0.7 : 1 }}
             >
               {creatingDemo ? 'Setting up…' : 'Try with a demo class'}
             </button>
@@ -372,7 +369,7 @@ function Classes() {
                   {c.isDemo && (
                     <span
                       data-testid={`class-demo-pill-${c.id}`}
-                      style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
+                      className="tag tag-neutral" style={{ flexShrink: 0 }}
                     >
                       Demo
                     </span>

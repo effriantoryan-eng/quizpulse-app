@@ -248,7 +248,7 @@ function Analytics() {
             {isDemo && (
               <span
                 data-testid="analytics-demo-pill"
-                style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', background: '#EEEDFE', color: '#3C3489', flexShrink: 0 }}
+                className="tag tag-neutral" style={{ flexShrink: 0 }}
               >
                 Demo data
               </span>

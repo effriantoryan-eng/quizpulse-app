@@ -103,7 +103,7 @@ function RequireTeacher({ children }) {
 }
 
 // Public, full-bleed routes (student-facing + auth) render without the teacher sidebar.
-const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/onboarding/profile', '/teacher/first-run', '/quiz', '/join', '/student/class', '/privacy', '/collection-notice', '/terms']
+const FULL_WIDTH_ROUTES = ['/', '/login', '/onboarding', '/onboarding/profile', '/teacher/first-run', '/quiz', '/join', '/student/class', '/privacy', '/collection-notice', '/terms']
 
 function AppRoutes() {
   usePageView()
