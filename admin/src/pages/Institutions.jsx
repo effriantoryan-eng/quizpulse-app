@@ -118,7 +118,7 @@ export default function Institutions() {
           Validated institutions {!loadingList && <span style={{ fontWeight: 400, color: '#64748b' }}>({institutions.length})</span>}
         </h2>
 
-        {loadingList && <div style={{ color: '#94a3b8', fontSize: 13 }}>Loading…</div>}
+        {loadingList && <div style={{ color: '#64748b', fontSize: 13 }}>Loading…</div>}
 
         {institutions.map((s) => {
           const inv = inviteStates[s.id] || {}
@@ -164,7 +164,7 @@ export default function Institutions() {
         })}
 
         {!loadingList && institutions.length === 0 && (
-          <div style={{ color: '#94a3b8', fontSize: 13 }}>No validated institutions yet.</div>
+          <div style={{ color: '#64748b', fontSize: 13 }}>No validated institutions yet.</div>
         )}
       </div>
     </div>

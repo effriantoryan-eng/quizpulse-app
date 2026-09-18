@@ -123,7 +123,7 @@ function NotificationTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
           <div style={{ width: '18px', height: '18px', background: C.purple, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>⚡</div>
           <span style={{ fontSize: '9px', fontWeight: '600', color: '#333' }}>QUIZPULSE</span>
-          <span style={{ fontSize: '8px', color: '#999', marginLeft: 'auto' }}>now</span>
+          <span style={{ fontSize: '8px', color: 'var(--muted)', marginLeft: 'auto' }}>now</span>
         </div>
         <div style={{ fontSize: '10px', fontWeight: '600', color: '#111', marginBottom: '2px' }}>New quiz from Ms Johnson</div>
         <div style={{ fontSize: '9px', color: '#555', marginBottom: '8px' }}>Week 4 — Photosynthesis check-in • Yr 9 Science</div>

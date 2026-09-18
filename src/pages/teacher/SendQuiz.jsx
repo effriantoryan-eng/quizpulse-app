@@ -143,14 +143,14 @@ function SendQuiz() {
   useEffect(() => { setArmedAfterHours(false) }, [mode, scheduledFor, spacedRepeatsInput])
 
   if (incomingQuizId && loadingQuiz) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
+    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
 
   if (!quizName || questionIds.length === 0) {
     return (
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '24px' }}>
         <h2 style={{ marginBottom: '16px' }}>Send quiz</h2>
-        <p style={{ fontSize: '14px', color: '#888', marginBottom: '16px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>
           No quiz to send. Please build a quiz first.
         </p>
         <button
@@ -317,7 +317,7 @@ function SendQuiz() {
         <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '18px' }}>📋</div>
         <div>
           <div style={{ fontSize: '14px', fontWeight: '500' }}>{quizName}</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>{questionIds.length} question{questionIds.length !== 1 ? 's' : ''}</div>
+          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{questionIds.length} question{questionIds.length !== 1 ? 's' : ''}</div>
         </div>
       </div>
 
@@ -361,7 +361,7 @@ function SendQuiz() {
       ) : (
         <>
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
-            Topic <span style={{ fontWeight: '400', color: '#aaa' }}>(optional)</span>
+            Topic <span style={{ fontWeight: '400', color: 'var(--muted)' }}>(optional)</span>
           </label>
           <select
             data-testid="send-topic-select"
@@ -401,16 +401,16 @@ function SendQuiz() {
               Show all topics
             </button>
           )}
-          <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '20px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: 0, marginBottom: '20px' }}>
             {onlyDemoSelected
               ? 'Practice quizzes sent to a demo class don’t count toward your school’s benchmark on the Population page.'
               : 'Picking a topic lets this quiz count toward your school’s benchmark on the Population page.'}
           </p>
 
-          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', marginBottom: '10px' }}>Send to class</div>
+          <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', marginBottom: '10px' }}>Send to class</div>
 
           {classesLoading && (
-            <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center' }}>Loading classes…</div>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center' }}>Loading classes…</div>
           )}
 
           {classesSessionExpired && (
@@ -438,7 +438,7 @@ function SendQuiz() {
           )}
 
           {!classesLoading && !classesError && !classesSessionExpired && classes.length === 0 && (
-            <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
               No classes yet.{' '}
               <button type="button" className="link-button" onClick={() => navigate('/teacher/classes')}>
                 Create a class first
@@ -543,7 +543,7 @@ function SendQuiz() {
           )}
 
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
-            Schedule spaced repeats <span style={{ fontWeight: '400', color: '#aaa' }}>(optional, up to 5)</span>
+            Schedule spaced repeats <span style={{ fontWeight: '400', color: 'var(--muted)' }}>(optional, up to 5)</span>
           </label>
           <input
             data-testid="send-spaced-repeats-input"
@@ -553,7 +553,7 @@ function SendQuiz() {
             onChange={e => setSpacedRepeatsInput(e.target.value)}
             style={{ width: '100%', padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box', marginBottom: '4px' }}
           />
-          <p style={{ fontSize: '12px', color: '#aaa', marginTop: 0, marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: 0, marginBottom: '16px' }}>
             After you send this quiz, we'll resend practice on the days you list here.
           </p>
 
@@ -596,7 +596,7 @@ function SendQuiz() {
                   : `Send to ${totalStudents} student${totalStudents === 1 ? '' : 's'} →`}
           </button>
 
-          <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', marginTop: '10px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', marginTop: '10px' }}>
             You'll see live analytics update as students respond to the quiz.
           </p>
         </>

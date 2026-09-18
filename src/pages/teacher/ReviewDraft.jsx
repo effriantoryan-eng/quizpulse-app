@@ -28,7 +28,7 @@ function QuestionCard({ question, index, onTick, onEdit, onDelete, onRegenerate,
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-        <div style={{ fontSize: '11px', color: '#aaa' }}>
+        <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
           Question {index + 1}
           {question.editedManually && <span style={{ marginLeft: '6px', color: '#1a7a5e' }}>✓ Edited</span>}
         </div>
@@ -206,11 +206,11 @@ function ReviewDraft() {
     }
   }
 
-  if (loading) return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
+  if (loading) return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   if (error || !draft) {
     return (
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
-        <p style={{ color: '#888', fontSize: '14px', marginBottom: '16px' }}>{error || 'Draft not found'}</p>
+        <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '16px' }}>{error || 'Draft not found'}</p>
         <button onClick={() => navigate('/teacher/generate')} style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
           Back to drafts
         </button>
@@ -260,7 +260,7 @@ function ReviewDraft() {
               onChange={e => updateScheduleEntry(i, e.target.value)}
               style={{ width: '70px', padding: '6px 8px', fontSize: '13px', border: '1px solid #ddd', borderRadius: '6px' }}
             />
-            <span style={{ fontSize: '12px', color: '#888' }}>days</span>
+            <span style={{ fontSize: '12px', color: 'var(--muted)' }}>days</span>
             <button onClick={() => removeScheduleEntry(i)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#c0392b', cursor: 'pointer', fontSize: '12px' }}>Remove</button>
           </div>
         ))}
@@ -278,7 +278,7 @@ function ReviewDraft() {
       )}
 
       <div style={{ position: 'sticky', bottom: 0, background: 'white', borderTop: '1px solid #eee', padding: '14px 0', marginTop: '20px' }}>
-        <div style={{ fontSize: '12px', color: '#888', marginBottom: '8px', textAlign: 'center' }}>
+        <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textAlign: 'center' }}>
           {reviewedCount} of {draft.questions.length} reviewed — tick or edit each question to approve
         </div>
         <button

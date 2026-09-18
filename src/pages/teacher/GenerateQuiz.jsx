@@ -90,7 +90,7 @@ function GenerateQuiz() {
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px' }}>
       <h2 style={{ marginBottom: '6px' }}>Draft a quiz from your document</h2>
-      <p style={{ fontSize: '13px', color: '#888', marginBottom: '24px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '24px' }}>
         Upload a document and get a draft quiz to review — you approve every question.
       </p>
 
@@ -109,7 +109,7 @@ function GenerateQuiz() {
             <div style={{ fontSize: '14px', fontWeight: '500' }}>
               {file ? file.name : 'Click to choose a PDF, Word doc, or text file'}
             </div>
-            <div style={{ fontSize: '12px', color: '#aaa', marginTop: '4px' }}>Up to 15MB</div>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Up to 15MB</div>
             <input
               ref={fileInputRef}
               type="file"
@@ -179,7 +179,7 @@ function GenerateQuiz() {
           />
 
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
-            Topic <span style={{ fontWeight: '400', color: '#aaa' }}>(optional)</span>
+            Topic <span style={{ fontWeight: '400', color: 'var(--muted)' }}>(optional)</span>
           </label>
           <select
             value={topicTag}
@@ -204,7 +204,7 @@ function GenerateQuiz() {
           {source.chunkCount > 1 && (
             <>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
-                {source.kind === 'pdf' ? 'Page range' : 'Section range'} <span style={{ fontWeight: '400', color: '#aaa' }}>(optional)</span>
+                {source.kind === 'pdf' ? 'Page range' : 'Section range'} <span style={{ fontWeight: '400', color: 'var(--muted)' }}>(optional)</span>
               </label>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <input
@@ -220,7 +220,7 @@ function GenerateQuiz() {
                   style={{ flex: 1, padding: '10px 12px', fontSize: '14px', border: 'var(--bw) solid var(--border)', borderRadius: '8px', boxSizing: 'border-box' }}
                 />
               </div>
-              <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '16px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '16px' }}>
                 {source.sectionPreviews?.slice(0, 6).map(p => (
                   <div key={p.index}>{p.page ? `Page ${p.page}` : `Section ${p.index + 1}`}: {p.preview}</div>
                 ))}

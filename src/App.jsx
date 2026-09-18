@@ -46,7 +46,7 @@ import { PRIVACY_POLICY, COLLECTION_NOTICE, TERMS } from './data/legalContent'
 function RequireAuth({ children }) {
   const { isAuthenticated, loading } = useAuth()
   if (loading) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
+    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
   if (!isAuthenticated) {
     return <Login />
@@ -88,11 +88,11 @@ function RequireTeacher({ children }) {
   }, [isAuthenticated, loading, teacherId, navigate])
 
   if (loading) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
+    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
   if (!isAuthenticated) return <Login />
   if (status === null) {
-    return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
+    return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
   }
   if (status === false) return null // navigate to /onboarding already in flight
   if (termsCurrent === false) {

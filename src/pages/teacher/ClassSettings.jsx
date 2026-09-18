@@ -83,11 +83,11 @@ function ClassSettings() {
   }
 
   if (!classId) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#555', fontSize: '14px' }}>Pick a class first — open <Link to="/teacher/classes">Classes</Link>, choose Roster on the class you want, then switch to this tab.</div>
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
 
   if (sessionExpired) return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
-      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
         style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -115,13 +115,13 @@ function ClassSettings() {
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-        <Link to={`/teacher/roster?classId=${classId}`} style={{ color: '#888', textDecoration: 'none', fontSize: '13px' }}>
+        <Link to={`/teacher/roster?classId=${classId}`} style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: '13px' }}>
           ← Back to roster
         </Link>
       </div>
 
       <h2 style={{ margin: '0 0 4px', fontSize: '18px' }}>{cls.name} — Settings</h2>
-      <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#888' }}>
+      <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--muted)' }}>
         Name list validation helps you confirm students are on your roll. It's an assistance tool — you decide regardless of the match.
       </p>
 

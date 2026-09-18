@@ -118,7 +118,7 @@ function ClassRoster() {
   if (!classId) {
     return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#555', fontSize: '14px' }}>Pick a class first — open <Link to="/teacher/classes">Classes</Link> and choose Roster on the class you want.</div>
   }
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading roster…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading roster…</div>
   if (error) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#c0392b', fontSize: '14px' }}>Failed to load roster: {error}</div>
 
   const approved = requests.filter(r => r.status === 'approved')
@@ -128,7 +128,7 @@ function ClassRoster() {
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}>
       <h2 style={{ margin: '0 0 4px', fontSize: '18px' }}>{cls.name}</h2>
-      <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#888' }}>
+      <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'var(--muted)' }}>
         {approved.length} active · {pendingCount} pending · {queuedCount} queued
       </p>
 
@@ -150,7 +150,7 @@ function ClassRoster() {
 
       {/* Join code panel */}
       <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
-        <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Join code</div>
+        <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>Join code</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontFamily: 'monospace', fontSize: '22px', letterSpacing: '2px', fontWeight: '600', color: 'var(--primary)' }}>
             {cls.joinCode}
@@ -170,7 +170,7 @@ function ClassRoster() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontSize: '13px', fontWeight: '500' }}>Name list validation</div>
-            <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
               {cls.nameListEnabled
                 ? `Enabled · ${cls.nameList?.length || 0} names`
                 : 'Disabled — any name accepted'}
@@ -217,7 +217,7 @@ function ClassRoster() {
       </h3>
 
       {approved.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '13px', border: '1px dashed #eee', borderRadius: '10px' }}>
+        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '13px', border: '1px dashed #eee', borderRadius: '10px' }}>
           No approved students yet.{' '}
           <Link to={`/teacher/pending-requests?classId=${classId}`} style={{ color: 'var(--primary)' }}>
             Review join requests
@@ -232,7 +232,7 @@ function ClassRoster() {
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.studentName}</div>
-            <div style={{ fontSize: '12px', color: '#aaa', marginTop: '2px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
               Joined {new Date(req.createdAt).toLocaleDateString()}
             </div>
           </div>

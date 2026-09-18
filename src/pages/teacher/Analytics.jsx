@@ -305,11 +305,11 @@ function Analytics() {
           <div style={{ fontSize: '36px', fontWeight: '600' }}>
             {classSize ? `${totalResponses} / ${classSize}` : totalResponses}
           </div>
-          <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Students responded</div>
+          <div style={{ fontSize: '13px', marginTop: '4px' }}>Students responded</div>
         </div>
         <div style={{ background: 'var(--okBg)', padding: '20px', color: 'var(--ok)', textAlign: 'center' }}>
           <div style={{ fontSize: '36px', fontWeight: '600' }}>{questions.length}</div>
-          <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Questions in quiz</div>
+          <div style={{ fontSize: '13px', marginTop: '4px' }}>Questions in quiz</div>
         </div>
       </div>
 

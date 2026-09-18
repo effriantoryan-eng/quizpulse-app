@@ -42,7 +42,7 @@ export default function InstallButton({ description, align = 'center' }) {
   return (
     <div data-testid="install-button" style={{ textAlign: align }}>
       {description && (
-        <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.6', margin: '0 0 10px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: '1.6', margin: '0 0 10px' }}>
           {description}
         </p>
       )}

@@ -49,11 +49,11 @@ export default function QuizHistory() {
     fetchQuizzes()
   }, [teacherId])
 
-  if (loading) return <div style={{ padding: '24px', color: '#888', fontSize: '14px' }}>Loading quizzes…</div>
+  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading quizzes…</div>
 
   if (sessionExpired) return (
     <div style={{ padding: '24px', textAlign: 'center' }}>
-      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
         style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -134,14 +134,14 @@ export default function QuizHistory() {
           .filter(q => statusFilter === 'All' || q.status === statusFilter)
           .filter(q => !term || (q.name || '').toLowerCase().includes(term))
         return quizzes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', border: '1px dashed #ddd', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #ddd', borderRadius: '12px' }}>
           No quizzes sent yet.{' '}
           <button type="button" className="link-button" onClick={() => navigate('/teacher/build')}>
             Build your first quiz
           </button>
         </div>
       ) : visible.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '14px' }}>
           No quizzes match your filters.
         </div>
       ) : (
@@ -177,7 +177,7 @@ export default function QuizHistory() {
                   <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {quiz.name}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#888' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                     {classLabels || 'No class'} · {quiz.questionIds?.length ?? 0} question{(quiz.questionIds?.length ?? 0) !== 1 ? 's' : ''} · {formatDate(quiz.sentAt || quiz.createdAt)}
                   </div>
                 </div>

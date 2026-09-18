@@ -119,13 +119,13 @@ export default function Schools() {
           </thead>
           <tbody>
             {schools.length === 0 && !loading && (
-              <tr><td colSpan={8} style={{ ...tdStyle, color: '#94a3b8', textAlign: 'center', padding: 24 }}>No schools found</td></tr>
+              <tr><td colSpan={8} style={{ ...tdStyle, color: '#64748b', textAlign: 'center', padding: 24 }}>No schools found</td></tr>
             )}
             {schools.map((s) => (
               <tr key={s.id} style={{ ':hover': { background: '#f8fafc' } }}>
                 <td style={tdStyle}>
                   <div style={{ fontWeight: 500 }}>{s.name}</div>
-                  <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>{s.id}</div>
+                  <div style={{ color: '#64748b', fontSize: 11, marginTop: 2 }}>{s.id}</div>
                 </td>
                 <td style={tdStyle}><Badge status={s.status} /></td>
                 <td style={tdStyle}>{s.sector || '—'}</td>
@@ -144,7 +144,7 @@ export default function Schools() {
                     </button>
                   )}
                   {s.mergedIntoId && (
-                    <span style={{ color: '#94a3b8', fontSize: 11 }}>Merged</span>
+                    <span style={{ color: '#64748b', fontSize: 11 }}>Merged</span>
                   )}
                 </td>
               </tr>
