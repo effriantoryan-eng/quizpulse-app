@@ -571,22 +571,27 @@ from accepting joins until the reviewer sets a real cut-off date and pilot teach
 | 9 | Class creation requires attestation | `createRealClass`: missing, wrong version, `schoolAuthorised:false`, valid, `skipAttestation` | AttestationError ×3; created with `attestedAt`; shell created un-attested | ✅ PASS |
 | 10 | New routes are allowlisted | Existing route-walk test (`pageViewAllowlist.test.js`) | Passes with `/privacy`, `/collection-notice`, `/terms` | ✅ PASS |
 
-## Integration — `tests/integration/api/v4.12.0-notice-consent.test.js` (8 cases, written, not yet run)
+## Integration — `tests/integration/api/v4.12.0-notice-consent.test.js` (8 cases)
 
-Written against the same TEST-Cosmos-pinned convention as `r1-stop-the-leaks.test.js` /
-`v4.11.0-erasure-opt-out.test.js`, but **not yet run** — no `func start` + test-Cosmos session in
-this build. Run before tagging rc1.
+Run 2026-09-18 against `func start` + `quizpulse-int-test-db` (`RUN_INTEGRATION=true
+B2C_ALLOW_UNVERIFIED_DEV=true ATTESTATION_REQUIRED_FROM=2020-01-01T00:00:00.000Z`) — the resolved
+`COSMOS_ENDPOINT` was echoed and confirmed pointed at `quizpulse-int-test-db` before any test ran
+(never production, per CLAUDE.md Testing). **8/8 pass.** Host stopped immediately after the run.
 
-| # | What is tested | Expected |
-|---|---|---|
-| 1 | Stored page view is minimal | A full legacy `/join` payload → the doc read back via SDK has only `page/eventType/teacherId(null)/sessionId/quizId/device/browser/platform/id/visitedAt` |
-| 2 | Device ID from the header | `X-Device-Id` header works; legacy `?deviceId=` still works this release |
-| 3 | Join notice version enforced | Stale → 400; current → 201 with `noticeVersion` stored; absent → 201 with `noticeVersion` null |
-| 4 | Teacher terms at onboarding | Wrong `acceptedTermsVersion` → 400; correct → teacher doc has it, `GET /api/me` `termsCurrent: true` |
-| 5 | Existing teacher re-accepts | No terms fields → `termsCurrent: false`; `PUT /api/me/terms` wrong → 400, correct → 200 + `termsCurrent: true` |
-| 6 | Class attestation | Missing → 400; valid → 201 with `attestedAt` |
-| 7 | Cut-off blocks un-attested joins (needs `ATTESTATION_REQUIRED_FROM` set into the past on the func host — skipped otherwise) | A legacy un-attested class → 409; after `PUT attest` → 201 |
-| 8 | Cross-tenant attest denied | Teacher B PUTs Teacher A's class's attest → 404; A's class unchanged |
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | Stored page view is minimal | A full legacy `/join` payload → the doc read back via SDK has only `page/eventType/teacherId(null)/sessionId/quizId/device/browser/platform/id/visitedAt` | ✅ PASS |
+| 2 | Device ID from the header | `X-Device-Id` header works; legacy `?deviceId=` still works this release | ✅ PASS |
+| 3 | Join notice version enforced | Stale → 400; current → 201 with `noticeVersion` stored; absent → 201 with `noticeVersion` null | ✅ PASS |
+| 4 | Teacher terms at onboarding | Wrong `acceptedTermsVersion` → 400; correct → teacher doc has it, `GET /api/me` `termsCurrent: true` | ✅ PASS |
+| 5 | Existing teacher re-accepts | No terms fields → `termsCurrent: false`; `PUT /api/me/terms` wrong → 400, correct → 200 + `termsCurrent: true` | ✅ PASS |
+| 6 | Class attestation | Missing → 400; valid → 201 with `attestedAt` | ✅ PASS |
+| 7 | Cut-off blocks un-attested joins (`ATTESTATION_REQUIRED_FROM` set into the past on the func host) | A legacy un-attested class → 409; after `PUT attest` → 201 | ✅ PASS |
+| 8 | Cross-tenant attest denied | Teacher B PUTs Teacher A's class's attest → 404; A's class unchanged | ✅ PASS |
+
+Note: this run used a placeholder past date (`2020-01-01`) for `ATTESTATION_REQUIRED_FROM` purely
+to exercise the cut-off code path — it is NOT the reviewer's real cut-off decision, which is still
+outstanding (see the gate).
 
 ## End-to-end — not yet run
 

@@ -576,11 +576,13 @@ several taste/critical findings folded in before the build).
   in `pageViewAllowlist.test.js` passes with the three new legal routes with no changes needed
   (it walks `App.jsx`'s real route table). `tests/integration/api/v4.12.0-notice-consent.test.js`
   (8 cases) is written but **not yet run** against the test Cosmos account — no `func start` session
-  in this build. `npm run build` is clean. E2E is not yet walked. See
+  in this build — **resolved 2026-09-18: run against `quizpulse-int-test-db`, 8/8 pass**,
+  including the fail-open cut-off row (a placeholder past date exercised the code path only, not
+  the reviewer's real decision). `npm run build` is clean. E2E is not yet walked. See
   `SPRINT_TEST_CHECKLIST.md`'s v4.12.0 section for the full per-row status.
 - **Deploy (human-gated, and additionally BLOCKED on legal wording):** get the reviewer's approved
   wording for all 5 legal strings + confirm the `ATTESTATION_REQUIRED_FROM` cut-off date and that
-  pilot teachers were told → run the integration suite + a manual E2E walk → publish the API
+  pilot teachers were told → run a manual E2E walk → publish the API
   (Node 22; it accepts old and new client shapes) → deploy the admin portal (Traffic copy) → merge
   release → develop → main → tag `v4.12.0`.
 
