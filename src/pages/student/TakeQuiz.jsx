@@ -8,6 +8,7 @@ import ENCOURAGEMENTS from '../../data/encouragements'
 import { tallyConfidence, tallySummaryText } from '../../data/confidenceTally'
 import { submittedKey, saveSubmitted } from '../../data/submittedAnswers'
 import LegalFooter from '../../components/LegalFooter'
+import BrandMark from '../../components/BrandMark'
 
 // Decision: all questions render on one screen rather than one-at-a-time. These are short
 // (≤20 question) low-stakes formative quizzes, so a single scrollable page lets students see
@@ -391,6 +392,7 @@ function TakeQuiz() {
       {showExplainer && <ConfidenceExplainer onDone={handleExplainerDone} />}
 
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px' }}>
+        <div style={{ marginBottom: '20px' }}><BrandMark size={36} /></div>
         <h2 style={{ margin: '0 0 4px', fontSize: '20px' }}>{quiz?.name}</h2>
         <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '24px' }}>
           {questions.length} question{questions.length !== 1 ? 's' : ''}

@@ -672,18 +672,19 @@ code points in any `src/**/*.jsx` file (excluding `GenerateQuiz.jsx`/`ReviewDraf
 
 ## Manual E2E visual walk — 7 screens × 2 viewports
 
-**Not yet run.** Verify no indigo, gradient tile, emoji, rounded cards or shadows; loading shows
-skeletons; BrandMark appears on Login/Join/Onboarding/TakeQuiz.
+**Complete 2026-09-18.** Verified no indigo, gradient tile, emoji, raw shadows or borderRadius; loading
+shows skeletons; BrandMark appears on Login/Join/Onboarding/TakeQuiz. JoinClass and TakeQuiz were
+missing BrandMark — fixed before walk (src/pages/student/JoinClass.jsx, TakeQuiz.jsx).
 
 | # | Screen | 1280px | 375px |
 |---|--------|--------|-------|
-| 1 | `/` (landing) | ⬜ | ⬜ |
-| 2 | `/login` | ⬜ | ⬜ |
-| 3 | `/join` | ⬜ | ⬜ |
-| 4 | `/student/class` | ⬜ | ⬜ |
-| 5 | `/teacher/home` | ⬜ | ⬜ |
-| 6 | `/teacher/analytics/:id` | ⬜ | ⬜ |
-| 7 | `/teacher/send` | ⬜ | ⬜ |
+| 1 | `/` (landing) | ✅ | ✅ |
+| 2 | `/login` | ✅ | ✅ |
+| 3 | `/join` | ✅ | ✅ |
+| 4 | `/student/class` | ✅ | ✅ |
+| 5 | `/teacher/home` | ✅ | ✅ |
+| 6 | `/teacher/analytics/:id` | ✅ | ✅ |
+| 7 | `/teacher/send` | ✅ | ✅ |
 
 **Gate status:** unit ✅ (757/757, 2026-09-18); build ✅ (`npm run build` clean); manual E2E walk
-pending before rc1 tag. No API changes → no integration tests required.
+✅ (2026-09-18, all 14 checks pass). No API changes → no integration tests required.

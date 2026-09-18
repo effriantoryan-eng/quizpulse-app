@@ -8,6 +8,7 @@ import { getApprovedClasses, addApprovedClass, getPendingClasses, addPendingClas
 import { autoSubscribe } from '../../pushSubscribe'
 import { createDeviceId, getDeviceId } from '../../deviceId'
 import { JOIN_NOTICE_SHORT, COLLECTION_NOTICE_VERSION, isLegalPending } from '../../data/legalContent'
+import BrandMark from '../../components/BrandMark'
 
 const STUDENT_NAME_MAX = 80
 
@@ -340,6 +341,7 @@ function JoinClass() {
 
   return (
     <div style={{ maxWidth: 480, margin: '64px auto', padding: '24px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}><BrandMark size={44} /></div>
       <h2 style={{ margin: '0 0 6px', fontSize: '22px' }}>Join a class</h2>
       <p style={{ margin: '0 0 24px', color: 'var(--muted)', fontSize: '14px' }}>
         Enter the join code your teacher shared with you.
