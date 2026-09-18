@@ -106,7 +106,7 @@ function ExportPanel({ quiz, className, onClose }) {
             {APST_DESCRIPTORS.map(d => (
               <label key={d.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '12px', padding: '4px 0' }}>
                 <input type="checkbox" checked={descriptorIds.includes(d.id)} onChange={() => toggleDescriptor(d.id)} data-testid={`apst-check-${d.id}`} />
-                <span><strong>{d.id}</strong> {d.focusArea} <em style={{ color: '#999' }}>({d.domain})</em></span>
+                <span><strong>{d.id}</strong> {d.focusArea} <em style={{ color: 'var(--muted)' }}>({d.domain})</em></span>
               </label>
             ))}
           </div>
@@ -273,7 +273,7 @@ export default function Evidence() {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px' }}>
       <h2 style={{ marginBottom: '6px' }}>VIT Evidence</h2>
-      <p style={{ fontSize: '13px', color: '#888', marginBottom: '20px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>
         Export quiz data as professional learning evidence for VIT registration and MyPD.
       </p>
 
@@ -284,7 +284,7 @@ export default function Evidence() {
         {showAnnualLog && <AnnualLogPanel onClose={() => setShowAnnualLog(false)} />}
       </div>
 
-      {loading && <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Loading…</div>}
+      {loading && <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>}
       {sessionExpired && (
         <div style={{ padding: '16px', textAlign: 'center', background: '#fdecea', border: '1px solid #c0392b', borderRadius: '8px' }}>
           <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#c0392b' }}>Your session has ended. Sign in again to continue.</p>
@@ -298,7 +298,7 @@ export default function Evidence() {
         </div>
       )}
       {!loading && !error && !sessionExpired && quizzes.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px 20px', color: '#888', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '32px 20px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
           No sent quizzes yet — send a quiz to generate evidence from it.
         </div>
       )}
@@ -308,7 +308,7 @@ export default function Evidence() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div>
               <div style={{ fontWeight: '600', fontSize: '14px' }}>{quiz.name}</div>
-              <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
                 {quiz.topicTag || 'No topic'} · {formatDate(quiz.sentAt)} · {classLabel(quiz)}
               </div>
             </div>

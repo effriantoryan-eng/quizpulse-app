@@ -176,13 +176,13 @@ export default function RoleManagement() {
           </thead>
           <tbody>
             {teachers.length === 0 && !loading && (
-              <tr><td colSpan={isOwner ? 5 : 4} style={{ ...tdStyle, color: '#94a3b8', textAlign: 'center', padding: 24 }}>No teachers found</td></tr>
+              <tr><td colSpan={isOwner ? 5 : 4} style={{ ...tdStyle, color: '#64748b', textAlign: 'center', padding: 24 }}>No teachers found</td></tr>
             )}
             {teachers.map((t) => (
               <tr key={t.id}>
                 <td style={tdStyle}>
                   <div style={{ fontWeight: 500 }}>{t.name || '—'}</div>
-                  <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>{t.email || t.id}</div>
+                  <div style={{ color: '#64748b', fontSize: 11, marginTop: 2 }}>{t.email || t.id}</div>
                 </td>
                 <td style={tdStyle}><RoleBadge role={t.role || 'teacher'} /></td>
                 <td style={{ ...tdStyle, fontSize: 12, color: '#64748b' }}>

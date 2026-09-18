@@ -159,7 +159,7 @@ function Login() {
     <div style={card}>
       <div style={logo}>⚡</div>
       <h1 style={{ fontSize: '22px', fontWeight: '500', marginBottom: '8px' }}>QuizPulse</h1>
-      <p style={{ fontSize: '14px', color: '#888', marginBottom: authError ? '16px' : '32px' }}>Sign in to access the teacher dashboard</p>
+      <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: authError ? '16px' : '32px' }}>Sign in to access the teacher dashboard</p>
 
       {authError && (
         <div
@@ -198,7 +198,7 @@ function Login() {
       {/* Divider */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0 20px' }}>
         <div style={{ flex: 1, height: '1px', background: '#eee' }} />
-        <span style={{ fontSize: '12px', color: '#bbb', whiteSpace: 'nowrap' }}>New to QuizPulse?</span>
+        <span style={{ fontSize: '12px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>New to QuizPulse?</span>
         <div style={{ flex: 1, height: '1px', background: '#eee' }} />
       </div>
 

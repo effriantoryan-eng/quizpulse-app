@@ -42,14 +42,14 @@
   --border: #201e1d;
   --bw: 2px;
   --text: #201e1d;
-  --muted: #7d7979;
-  --primary: #ec3013;
+  --muted: #6b6868;
+  --primary: #ca2910;
   --primaryInk: #ffffff;
   --primarySoft: #ffe0d9;
   --navBg: #201e1d;
   --navText: #ffffff;
   --navMuted: #9b9797;
-  --navActiveBg: #ec3013;
+  --navActiveBg: #ca2910;
   --navActiveText: #ffffff;
   --navActiveShadow: none;
   --radius: 0px;
@@ -60,8 +60,8 @@
   --btnShadow: none;
   --tipBg: #ffe0d9;
   --tipBorder: #201e1d;
-  --logoGrad: linear-gradient(135deg, #ec3013, #ae1800);
-  --badgeBg: #ec3013;
+  --logoGrad: linear-gradient(135deg, #ca2910, #ae1800);
+  --badgeBg: #ca2910;
   --badgeText: #ffffff;
 
   /* status accents */

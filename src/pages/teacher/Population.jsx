@@ -75,10 +75,10 @@ function QuadrantScatter({ school, population }) {
 
   return (
     <div style={{ background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
-      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#aaa', marginBottom: '4px' }}>
+      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--muted)', marginBottom: '4px' }}>
         Where this sits, compared to other schools
       </div>
-      <div style={{ fontSize: '12px', color: '#888', marginBottom: '12px', lineHeight: 1.5 }}>
+      <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px', lineHeight: 1.5 }}>
         Each grey dot is a sample school. Schools toward the bottom-right are doing best — good scores with few confident-but-wrong answers.
       </div>
       <svg viewBox="0 0 340 250" style={{ width: '100%', height: 'auto', display: 'block' }} data-testid="population-scatter">
@@ -105,7 +105,7 @@ function QuadrantScatter({ school, population }) {
         <text x="24" y="213" fontSize="9" fill="#aaa">0%</text>
         <text x="18" y="20" fontSize="9" fill="#aaa">40%</text>
       </svg>
-      <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: '#888', marginTop: '8px' }}>
+      <div style={{ display: 'flex', gap: '16px', fontSize: '11px', color: 'var(--muted)', marginTop: '8px' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 9, height: 9, borderRadius: '50%', background: '#b3b3b3', display: 'inline-block' }} /> Sample schools (illustrative)</span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><span style={{ width: 9, height: 9, borderRadius: '50%', background: '#B5482E', display: 'inline-block' }} /> Your school</span>
       </div>
@@ -153,7 +153,7 @@ function Population() {
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px' }}>
       <h2 style={{ marginBottom: '6px' }}>Population</h2>
-      <p style={{ fontSize: '13px', color: '#888', marginBottom: '20px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>
         See how your school compares to other QuizPulse schools on a topic.
       </p>
 
@@ -172,7 +172,7 @@ function Population() {
       </select>
 
       {loading && (
-        <div style={{ padding: '24px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Loading…</div>
+        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
       )}
 
       {sessionExpired && (
@@ -200,13 +200,13 @@ function Population() {
       )}
 
       {!loading && !error && data && !hasPopulationData && (
-        <div style={{ textAlign: 'center', padding: '32px 20px', color: '#888', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '32px 20px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
           No benchmark data for {topic} yet.
         </div>
       )}
 
       {!loading && !error && data && hasPopulationData && !hasSchoolData && (
-        <div style={{ padding: '14px', background: '#f8f8f8', borderRadius: '8px', fontSize: '13px', color: '#888', marginBottom: '20px', textAlign: 'center' }}>
+        <div style={{ padding: '14px', background: '#f8f8f8', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)', marginBottom: '20px', textAlign: 'center' }}>
           You haven't sent a quiz tagged {topic} yet — pick a topic when you send a quiz to see your own comparison here. (Practice quizzes sent to a demo class don't count.)
         </div>
       )}
@@ -250,7 +250,7 @@ function Population() {
           >
             Benchmark data
           </div>
-          <div style={{ fontSize: '11px', color: '#bbb', marginBottom: '16px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '16px' }}>
             This benchmark is a seeded sample of 100 schools — real network data will replace it as more schools use QuizPulse.
           </div>
           <ComparisonBar

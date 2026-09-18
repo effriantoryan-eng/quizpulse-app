@@ -73,17 +73,17 @@ export default function Teachers() {
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
-        {loading && <span style={{ color: '#94a3b8', fontSize: 12, alignSelf: 'center' }}>Loading…</span>}
+        {loading && <span style={{ color: '#64748b', fontSize: 12, alignSelf: 'center' }}>Loading…</span>}
       </div>
 
       {error && <div style={{ color: '#dc2626', fontSize: 13, marginBottom: 12 }}>Error: {error}</div>}
 
-      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
         Showing {teachers.length} of {total} teachers
       </div>
 
       {teachers.length === 0 && !loading && (
-        <div style={{ color: '#94a3b8', fontSize: 13, padding: 20, textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: 6 }}>
+        <div style={{ color: '#64748b', fontSize: 13, padding: 20, textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: 6 }}>
           No teachers found.
         </div>
       )}
@@ -106,8 +106,8 @@ export default function Teachers() {
               <tbody>
                 {teachers.map(t => (
                   <tr key={t.id}>
-                    <td style={tdStyle}>{t.name || <span style={{ color: '#94a3b8' }}>—</span>}</td>
-                    <td style={{ ...tdStyle, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email || <span style={{ color: '#94a3b8' }}>—</span>}</td>
+                    <td style={tdStyle}>{t.name || <span style={{ color: '#64748b' }}>—</span>}</td>
+                    <td style={{ ...tdStyle, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email || <span style={{ color: '#64748b' }}>—</span>}</td>
                     <td style={tdStyle}>
                       <span style={{
                         fontSize: 11, padding: '2px 6px', borderRadius: 3,
@@ -117,7 +117,7 @@ export default function Teachers() {
                         {t.role || 'teacher'}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, color: '#94a3b8', fontSize: 11 }}>{t.schoolId ? t.schoolId.slice(0, 8) + '…' : '—'}</td>
+                    <td style={{ ...tdStyle, color: '#64748b', fontSize: 11 }}>{t.schoolId ? t.schoolId.slice(0, 8) + '…' : '—'}</td>
                     <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>{t.createdAt ? t.createdAt.slice(0, 10) : '—'}</td>
                     <td style={tdStyle}>
                       <button

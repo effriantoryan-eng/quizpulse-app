@@ -104,7 +104,7 @@ export default function AuditLog() {
           </thead>
           <tbody>
             {entries.length === 0 && !loading && (
-              <tr><td colSpan={7} style={{ ...tdStyle, color: '#94a3b8', textAlign: 'center', padding: 24 }}>No entries found</td></tr>
+              <tr><td colSpan={7} style={{ ...tdStyle, color: '#64748b', textAlign: 'center', padding: 24 }}>No entries found</td></tr>
             )}
             {entries.map((e) => (
               <>
@@ -117,7 +117,7 @@ export default function AuditLog() {
                   <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: 11 }}>{e.action}</td>
                   <td style={tdStyle}>
                     <div style={{ fontFamily: 'monospace', fontSize: 11 }}>{e.targetType}</div>
-                    <div style={{ fontFamily: 'monospace', fontSize: 10, color: '#94a3b8' }}>{e.targetId}</div>
+                    <div style={{ fontFamily: 'monospace', fontSize: 10, color: '#64748b' }}>{e.targetId}</div>
                   </td>
                   <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: 11 }}>{e.ip || '—'}</td>
                   <td style={tdStyle}>

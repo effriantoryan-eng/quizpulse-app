@@ -99,7 +99,7 @@ export default function Monitoring() {
             </button>
           ))}
         </div>
-        {loading && <span style={{ color: '#94a3b8', fontSize: 12 }}>Loading…</span>}
+        {loading && <span style={{ color: '#64748b', fontSize: 12 }}>Loading…</span>}
       </div>
 
       {error && <div style={{ color: '#dc2626', marginBottom: 12, fontSize: 13 }}>Error: {error}</div>}
@@ -133,7 +133,7 @@ export default function Monitoring() {
                   background: m.spending.monthCostUsd / m.spending.budgetUsd > 0.8 ? '#dc2626' : '#4c8bf5',
                 }} />
               </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
                 {Math.round((m.spending.monthCostUsd / m.spending.budgetUsd) * 100)}% of budget
               </div>
             </div>

@@ -172,11 +172,11 @@ function Classes() {
     }
   }
 
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading classes…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading classes…</div>
 
   if (sessionExpired) return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
-      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to see your classes.</p>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to see your classes.</p>
       <button
         onClick={() => login()}
         style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -260,7 +260,7 @@ function Classes() {
             style={{ width: '100%', padding: '8px 10px', fontSize: '14px', borderRadius: '6px', border: 'var(--bw) solid var(--border)', boxSizing: 'border-box', marginBottom: '8px' }}
           />
           {ATTESTATION_PENDING ? (
-            <p style={{ fontSize: '12px', color: '#888', margin: '0 0 10px', lineHeight: '1.5' }}>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 10px', lineHeight: '1.5' }}>
               The school-authorisation confirmation is being finalised — you can still create classes.
             </p>
           ) : (
@@ -290,7 +290,7 @@ function Classes() {
             <button
               type="button"
               onClick={() => { setCreating(false); setNewName(''); setNewStudentCount(''); setCreateError(null) }}
-              style={{ padding: '8px 16px', background: 'white', color: '#666', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+              style={{ padding: '8px 16px', background: 'white', color: 'var(--muted)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
             >
               Cancel
             </button>
@@ -316,7 +316,7 @@ function Classes() {
       )}
 
       {classes.length === 0 && !creating && (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
           No classes yet. Click <strong>+ New class</strong> to get started.
         </div>
       )}
@@ -354,7 +354,7 @@ function Classes() {
                 </button>
                 <button
                   onClick={() => { setEditingId(null); setEditError(null) }}
-                  style={{ padding: '6px 14px', background: 'white', color: '#666', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ padding: '6px 14px', background: 'white', color: 'var(--muted)', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -374,7 +374,7 @@ function Classes() {
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
                   {c.studentCount} student{c.studentCount !== 1 ? 's' : ''}
                   {c.isDemo ? (
                     <> · practice students — no one is notified</>
@@ -412,7 +412,7 @@ function Classes() {
       ))}
 
       {realClasses.length > 0 && (
-        <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'right', marginTop: '8px' }}>
+        <p style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'right', marginTop: '8px' }}>
           {realClasses.length} / 20 classes
         </p>
       )}
