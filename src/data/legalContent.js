@@ -13,7 +13,7 @@
 export const LEGAL_PENDING = '[LEGAL TEXT PENDING]'
 
 // Keep in sync with api/shared/legalVersions.js.
-export const TERMS_VERSION = '2026-09-18'
+export const TERMS_VERSION = null // ponytail: null until legal wording is finalised — termsCurrent always true
 export const COLLECTION_NOTICE_VERSION = '2026-09-18'
 export const ATTESTATION_VERSION = '2026-09-18'
 

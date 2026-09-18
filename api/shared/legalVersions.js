@@ -6,7 +6,7 @@
 // existing teachers re-accept (termsCurrent → false) and new join requests must carry the new
 // notice version.
 
-const TERMS_VERSION = '2026-09-18';
+const TERMS_VERSION = null; // ponytail: null until legal wording is finalised — termsCurrent always true
 const COLLECTION_NOTICE_VERSION = '2026-09-18';
 const ATTESTATION_VERSION = '2026-09-18';
 
