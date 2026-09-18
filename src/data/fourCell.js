@@ -14,7 +14,7 @@ export const MISCONCEPTION_BORDER = '#AE1800'
 // incorrectConfident reuses the misconception accent.
 export const FOUR_CELL = [
   { key: 'correctConfident', label: 'Correct, confident', bg: '#DCEFC8', border: '#3B6D11' },
-  { key: 'correctUnsure', label: 'Correct, unsure', bg: '#EEF6E4', border: '#6B9A44' },
+  { key: 'correctUnsure', label: 'Correct, unsure', bg: '#EEF6E4', border: '#547935' },
   { key: 'incorrectConfident', label: 'Misconception', bg: MISCONCEPTION_BG, border: MISCONCEPTION_BORDER },
-  { key: 'incorrectUnsure', label: 'Incorrect, unsure', bg: '#FDF3E3', border: '#B8860B' },
+  { key: 'incorrectUnsure', label: 'Incorrect, unsure', bg: '#FDF3E3', border: '#906909' },
 ]

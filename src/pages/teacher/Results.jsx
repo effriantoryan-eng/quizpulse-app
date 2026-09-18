@@ -50,22 +50,22 @@ export default function Results() {
     return () => { cancelled = true }
   }, [classId])
 
-  if (loading) return <div style={{ padding: '24px', color: '#888' }}>Loading…</div>
+  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading…</div>
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px' }}>
       <h2 style={{ margin: '0 0 4px', fontSize: '20px' }}>Results</h2>
-      <div style={{ fontSize: '13px', color: '#888', marginBottom: '20px' }}>
+      <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>
         See how each class responded to your quizzes.
       </div>
 
       {classes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
           You don't have any classes yet. Create one to start sending quizzes.
         </div>
       ) : (
         <>
-          <label style={{ display: 'block', fontSize: '12px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
             Class
           </label>
           <select
@@ -81,9 +81,9 @@ export default function Results() {
           {error && <div style={{ padding: '12px', color: '#A32D2D' }}>{error}</div>}
 
           {listLoading ? (
-            <div style={{ padding: '24px', color: '#888' }}>Loading…</div>
+            <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading…</div>
           ) : quizzes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
+            <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', background: '#f8f8f8', borderRadius: '12px' }}>
               No quizzes have been sent to this class yet.
             </div>
           ) : (
@@ -102,7 +102,7 @@ export default function Results() {
                   <div style={{ fontSize: '15px', fontWeight: 600, color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {q.quizName}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#aaa', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
                     {q.questionCount} question{q.questionCount !== 1 ? 's' : ''}
                     {q.sentAt ? ` · sent ${new Date(q.sentAt).toLocaleDateString()}` : ''}
                   </div>
@@ -111,7 +111,7 @@ export default function Results() {
                   <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--primary)' }}>
                     {q.responseCount} / {q.approvedStudents}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#aaa' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                     {q.responseRate !== null ? `${q.responseRate}% responded` : 'responded'}
                   </div>
                 </div>

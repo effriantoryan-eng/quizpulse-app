@@ -44,7 +44,7 @@ function TimelineChart({ timeline, classSize }) {
       <div className="bp-label" style={{ marginBottom: '10px' }}>
         Response timeline
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <svg role="img" aria-label={`Response timeline chart — ${timeline.length} responses recorded out of ${classSize} students`} viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
         {/* Y gridlines */}
         {[0, 0.5, 1].map(frac => (
           <line key={frac} x1={PAD_L} y1={ty(maxCount * frac)} x2={W - PAD_R} y2={ty(maxCount * frac)}
@@ -221,7 +221,7 @@ function Analytics() {
 
   if (error) return (
     <div style={{ padding: '24px', textAlign: 'center' }}>
-      <p style={{ color: 'var(--danger)', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
+      <p role="alert" style={{ color: 'var(--danger)', fontSize: '14px', marginBottom: '12px' }}>{error}</p>
       <button
         onClick={() => { setLoading(true); setRetryKey(k => k + 1) }}
         style={{ padding: '8px 16px', background: 'white', color: 'var(--primary)', border: 'var(--bw) solid var(--border)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -264,7 +264,7 @@ function Analytics() {
           {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -275,7 +275,7 @@ function Analytics() {
       )}
 
       {exportError && (
-        <div style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
+        <div role="alert" style={{ padding: '10px 14px', background: 'var(--dangerBg)', border: 'var(--bw) solid var(--danger)', fontSize: '13px', color: 'var(--danger)', marginBottom: '16px' }}>
           {exportError}
         </div>
       )}
@@ -305,11 +305,11 @@ function Analytics() {
           <div style={{ fontSize: '36px', fontWeight: '600' }}>
             {classSize ? `${totalResponses} / ${classSize}` : totalResponses}
           </div>
-          <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Students responded</div>
+          <div style={{ fontSize: '13px', marginTop: '4px' }}>Students responded</div>
         </div>
         <div style={{ background: 'var(--okBg)', padding: '20px', color: 'var(--ok)', textAlign: 'center' }}>
           <div style={{ fontSize: '36px', fontWeight: '600' }}>{questions.length}</div>
-          <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '4px' }}>Questions in quiz</div>
+          <div style={{ fontSize: '13px', marginTop: '4px' }}>Questions in quiz</div>
         </div>
       </div>
 

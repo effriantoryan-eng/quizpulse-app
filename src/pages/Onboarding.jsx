@@ -69,10 +69,11 @@ function Onboarding() {
           </p>
 
           <form onSubmit={handleSchoolSubmit} style={{ textAlign: 'left' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+            <label htmlFor="onboarding-school-name" style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
               School name
             </label>
             <input
+              id="onboarding-school-name"
               data-testid="onboarding-school-name"
               type="text"
               value={schoolName}

@@ -134,11 +134,11 @@ export default function Erasure() {
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{teacher.name || teacher.email || teacher.teacherId}</div>
           <div style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>{teacher.email} · {teacher.teacherId}</div>
 
-          {!overview && <div style={{ fontSize: 13, color: '#94a3b8' }}>Loading classes…</div>}
+          {!overview && <div style={{ fontSize: 13, color: '#64748b' }}>Loading classes…</div>}
           {overview && (
             <>
               <div style={label}>Pick a class to find a student to erase</div>
-              {(overview.classes || []).length === 0 && <div style={{ fontSize: 13, color: '#94a3b8' }}>This teacher has no classes.</div>}
+              {(overview.classes || []).length === 0 && <div style={{ fontSize: 13, color: '#64748b' }}>This teacher has no classes.</div>}
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
                 {(overview.classes || []).map(c => (
                   <button
@@ -174,7 +174,7 @@ export default function Erasure() {
         <div style={panel}>
           <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Students in “{selectedClass.name}”</div>
           {candidates.length === 0 ? (
-            <div style={{ fontSize: 13, color: '#94a3b8' }}>No join requests found for this class.</div>
+            <div style={{ fontSize: 13, color: '#64748b' }}>No join requests found for this class.</div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead><tr><th style={th}>Name</th><th style={th}>Status</th><th style={th}>Joined</th><th style={th}></th></tr></thead>
@@ -222,7 +222,7 @@ export default function Erasure() {
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 20 }}>
+      <div style={{ fontSize: 11, color: '#64748b', marginTop: 20 }}>
         Read-only lookups and irreversible erasures. Owner-only · every action is logged to the audit trail.
       </div>
     </div>

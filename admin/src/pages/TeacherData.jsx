@@ -19,7 +19,7 @@ const tdStyle = { padding: '8px 10px', borderBottom: '1px solid #f1f5f9', vertic
 function StatTile({ label, value }) {
   return (
     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, padding: '14px 16px' }}>
-      <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color: value == null ? '#94a3b8' : '#1a1a1a' }}>
         {value == null ? '—' : value}
       </div>
@@ -47,7 +47,7 @@ function OptionBar({ label, count, total }) {
 function FourCell({ fourCell, totalResponses }) {
   if (!fourCell || totalResponses === 0) {
     return (
-      <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic' }}>
+      <div style={{ color: '#64748b', fontSize: 12, fontStyle: 'italic' }}>
         Awaiting responses
       </div>
     )
@@ -59,7 +59,7 @@ function FourCell({ fourCell, totalResponses }) {
       <div style={{ flex: 1, padding: '8px 10px', background: accent ? '#fbede8' : '#f8fafc', borderRadius: 4, textAlign: 'center', border: `1px solid ${accent ? '#f8b4a5' : '#e2e8f0'}` }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: accent ? '#ae1800' : '#1a1a1a' }}>{count}</div>
         <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{pct}%</div>
-        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>{label}</div>
+        <div style={{ fontSize: 10, color: '#64748b', marginTop: 1 }}>{label}</div>
       </div>
     )
   }
@@ -106,10 +106,10 @@ function QuizBreakdown({ teacherId, quizId, quizName }) {
 
       {open && (
         <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
-          {loading && <div style={{ color: '#94a3b8', fontSize: 12 }}>Loading…</div>}
+          {loading && <div style={{ color: '#64748b', fontSize: 12 }}>Loading…</div>}
           {error && <div style={{ color: '#dc2626', fontSize: 12 }}>Error: {error}</div>}
           {data && data.length === 0 && (
-            <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic' }}>No questions in this quiz.</div>
+            <div style={{ color: '#64748b', fontSize: 12, fontStyle: 'italic' }}>No questions in this quiz.</div>
           )}
           {data && data.map((q, i) => (
             <div key={q.questionId} style={{ marginBottom: 16 }}>
@@ -161,7 +161,7 @@ export default function TeacherData() {
 
   if (loading) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
+      <div style={{ padding: 40, textAlign: 'center', color: '#64748b', fontSize: 14 }}>
         Loading teacher data…
       </div>
     )
@@ -223,7 +223,7 @@ export default function TeacherData() {
             <tr><td style={{ ...tdStyle, color: '#64748b' }}>School status</td><td style={tdStyle}>{teacher.schoolStatus || '—'}</td></tr>
             <tr><td style={{ ...tdStyle, color: '#64748b' }}>Joined</td><td style={tdStyle}>{teacher.createdAt?.slice(0, 10) || '—'}</td></tr>
             {(schools || []).map(s => (
-              <tr key={s.id}><td style={{ ...tdStyle, color: '#64748b' }}>School</td><td style={tdStyle}>{s.name} <span style={{ color: '#94a3b8', fontSize: 11 }}>({s.status})</span></td></tr>
+              <tr key={s.id}><td style={{ ...tdStyle, color: '#64748b' }}>School</td><td style={tdStyle}>{s.name} <span style={{ color: '#64748b', fontSize: 11 }}>({s.status})</span></td></tr>
             ))}
           </tbody>
         </table>
@@ -233,7 +233,7 @@ export default function TeacherData() {
       <div style={groupStyle}>
         <h2 style={headingStyle}>Classes</h2>
         {classes.length === 0 && (
-          <div style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No classes yet.</div>
+          <div style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}>No classes yet.</div>
         )}
         {classes.length > 0 && (
           <table style={tableStyle}>
@@ -268,7 +268,7 @@ export default function TeacherData() {
       <div style={groupStyle}>
         <h2 style={headingStyle}>Quizzes {total > quizzes.length ? `(showing ${quizzes.length} of ${total})` : `(${total})`}</h2>
         {quizzes.length === 0 && (
-          <div style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>
+          <div style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}>
             This teacher hasn&rsquo;t created any quizzes yet — this is who to reach out to.
           </div>
         )}
@@ -301,7 +301,7 @@ export default function TeacherData() {
                     {(q.status === 'sent' || q.status === 'closed') ? (
                       <QuizBreakdown teacherId={id} quizId={q.id} quizName={q.name} />
                     ) : (
-                      <span style={{ color: '#94a3b8', fontSize: 12 }}>Not sent</span>
+                      <span style={{ color: '#64748b', fontSize: 12 }}>Not sent</span>
                     )}
                   </td>
                 </tr>
@@ -311,7 +311,7 @@ export default function TeacherData() {
         )}
       </div>
 
-      <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12, marginTop: 8, fontSize: 11, color: '#94a3b8' }}>
+      <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12, marginTop: 8, fontSize: 11, color: '#64748b' }}>
         Read-only · cohort-level only · every view is logged to the audit trail
       </div>
     </div>

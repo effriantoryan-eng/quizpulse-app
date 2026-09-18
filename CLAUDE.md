@@ -600,6 +600,57 @@ several taste/critical findings folded in before the build).
   approved wording for all 5 legal strings, a real `ATTESTATION_REQUIRED_FROM` cut-off date (told
   to pilot teachers first), and the manual E2E walk.
 
+**v4.13.0 (R4 — Accessibility WCAG 2.1 AA) is [CURRENT] on `release/v4.13-accessibility` —
+Tasks 1–4 code-complete, 603/603 unit tests pass, `npm run build` clean; rc1 tag and deploy
+pending the manual axe-core/playwright E2E run (no API changes — frontend-only deploy).**
+Fourth of the R1–R5 remediation sprints (2026-09-17 audit, Part A). No new features, no API
+changes; every task makes an existing interaction meet the WCAG 2.1 AA standard it claimed.
+Built per `C:\Users\Ryan\Doc\Quizpulse\Remediation_2026-09\R4_Accessibility_AA.md`, decisions
+D4.1–D4.3 at their defaults.
+- **Task 1 (skip)** — no standalone task; combined into Tasks 2-4.
+- **Task 2 — Contrast tokens:** `--primary: #ca2910` (5.47:1 on white), `--muted: #6b6868`
+  (≥4.52:1 on white). `fourCell.js` hardcoded borders updated (`correctUnsure #547935`,
+  `incorrectUnsure #906909`). Grey-text sweep: 19 `src/` + 10 `admin/src/` files. `DESIGN.md`
+  updated. `tests/unit/contrastTokens.test.js` — 7 WCAG luminance tests (7/7 pass).
+- **Task 3 — Labels, semantics, document titles:** SubNav `<nav>`+`aria-current` rewrite;
+  TakeQuiz questions → `<fieldset><legend>`, ConfidenceSelector → `role="radiogroup"` + roving
+  tabindex; 16 document titles; `aria-label="Show tips"` on hint buttons; decorative emoji
+  `aria-hidden`; form label/id pairs (Onboarding, ProfileWizard, ClassSettings, Classes);
+  ClassSettings toggle `aria-pressed`+`aria-labelledby`.
+- **Task 4 — Focus management, structure, live regions:** Skip link + `useRouteFocus` hook
+  (focuses `#main-content` on every route change); ConfidenceExplainer `role="dialog"`
+  + focus-on-mount + Escape key + focus trap; mobile drawer `inert` when closed, focus
+  management on open/close; `role="status"` on loading spinners; `role="alert"` on error
+  messages; Analytics SVG `role="img"` + `aria-label`.
+- **Tests:** 603/603 unit (3 new in `useRouteFocus.test.js`). `tests/e2e/a11y.spec.js` written
+  (`@axe-core/playwright`, 6 public routes × 2 viewports, skip-link test) — **not yet run** (needs
+  `npm run dev`; run before rc1 tag). No API changes → no integration tests.
+- **Deploy:** frontend-only (SWA GitHub Actions on push to `main`); no API publish needed.
+
+### Accessibility conventions [added v4.13.0]
+
+- **Contrast:** all text against its background must meet 4.5:1 (normal text) or 3:1 (large/UI).
+  Use `--primary` (#ca2910) and `--muted` (#6b6868) — never the old `#888`/`#999`/`#aaa` literals.
+  Run `tests/unit/contrastTokens.test.js` after any token change.
+- **Form controls:** every `<input>`/`<textarea>`/`<select>` must have a visible `<label>` or
+  `aria-label`. Floating placeholders are not labels.
+- **Groups of controls:** use `<fieldset><legend>` for radio groups and related checkboxes.
+  `role="radiogroup"` + `aria-labelledby` is the alternative when semantic HTML can't be used.
+- **Roving tabindex:** use it (not `tabindex=0` on every item) for widget patterns like the
+  ConfidenceSelector radio group. Arrow keys navigate; Tab exits the widget.
+- **Dialogs / modals:** `role="dialog" aria-modal="true" aria-labelledby`. Focus the primary
+  action on mount. Trap focus inside. Escape closes and returns focus to the trigger.
+- **`inert`:** apply to any off-screen panel (mobile drawer, hidden step) so keyboard users
+  can't tab into it. Remove `inert` on open; re-apply on close.
+- **Skip link:** already wired (`<a href="#main-content" class="skip-link">`). New layouts that
+  render their own page shell must carry `id="main-content" tabIndex={-1}` on the main landmark.
+- **Live regions:** `role="status"` on loading/pending states (polite); `role="alert"` on errors
+  (assertive). Never use both on the same element.
+- **SVG:** decorative SVGs get `aria-hidden="true"`; informative SVGs get `role="img"` + a
+  descriptive `aria-label` or a `<title>` child.
+- **Emoji:** always `<span aria-hidden="true">` around decorative emoji in JSX.
+- **No jargon in `aria-label`s:** same rule as visible copy — plain language, no tech terms.
+
 ---
 
 ## Tech stack
@@ -795,6 +846,7 @@ merged into `release/v4.4-traffic`. Tagged `v4.4.0-rc1` → merged to `develop` 
 | 17 | v4.9.1 | R1 Stop the leaks (remediation) — class-delete cascade + remove-student cleanup (de-identify responses, delete subscriptions/join requests), send-time approval re-check, 7-day TTL on rejected requests, retire `/admin/log` + `GET /api/usageLog`, founder-run orphan-cleanup script, `STUDENT_DATA.md` truth pass (IN PROGRESS — rc1 tagged, deploy human-gated) |
 | 18 | v4.11.0 | R2 Erasure and opt-out (remediation) — student leave-class + notification off/on + rotated-subscription resync, teacher self-service account deletion (`DELETE /api/me`), owner erasure tool (device or teacher account) + runbook, after-hours send warning; three shared erasure helpers on `studentDataCleanup.js` (deployed 2026-09-18) |
 | 19 | v4.12.0 | R3 Notice, consent and minimisation (remediation) — page-view fingerprint removal + coarse device/browser buckets, device id out of URLs, legal pages (`/privacy`/`/collection-notice`/`/terms`) + footer, join-form collection notice, button-triggered notification prompt, teacher terms acceptance + interstitial, class school-authorisation attestation with a fail-open cut-off (deployed 2026-09-18 with legal wording as placeholders — see Known issues) |
+| 20 | v4.13.0 | R4 Accessibility (WCAG 2.1 AA remediation) — contrast tokens (`--primary #ca2910`, `--muted #6b6868`), grey-text sweep, fourCell AA colours, SubNav semantic rewrite (`<nav>` + `aria-current`), TakeQuiz fieldset/radiogroup, ConfidenceExplainer dialog + focus trap, skip link + `useRouteFocus`, mobile drawer `inert` + focus management, live regions (`role="status"`/`"alert"`), SVG chart `role="img"`, document titles, `@axe-core/playwright` E2E suite |
 
 ### Rules
 

@@ -19,7 +19,7 @@ const YEAR_LEVELS = [7, 8, 9, 10, 11, 12]
 const BLANK_FORM = { text: '', options: ['', '', '', ''], correctIndex: 0, topic: 'Science' }
 const VISIBILITY_LABELS = { private: 'Private', school: 'School', public: 'Public' }
 const VISIBILITY_COLORS = {
-  private: { bg: '#f5f5f5', color: '#888', border: '#ddd' },
+  private: { bg: '#f5f5f5', color: 'var(--muted)', border: '#ddd' },
   school: { bg: '#E6F1FB', color: '#0C447C', border: '#b3d1f7' },
   public: { bg: '#E1F5EE', color: '#085041', border: '#a3d9c0' },
 }
@@ -49,7 +49,7 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
     return (
       <div style={{ padding: '16px', marginBottom: '10px', border: '2px solid var(--primary)', borderRadius: '10px', background: 'var(--bg)' }}>
         <div style={{ marginBottom: '10px' }}>
-          <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Question</label>
+          <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Question</label>
           <textarea
             value={editForm.text}
             onChange={e => setEditForm(f => ({ ...f, text: e.target.value }))}
@@ -58,7 +58,7 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
           />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Options (select correct answer)</label>
+          <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Options (select correct answer)</label>
           {editForm.options.map((opt, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <input type="radio" name={`correct-${q.id}`} checked={editForm.correctIndex === i} onChange={() => setEditForm(f => ({ ...f, correctIndex: i }))} style={{ accentColor: 'var(--primary)' }} />
@@ -72,7 +72,7 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
         </div>
         <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
           <div>
-            <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Topic</label>
+            <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Topic</label>
             <select value={editForm.topic} onChange={e => setEditForm(f => ({ ...f, topic: e.target.value }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
               {/* A stored topic outside the preset list (e.g. 'Other' on AI-drafted questions)
                   must appear as a real option — otherwise the select displays the first preset
@@ -82,14 +82,14 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
             </select>
           </div>
           <div>
-            <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Year level</label>
+            <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Year level</label>
             <select value={editForm.yearLevel || ''} onChange={e => setEditForm(f => ({ ...f, yearLevel: e.target.value ? parseInt(e.target.value) : null }))} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
               <option value="">All years</option>
               {YEAR_LEVELS.map(y => <option key={y} value={y}>Year {y}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#888', display: 'block', marginBottom: '4px' }}>Visibility</label>
+            <label style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>Visibility</label>
             <select
               value={editForm.visibility || 'private'}
               onChange={e => setEditForm(f => ({ ...f, visibility: e.target.value }))}
@@ -121,23 +121,23 @@ function QuestionCard({ q, isSelected, isEditing, onToggleSelect, onStartEdit, o
         display: 'flex', alignItems: 'flex-start', gap: '12px',
         padding: '14px 16px', marginBottom: '10px',
         border: `1px solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
-        borderRadius: '10px', background: isSelected ? 'var(--surface2)22' : 'white',
+        borderRadius: '10px', background: isSelected ? 'var(--surface2)' : 'white',
         cursor: showActions && onToggleSelect ? 'pointer' : 'default'
       }}
     >
       {onToggleSelect && (
-        <input type="checkbox" checked={!!isSelected} onChange={() => onToggleSelect(q.id)} style={{ marginTop: '3px', accentColor: 'var(--primary)' }} />
+        <input type="checkbox" checked={!!isSelected} onChange={() => onToggleSelect(q.id)} aria-label={`Select question: ${q.text.slice(0, 60)}`} style={{ marginTop: '3px', accentColor: 'var(--primary)' }} />
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '14px', marginBottom: '6px', lineHeight: '1.5' }}>{q.text}</div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color }}>{q.topic}</span>
           {q.generatedBy === 'ai' && <AiBadge />}
-          {q.yearLevel && <span style={{ fontSize: '11px', color: '#888' }}>Year {q.yearLevel}</span>}
+          {q.yearLevel && <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Year {q.yearLevel}</span>}
           {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: 'var(--primary)' }}>▲ {q.upvoteCount}</span>}
           {q.usageCount > 0
-            ? <span style={{ fontSize: '11px', color: '#aaa' }}>In use · {q.usageCount} {q.usageCount === 1 ? 'quiz' : 'quizzes'}</span>
-            : onToggleSelect && <span style={{ fontSize: '11px', color: '#aaa' }}>Unused</span>}
+            ? <span style={{ fontSize: '11px', color: 'var(--muted)' }}>In use · {q.usageCount} {q.usageCount === 1 ? 'quiz' : 'quizzes'}</span>
+            : onToggleSelect && <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Unused</span>}
         </div>
       </div>
       {showActions && (
@@ -181,9 +181,9 @@ function CommunityCard({ q, onUpvote, onCopy, onReport, upvotedIds, copyingId, r
       <div style={{ fontSize: '14px', marginBottom: '8px', lineHeight: '1.5' }}>{q.text}</div>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
         <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: topicStyle.bg, color: topicStyle.color }}>{q.topic}</span>
-        {q.yearLevel && <span style={{ fontSize: '11px', color: '#888' }}>Year {q.yearLevel}</span>}
+        {q.yearLevel && <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Year {q.yearLevel}</span>}
         {q.upvoteCount > 0 && <span style={{ fontSize: '11px', color: upvoted ? 'var(--primary)' : '#aaa' }}>▲ {q.upvoteCount}</span>}
-        {q.usageCount > 0 && <span style={{ fontSize: '11px', color: '#aaa' }}>{q.usageCount} uses</span>}
+        {q.usageCount > 0 && <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{q.usageCount} uses</span>}
       </div>
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
@@ -420,7 +420,7 @@ function QuestionBank() {
     }
   }
 
-  if (loading) return <div style={{ padding: '24px', color: '#888' }}>Loading questions...</div>
+  if (loading) return <div style={{ padding: '24px', color: 'var(--muted)' }}>Loading questions...</div>
   if (error) return <div style={{ padding: '24px', color: '#A32D2D' }}>{error}</div>
 
   return (
@@ -428,7 +428,7 @@ function QuestionBank() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <h2 style={{ margin: 0 }}>Question bank</h2>
         {!hintVisible && (
-          <button onClick={showHint} style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
+          <button onClick={showHint} aria-label="Show tips" style={{ background: 'none', border: 'var(--bw) solid var(--border)', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>?</button>
         )}
       </div>
       {hintVisible && (
@@ -474,7 +474,7 @@ function QuestionBank() {
 
       {/* ── MY QUESTIONS ── */}
       {activeTab === 'my' && (questions.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px' }}>
           No questions yet. Go to Create Question to add some.
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <StarterSeedCta onSeeded={(seeded) => setQuestions(seeded)} />
@@ -525,7 +525,7 @@ function QuestionBank() {
           </div>
 
           {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '32px', color: '#aaa', fontSize: '14px' }}>
+            <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '14px' }}>
               No questions match your search.
             </div>
           )}
@@ -551,7 +551,7 @@ function QuestionBank() {
 
           {selected.length > 0 && (
             <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '13px', color: '#666' }}>{selected.length} question{selected.length > 1 ? 's' : ''} selected</span>
+              <span style={{ fontSize: '13px', color: 'var(--muted)' }}>{selected.length} question{selected.length > 1 ? 's' : ''} selected</span>
               <button
                 style={{ padding: '8px 18px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
                 onClick={() => alert('Add to quiz — head to Build Quiz and select questions there')}
@@ -596,7 +596,7 @@ function QuestionBank() {
               />
               <button type="submit" style={{ padding: '6px 12px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>Go</button>
               {communitySearch && (
-                <button type="button" onClick={() => { setCommunitySearch(''); setCommunitySearchInput('') }} style={{ padding: '6px 10px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#888' }}>✕</button>
+                <button type="button" onClick={() => { setCommunitySearch(''); setCommunitySearchInput('') }} style={{ padding: '6px 10px', background: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
               )}
             </form>
             <select value={communityTopic} onChange={e => setCommunityTopic(e.target.value)} style={{ padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: 'var(--bw) solid var(--border)' }}>
@@ -610,14 +610,14 @@ function QuestionBank() {
           </div>
 
           {communityLoading && communityQuestions.length === 0 && (
-            <div style={{ padding: '32px', textAlign: 'center', color: '#aaa' }}>Loading…</div>
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
           )}
           {communityError && (
             <div style={{ padding: '12px', background: '#FCEBEB', color: '#A32D2D', borderRadius: '8px', marginBottom: '12px', fontSize: '14px' }}>{communityError}</div>
           )}
 
           {!communityLoading && !communityError && communityQuestions.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '48px 24px', color: '#aaa', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
+            <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
               {communityMode === 'school'
                 ? "No school questions found. Teachers at your school can share questions by setting visibility to 'School' or 'Public'."
                 : 'No public questions found. Try different filters, or share your own by setting a question to Public.'}

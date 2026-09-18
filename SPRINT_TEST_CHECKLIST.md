@@ -626,3 +626,34 @@ arm, second-click-sends) is fully proven independent of this.
 class of gap as Known issue #14). The deploy is the one remaining step — see the R2 blurb in
 CLAUDE.md.
 
+# v4.13.0 — R4 Accessibility (WCAG 2.1 AA)
+
+Report: `tests/reports/v4.13.0-report.html`. Unit suite **603/603 pass** (3 new in
+`useRouteFocus.test.js` — pure `shouldMoveFocus` function; `contrastTokens.test.js` extended in
+Task 2).
+
+## Unit — `tests/unit/useRouteFocus.test.js` (3 cases)
+
+| # | What | Expected | Status |
+|---|------|----------|--------|
+| 1 | `shouldMoveFocus` returns true on path change | `true` | ✅ |
+| 2 | `shouldMoveFocus` returns false same path | `false` | ✅ |
+| 3 | `shouldMoveFocus` returns true from empty string | `true` | ✅ |
+
+## Unit — `tests/unit/contrastTokens.test.js` (7 cases, Task 2)
+
+All 7 pass — `--primary #ca2910` (5.47:1), `--muted #6b6868` (≥4.52:1), all 4 fourCell pairs AA.
+
+## E2E — `tests/e2e/a11y.spec.js`
+
+**Written; not yet run.** Requires `npm run dev` + axe-core/playwright. Tests 6 public routes ×
+2 viewports (desktop/mobile) for WCAG 2.1 AA violations; also verifies skip-link focus behaviour.
+Run manually before tagging rc1:
+
+```
+npx playwright test tests/e2e/a11y.spec.js
+```
+
+**Gate status:** unit ✅ (603/603, 2026-09-18); build ✅ (`npm run build` clean); E2E spec written,
+manual run pending before rc1 tag.
+

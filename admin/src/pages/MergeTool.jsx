@@ -44,7 +44,7 @@ function SchoolPicker({ label, value, onChange }) {
         placeholder="Search by name…"
         style={{ width: '100%', padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 13 }}
       />
-      {searching && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Searching…</div>}
+      {searching && <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>Searching…</div>}
       {results.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff',
@@ -57,7 +57,7 @@ function SchoolPicker({ label, value, onChange }) {
               style={{ padding: '8px 12px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: 13 }}
             >
               <strong>{s.name}</strong>
-              <span style={{ color: '#94a3b8', fontSize: 11, marginLeft: 8 }}>{s.status} · {s.teacherCount} teachers</span>
+              <span style={{ color: '#64748b', fontSize: 11, marginLeft: 8 }}>{s.status} · {s.teacherCount} teachers</span>
             </div>
           ))}
         </div>
@@ -70,7 +70,7 @@ function SchoolSummary({ school, label, color }) {
   if (!school) {
     return (
       <div style={{ ...cardStyle, borderColor: '#f1f5f9' }}>
-        <div style={{ color: '#94a3b8', fontSize: 13 }}>No school selected</div>
+        <div style={{ color: '#64748b', fontSize: 13 }}>No school selected</div>
       </div>
     )
   }
@@ -164,7 +164,7 @@ export default function MergeTool() {
         {(source || target) && (
           <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
             <SchoolSummary school={source} label="SOURCE — will be merged" color="#fca5a5" />
-            <div style={{ display: 'flex', alignItems: 'center', color: '#94a3b8', fontSize: 20 }}>→</div>
+            <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: 20 }}>→</div>
             <SchoolSummary school={target} label="TARGET — will absorb teachers and classes" color="#86efac" />
           </div>
         )}

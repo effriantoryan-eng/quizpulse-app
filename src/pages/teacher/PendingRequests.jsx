@@ -200,7 +200,7 @@ function PendingRequests() {
 
   if (!classId) {
     if (candidateClasses === null) {
-      return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading…</div>
+      return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading…</div>
     }
     if (candidateClasses.length === 0) {
       return (
@@ -214,7 +214,7 @@ function PendingRequests() {
     return (
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px' }}>
         <h2 style={{ margin: '0 0 4px', fontSize: '18px' }}>Which class?</h2>
-        <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#888' }}>
+        <p style={{ margin: '0 0 16px', fontSize: '13px', color: 'var(--muted)' }}>
           More than one class has students waiting to join.
         </p>
         {candidateClasses.map((c) => (
@@ -236,11 +236,11 @@ function PendingRequests() {
       </div>
     )
   }
-  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: '#888', fontSize: '14px' }}>Loading requests…</div>
+  if (loading) return <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', color: 'var(--muted)', fontSize: '14px' }}>Loading requests…</div>
 
   if (sessionExpired) return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px', textAlign: 'center' }}>
-      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '12px' }}>Your session has ended. Sign in again to continue.</p>
       <button
         onClick={() => login()}
         style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', boxShadow: 'var(--btnShadow)', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
@@ -292,7 +292,7 @@ function PendingRequests() {
         </div>
       </div>
 
-      <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#888' }}>
+      <p style={{ margin: '0 0 16px', fontSize: '13px', color: 'var(--muted)' }}>
         {pendingCount} pending · {queuedCount} queued
       </p>
 
@@ -301,7 +301,7 @@ function PendingRequests() {
       )}
 
       {sorted.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
+        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)', fontSize: '14px', border: '1px dashed #eee', borderRadius: '10px' }}>
           No pending join requests.
         </div>
       )}
@@ -314,7 +314,7 @@ function PendingRequests() {
             onChange={toggleAll}
             style={{ cursor: 'pointer' }}
           />
-          <span style={{ fontSize: '12px', color: '#888' }}>Select all pending</span>
+          <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Select all pending</span>
         </div>
       )}
 
@@ -338,13 +338,13 @@ function PendingRequests() {
             />
           )}
           {req.status === 'queued' && (
-            <span style={{ fontSize: '11px', color: '#aaa', flexShrink: 0, width: '16px', textAlign: 'center' }}>Q</span>
+            <span style={{ fontSize: '11px', color: 'var(--muted)', flexShrink: 0, width: '16px', textAlign: 'center' }}>Q</span>
           )}
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '14px', fontWeight: '500' }}>{req.studentName}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '12px', color: '#aaa' }}>
+              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
                 {req.status === 'queued' ? 'Queued' : 'Pending'} · {new Date(req.createdAt).toLocaleDateString()}
               </span>
               {matchBadge(req)}
