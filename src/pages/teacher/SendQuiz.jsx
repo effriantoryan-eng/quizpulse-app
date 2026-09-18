@@ -440,12 +440,9 @@ function SendQuiz() {
           {!classesLoading && !classesError && !classesSessionExpired && classes.length === 0 && (
             <div style={{ fontSize: '13px', color: '#888', padding: '16px', textAlign: 'center', border: '1px dashed #ddd', borderRadius: '8px', marginBottom: '16px' }}>
               No classes yet.{' '}
-              <span
-                style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}
-                onClick={() => navigate('/teacher/classes')}
-              >
+              <button type="button" className="link-button" onClick={() => navigate('/teacher/classes')}>
                 Create a class first
-              </span>
+              </button>
               .
             </div>
           )}
@@ -453,31 +450,27 @@ function SendQuiz() {
           {classes.map(c => {
             const isSelected = selectedClasses.includes(c.id)
             return (
-              <div
+              <label
                 key={c.id}
-                onClick={() => toggleClass(c.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   padding: '12px 14px', marginBottom: '8px',
-                  border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? 'var(--primary)' : '#e0e0e0'}`,
-                  borderRadius: '8px', background: isSelected ? 'var(--surface2)11' : 'white',
+                  border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
+                  borderRadius: '8px', background: isSelected ? 'var(--surface2)' : 'white',
                   cursor: 'pointer', transition: 'all 0.15s',
                 }}
               >
-                <div style={{
-                  width: '20px', height: '20px', borderRadius: '50%',
-                  border: `1px solid ${isSelected ? 'var(--primary)' : '#ccc'}`,
-                  background: isSelected ? 'var(--primary)' : 'white',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, fontSize: '12px', color: 'white',
-                }}>
-                  {isSelected ? '✓' : ''}
-                </div>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleClass(c.id)}
+                  style={{ accentColor: 'var(--primary)', width: '18px', height: '18px', flexShrink: 0, cursor: 'pointer' }}
+                />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: '500' }}>{c.name}</div>
-                  <div style={{ fontSize: '12px', color: '#888' }}>{c.studentCount || 0} students</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{c.studentCount || 0} students</div>
                 </div>
-              </div>
+              </label>
             )
           })}
 
@@ -491,29 +484,37 @@ function SendQuiz() {
           )}
 
           <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }}></div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-            <div
+          <div role="group" aria-label="When to send" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+            <button
+              type="button"
+              className="seg-opt"
+              aria-pressed={mode === 'now'}
               onClick={() => setMode('now')}
               style={{
                 padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
                 border: `2px solid ${mode === 'now' ? 'var(--primary)' : '#e0e0e0'}`,
-                background: mode === 'now' ? 'var(--surface2)22' : '#fafafa',
+                background: mode === 'now' ? 'var(--surface2)' : '#fafafa',
+                fontWeight: '500', fontSize: '13px',
+                color: mode === 'now' ? 'var(--primary)' : 'var(--muted)',
               }}
             >
-              <div style={{ fontSize: '20px', marginBottom: '6px' }}>📤</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'now' ? 'var(--primary)' : '#888' }}>Send now</div>
-            </div>
-            <div
+              Send now
+            </button>
+            <button
+              type="button"
+              className="seg-opt"
+              aria-pressed={mode === 'schedule'}
               onClick={() => setMode('schedule')}
               style={{
                 padding: '14px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer',
                 border: `2px solid ${mode === 'schedule' ? 'var(--primary)' : '#e0e0e0'}`,
-                background: mode === 'schedule' ? 'var(--surface2)22' : '#fafafa',
+                background: mode === 'schedule' ? 'var(--surface2)' : '#fafafa',
+                fontWeight: '500', fontSize: '13px',
+                color: mode === 'schedule' ? 'var(--primary)' : 'var(--muted)',
               }}
             >
-              <div style={{ fontSize: '20px', marginBottom: '6px' }}>🕐</div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: mode === 'schedule' ? 'var(--primary)' : '#888' }}>Schedule</div>
-            </div>
+              Schedule
+            </button>
           </div>
 
           <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#555', marginBottom: '6px' }}>
