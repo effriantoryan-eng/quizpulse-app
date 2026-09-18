@@ -60,7 +60,6 @@
   --btnShadow: none;
   --tipBg: #ffe0d9;
   --tipBorder: #201e1d;
-  --logoGrad: linear-gradient(135deg, #ca2910, #ae1800);
   --badgeBg: #ca2910;
   --badgeText: #ffffff;
 
@@ -262,14 +261,11 @@ code {
 .sidebar-logo {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
-  background: var(--logoGrad);
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
   cursor: pointer;
-  color: #fff;
 }
 
 .sidebar-wordmark {

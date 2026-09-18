@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Sidebar from './Sidebar'
+import BrandMark from './BrandMark'
 
 // The only link a signed-out visitor sees in the nav. Kept as a tiny data model so the
 // branch decision is unit-testable without a DOM (see tests/unit/demoNav.test.js).
@@ -33,9 +34,7 @@ export default function DemoNav() {
           aria-label="QuizPulse home"
           style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
-          </svg>
+          <BrandMark size={34} />
         </button>
         <span className="sidebar-wordmark">QuizPulse</span>
         <span className="sidebar-badge">beta</span>

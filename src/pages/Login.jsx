@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { loginRequest, signUpRequest } from '../authConfig'
 import LegalFooter from '../components/LegalFooter'
+import BrandMark from '../components/BrandMark'
 
 // Returns true when running inside a social-app in-app browser (Meta IAB, Instagram,
 // LinkedIn, Snapchat, Twitter/X, TikTok, Line, etc.) or a generic Android WebView.
@@ -74,10 +75,8 @@ function Login() {
     boxShadow: 'var(--shadow)',
   }
   const logo = {
-    width: '52px', height: '52px', borderRadius: '12px', background: 'var(--logoGrad)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
-    margin: '0 auto 20px', fontSize: '26px',
-    border: 'var(--bw) solid var(--border)', boxShadow: 'var(--shadowField)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    margin: '0 auto 20px',
   }
   const providerButton = {
     width: '100%', padding: '14px', borderRadius: 'var(--radius)', fontSize: '15px',
@@ -97,7 +96,7 @@ function Login() {
   if (isInAppBrowser()) {
     return (
       <div style={card}>
-        <div style={logo}>⚡</div>
+        <div style={logo}><BrandMark size={52} /></div>
         <h1 style={{ fontSize: '22px', fontWeight: '500', marginBottom: '8px' }}>QuizPulse</h1>
         <div style={{ ...infoBox, marginTop: '24px' }}>
           <strong style={{ display: 'block', marginBottom: '8px' }}>
@@ -127,7 +126,7 @@ function Login() {
   if (isIosStandalone()) {
     return (
       <div style={card}>
-        <div style={logo}>⚡</div>
+        <div style={logo}><BrandMark size={52} /></div>
         <h1 style={{ fontSize: '22px', fontWeight: '500', marginBottom: '8px' }}>QuizPulse</h1>
         <div style={{ ...infoBox, marginTop: '24px' }}>
           <strong style={{ display: 'block', marginBottom: '8px' }}>
@@ -157,7 +156,7 @@ function Login() {
   // Standard browser: show the normal sign-in buttons + sign-up section.
   return (
     <div style={card}>
-      <div style={logo}>⚡</div>
+      <div style={logo}><BrandMark size={52} /></div>
       <h1 style={{ fontSize: '22px', fontWeight: '500', marginBottom: '8px' }}>QuizPulse</h1>
       <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: authError ? '16px' : '32px' }}>Sign in to access the teacher dashboard</p>
 
@@ -197,9 +196,9 @@ function Login() {
 
       {/* Divider */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0 20px' }}>
-        <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+        <div style={{ flex: 1, height: '1px', background: 'var(--surface2)' }} />
         <span style={{ fontSize: '12px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>New to QuizPulse?</span>
-        <div style={{ flex: 1, height: '1px', background: '#eee' }} />
+        <div style={{ flex: 1, height: '1px', background: 'var(--surface2)' }} />
       </div>
 
       <button
