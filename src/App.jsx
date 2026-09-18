@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { getOnboarded, setOnboarded as markOnboarded } from './onboardingCache'
+import { getOnboarded, setOnboarded as markOnboarded, getTermsCurrent, setTermsCurrent } from './onboardingCache'
+import TermsUpdate from './components/TermsUpdate'
 import API_BASE from './api'
 import Home from './pages/Home'
 import Pricing from './pages/Pricing'
@@ -37,6 +38,8 @@ import { useDocumentTitle } from './hooks/useDocumentTitle'
 import SWUpdateBanner from './components/SWUpdateBanner'
 import IosInstallBanner from './components/IosInstallBanner'
 import StudentClass from './pages/student/StudentClass'
+import LegalPage from './pages/LegalPage'
+import { PRIVACY_POLICY, COLLECTION_NOTICE, TERMS } from './data/legalContent'
 
 // Used only for the /onboarding route: confirms sign-in but doesn't check onboarding state
 // (otherwise the gate would redirect before the teacher can complete onboarding).
@@ -58,6 +61,9 @@ function RequireTeacher({ children }) {
   const { isAuthenticated, loading, teacherId } = useAuth()
   const navigate = useNavigate()
   const [status, setStatus] = useState(getOnboarded()) // null | true | false
+  // R3 Task 5 — null | true | false. Fails open to true on any /api/me fetch error (same posture
+  // as onboarded below) so an API blip can never lock a teacher out behind an unresolvable screen.
+  const [termsCurrent, setTermsCurrentState] = useState(getTermsCurrent())
 
   useEffect(() => {
     if (loading || !isAuthenticated || getOnboarded() !== null) return
@@ -67,12 +73,17 @@ function RequireTeacher({ children }) {
         const ok = data.onboarded !== false
         markOnboarded(ok)
         setStatus(ok)
+        const terms = data.termsCurrent !== false
+        setTermsCurrent(terms)
+        setTermsCurrentState(terms)
         if (!ok) navigate('/onboarding', { replace: true })
       })
       .catch(() => {
         // Fail open so an API error doesn't permanently lock out the teacher dashboard.
         markOnboarded(true)
         setStatus(true)
+        setTermsCurrent(true)
+        setTermsCurrentState(true)
       })
   }, [isAuthenticated, loading, teacherId, navigate])
 
@@ -84,11 +95,14 @@ function RequireTeacher({ children }) {
     return <div style={{ padding: '48px', textAlign: 'center', color: '#888' }}>Loading…</div>
   }
   if (status === false) return null // navigate to /onboarding already in flight
+  if (termsCurrent === false) {
+    return <TermsUpdate onDone={() => setTermsCurrentState(true)} />
+  }
   return children
 }
 
 // Public, full-bleed routes (student-facing + auth) render without the teacher sidebar.
-const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/onboarding/profile', '/teacher/first-run', '/quiz', '/join', '/student/class']
+const FULL_WIDTH_ROUTES = ['/login', '/onboarding', '/onboarding/profile', '/teacher/first-run', '/quiz', '/join', '/student/class', '/privacy', '/collection-notice', '/terms']
 
 function AppRoutes() {
   usePageView()
@@ -124,6 +138,9 @@ function AppRoutes() {
       <Route path="/quiz/review" element={<QuizReview mode="review" />} />
       <Route path="/quiz/practice" element={<QuizReview mode="practice" />} />
       <Route path="/student/class" element={<StudentClass />} />
+      <Route path="/privacy" element={<LegalPage doc={PRIVACY_POLICY} />} />
+      <Route path="/collection-notice" element={<LegalPage doc={COLLECTION_NOTICE} />} />
+      <Route path="/terms" element={<LegalPage doc={TERMS} />} />
       <Route path="/teacher/pending-requests" element={<RequireTeacher><PendingRequests /></RequireTeacher>} />
       <Route path="/teacher/roster" element={<RequireTeacher><ClassRoster /></RequireTeacher>} />
       <Route path="/teacher/classes/settings" element={<RequireTeacher><ClassSettings /></RequireTeacher>} />

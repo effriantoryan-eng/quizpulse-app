@@ -4,6 +4,7 @@
 // This codebase has already been bitten once by copy-pasted logic diverging across call sites
 // (the rateLimit-import regression) — see CLAUDE.md's Authorization model note.
 const crypto = require('crypto');
+const { ATTESTATION_VERSION, versionState } = require('./legalVersions');
 
 const CLASS_NAME_MAX = 80;      // Security limits table — Class name length
 const CLASSES_PER_TEACHER = 20; // Security limits table — Classes per teacher (real classes only)
@@ -12,6 +13,15 @@ class ClassLimitError extends Error {
   constructor(message = `You can have at most ${CLASSES_PER_TEACHER} classes.`) {
     super(message);
     this.status = 429;
+  }
+}
+
+// R3 Task 6 — thrown when a real class is created without a valid school-authorisation
+// attestation. Callers map this to 400.
+class AttestationError extends Error {
+  constructor(message = 'Please confirm your school has authorised QuizPulse before creating a class.') {
+    super(message);
+    this.status = 400;
   }
 }
 
@@ -25,10 +35,24 @@ function generateJoinCode() {
 // Creates one real class for `teacherId`. Throws ClassLimitError (429) if the teacher is
 // already at the 20-real-class cap — callers doing a sequential batch (onboarding shells)
 // should let that propagate and stop, rather than pre-computing "N remaining" themselves.
-async function createRealClass(classesContainer, { teacherId, schoolId, name, studentCount }) {
+//
+// R3 Task 6 — a real class needs a school-authorisation attestation before it can be created
+// ({ schoolAuthorised: true, version: ATTESTATION_VERSION }), or this throws AttestationError
+// (400). `skipAttestation` is an INTERNAL flag, never settable from a request body — it exists
+// only for classesCreateShells, which creates empty server-named class shells with no per-class
+// checkbox in the UI to attest with; those shells still show the un-attested banner on Classes.jsx
+// and must be attested via PUT /classes/{id}/attest before students can join (same posture as any
+// other un-attested class — see joinRequestCreate's cut-off check).
+async function createRealClass(classesContainer, { teacherId, schoolId, name, studentCount, attestation, skipAttestation = false }) {
   const trimmedName = (name || '').trim();
   if (!trimmedName || trimmedName.length > CLASS_NAME_MAX) {
     throw new Error(`name must be a non-empty string of ${CLASS_NAME_MAX} characters or fewer`);
+  }
+
+  if (!skipAttestation) {
+    const valid = attestation && attestation.schoolAuthorised === true
+      && versionState(attestation.version, ATTESTATION_VERSION) === 'current';
+    if (!valid) throw new AttestationError();
   }
 
   const { resources: counts } = await classesContainer.items
@@ -41,6 +65,7 @@ async function createRealClass(classesContainer, { teacherId, schoolId, name, st
     throw new ClassLimitError();
   }
 
+  const now = new Date().toISOString();
   const doc = {
     id: crypto.randomUUID(),
     teacherId,
@@ -52,10 +77,12 @@ async function createRealClass(classesContainer, { teacherId, schoolId, name, st
     nameListEnabled: false,
     cap: 40,
     isDemo: false,
-    createdAt: new Date().toISOString(),
+    attestedAt: skipAttestation ? null : now,
+    attestationVersion: skipAttestation ? null : ATTESTATION_VERSION,
+    createdAt: now,
   };
   const { resource } = await classesContainer.items.create(doc);
   return resource;
 }
 
-module.exports = { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, generateJoinCode, createRealClass };
+module.exports = { CLASS_NAME_MAX, CLASSES_PER_TEACHER, ClassLimitError, AttestationError, generateJoinCode, createRealClass };

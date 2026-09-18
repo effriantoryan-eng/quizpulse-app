@@ -13,6 +13,9 @@ const TITLES = [
   { path: '/teacher/quizzes',   title: 'My Quizzes · QuizPulse' },
   { path: '/teacher/analytics', title: 'Quiz Analytics · QuizPulse' },
   { path: '/teacher/account',   title: 'Your Account · QuizPulse' },
+  { path: '/privacy',           title: 'Privacy Policy · QuizPulse' },
+  { path: '/collection-notice', title: 'Collection Notice · QuizPulse' },
+  { path: '/terms',             title: 'Terms of Use · QuizPulse' },
 ]
 
 function titleFor(pathname) {

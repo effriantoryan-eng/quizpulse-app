@@ -7,8 +7,8 @@ and code — see `CLAUDE.md` for the full schema if you need more detail than th
 
 There is no student sign-up, login, name, or email captured by the platform itself. A student is
 identified only by a random device ID (`quizpulse_device_id`) generated in their browser's local
-storage the first time they join a class. That ID is what ties their quiz responses together —
-nothing else does.
+storage **the moment they submit the join form** — never before, and never on a page view. That ID
+is what ties their quiz responses together — nothing else does.
 
 ## What is stored
 
@@ -18,17 +18,21 @@ nothing else does.
 | Student name | `join_requests` only | Typed once by the student when asking to join a class; a teacher approves or rejects it. Optionally matched (not identified) against a teacher-entered name list. |
 | Quiz answers + confidence | `responses` | Which option was picked, a 3-level confidence rating (Sure / Pretty sure / Guessing), and response time. No open text. |
 | Push notification endpoint | `subscriptions` | Only if the student opts in to notifications on their device. Auto-removed if delivery starts failing (stale subscription pruning). |
-| Minimal page-visit beacons | `pageviews` | On the quiz-taking and class-home routes (`/quiz`, `/quiz/*`, `/student/class`), browser fingerprint fields — user agent, screen size, language, timezone, referrer — are stripped server-side before write, regardless of what the browser sends; only `{page, deviceId, sessionId, quizId, visitedAt}` remain. **The `/join` page and the public pages (`/`, `/demo`, `/login`) do not strip these fields yet** — a planned change (R3) will bring them in line. |
+| Minimal page-visit beacons | `pageviews` | Every route, not just student ones: no browser fingerprint fields (user agent, screen size, language, timezone, referrer) are ever stored anywhere — only two coarse buckets, `device` (mobile/desktop/unknown) and `browser` (chrome/safari/firefox/edge/other), derived server-side and the raw values discarded. On the quiz-taking and class-home routes (`/quiz`, `/quiz/*`, `/student/class`), those buckets aren't even computed — they're stored as `unknown`/`other`. Before a device joins a class, no persistent ID exists at all: a pre-join visit sends only a per-tab session ID, never the permanent device ID. |
 
 ## What is deliberately NOT collected
 
-- No browser fingerprint on the quiz-taking and class-home routes (`/quiz`, `/quiz/*`,
-  `/student/class`), enforced server-side, not just client-side. (The `/join` page still records
-  these fields today; R3 will strip them there too.)
+- No browser fingerprint field, on any route, ever — enforced server-side regardless of what the
+  browser sends. Only coarse device/browser buckets are kept, and even those are withheld on
+  student and consent-related routes.
+- No persistent identity before a student actually joins a class — page views before that point
+  carry only a per-tab session ID that resets when the tab closes, never a device ID.
 - No location data.
 - No student name beyond what they type into a join request (which a teacher can reject).
 - No email, phone number, or other contact detail.
 - No free-text answers — quizzes are multiple-choice only.
+- No tracking before notice — the join form shows a short collection notice, with a link to the
+  full collection notice, before the student submits their name.
 
 ## Retention
 
@@ -54,6 +58,32 @@ nothing else does.
   operating the platform (traffic volume, error rates) and a cohort-level drill-down of a single
   teacher's own class results — never individual student names or per-response rows.
 - No student data is ever sold, shared with advertisers, or used to profile students individually.
+
+## Notice, consent and school authorisation
+
+- **The collection notice.** The join form shows a short, plain-language notice before the student
+  types their name, with a link to the full collection notice. The version of the notice a student
+  was shown is recorded on their join request; an older device that hasn't seen the current notice
+  isn't blocked from joining, it just has no version recorded.
+- **Where the legal documents live.** A Privacy Policy, a Collection Notice and Terms of Use are
+  in-app pages (`/privacy`, `/collection-notice`, `/terms`), linked from a footer on every public,
+  student and sign-in page, and from the teacher sidebar.
+- **The notification prompt only follows a button press.** The browser's own permission prompt
+  never fires automatically. A student sees one line explaining what notifications are for and
+  taps "Turn on notifications" themselves — the tap is what lets the prompt appear at all on some
+  browsers, and it means the student always makes an active choice rather than being asked before
+  they understand why.
+- **School authorisation, not a parent/student consent form.** QuizPulse doesn't collect consent
+  directly from a student or their family — the school is the consent intermediary. A teacher
+  confirms, when creating a class, that their school has authorised using QuizPulse and informed
+  families; that confirmation (with a timestamp) is recorded on the class. Classes created before
+  this confirmation existed keep working for a grace period, after which new joins to an
+  un-attested class are paused until the teacher confirms.
+- **No age question on the join form.** The school-authorisation model above is the deliberate
+  design choice here, not an oversight — QuizPulse treats the school as the party responsible for
+  deciding whether and how to introduce it to a given age group, the same way a school decides
+  which other classroom tools to use. This is a considered position, not a legal conclusion; a
+  school with a different requirement should raise it with QuizPulse before piloting.
 
 ## Legal basis / purpose
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { loginRequest, signUpRequest } from '../authConfig'
+import LegalFooter from '../components/LegalFooter'
 
 // Returns true when running inside a social-app in-app browser (Meta IAB, Instagram,
 // LinkedIn, Snapchat, Twitter/X, TikTok, Line, etc.) or a generic Android WebView.
@@ -208,6 +209,8 @@ function Login() {
       >
         Create an account
       </button>
+
+      <LegalFooter />
     </div>
   )
 }

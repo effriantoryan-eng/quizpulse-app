@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import API_BASE from '../../api'
+import { ATTESTATION_VERSION, isLegalPending, CLASS_ATTESTATION } from '../../data/legalContent'
+
+const ATTESTATION_PENDING = isLegalPending(CLASS_ATTESTATION)
 
 function ClassRoster() {
   const [searchParams] = useSearchParams()
@@ -13,6 +16,8 @@ function ClassRoster() {
   const [regenerating, setRegenerating] = useState(false)
   const [removingId, setRemovingId] = useState(null)
   const [togglingNameList, setTogglingNameList] = useState(false)
+  const [attesting, setAttesting] = useState(false)
+  const [attestError, setAttestError] = useState(null)
 
   useEffect(() => {
     if (classId) fetchData()
@@ -74,6 +79,24 @@ function ClassRoster() {
     }
   }
 
+  async function attest() {
+    setAttesting(true)
+    setAttestError(null)
+    try {
+      const res = await fetch(`${API_BASE}/classes/${classId}/attest`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: ATTESTATION_VERSION }),
+      })
+      if (!res.ok) { setAttestError("Couldn't save that — try again."); return }
+      setCls(await res.json())
+    } catch {
+      setAttestError('Could not connect to the server. Please try again.')
+    } finally {
+      setAttesting(false)
+    }
+  }
+
   async function toggleNameList(enabled) {
     setTogglingNameList(true)
     try {
@@ -108,6 +131,22 @@ function ClassRoster() {
       <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#888' }}>
         {approved.length} active · {pendingCount} pending · {queuedCount} queued
       </p>
+
+      {cls && !cls.attestedAt && !ATTESTATION_PENDING && (
+        <div style={{ background: '#fff8e6', border: '1px solid #f0d999', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+          <div style={{ fontSize: '13px', color: '#8a6d1a', marginBottom: '8px', lineHeight: '1.5' }}>
+            {CLASS_ATTESTATION.text}
+          </div>
+          {attestError && <p role="alert" style={{ color: '#c0392b', fontSize: '12px', margin: '0 0 8px' }}>{attestError}</p>}
+          <button
+            onClick={attest}
+            disabled={attesting}
+            style={{ padding: '6px 14px', background: 'var(--primary)', color: 'white', border: 'var(--bw) solid var(--border)', borderRadius: '6px', fontSize: '13px', cursor: 'pointer', opacity: attesting ? 0.7 : 1 }}
+          >
+            {attesting ? 'Confirming…' : 'Confirm'}
+          </button>
+        </div>
+      )}
 
       {/* Join code panel */}
       <div style={{ background: '#f8f8f8', border: 'var(--bw) solid var(--border)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>

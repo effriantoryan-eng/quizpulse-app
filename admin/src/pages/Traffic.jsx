@@ -121,12 +121,15 @@ export default function Traffic() {
 
       {t && !isEmpty && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 8 }}>
             <StatTile label="Page views" value={t.totals.pageViews} />
-            <StatTile label="Unique visitors" value={t.totals.uniqueVisitors} />
+            <StatTile label="Joined devices" value={t.totals.uniqueVisitors} />
             <StatTile label="Sessions" value={t.totals.uniqueSessions} />
             <StatTile label="Pages / session" value={t.totals.pagesPerSession} />
             <StatTile label="PWA installs" value={t.pwaInstalls} />
+          </div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 16 }}>
+            From v4.12.0, visitors are counted only for devices that joined a class; other visits are counted as sessions.
           </div>
 
           <div style={groupStyle}>

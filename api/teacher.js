@@ -8,6 +8,7 @@ const { isValidIntroKey } = require('./shared/featureIntros');
 const { computeEligibleIntros } = require('./shared/introEligibility');
 const { GETTING_STARTED_STEPS, computeGettingStarted } = require('./shared/gettingStarted');
 const { tierOf } = require('./shared/entitlements');
+const { TERMS_VERSION, versionState } = require('./shared/legalVersions');
 const crypto = require('crypto');
 
 const client = new CosmosClient({
@@ -99,6 +100,8 @@ app.http('teacherMe', {
 
       const profile = teacher.profile || {};
       const featureIntros = teacher.featureIntros || {};
+      // R3 Task 5 — termsCurrent is false for a legacy teacher (no field) or a stale acceptance.
+      const termsCurrent = teacher.termsAcceptedVersion === TERMS_VERSION;
       const eligibleIntros = await computeEligibleIntros({ teacherId, teacher, classesContainer, quizzesContainer });
       const gettingStarted = await computeGettingStarted({ teacherId, teacher, classesContainer, quizzesContainer });
 
@@ -122,6 +125,7 @@ app.http('teacherMe', {
           tier: tierOf(teacher), // normalised (legacy docs with no field read as 'free')
           profile,
           profileComplete: isProfileComplete(profile),
+          termsCurrent,
           featureIntros,
           eligibleIntros,
           gettingStarted,
@@ -188,6 +192,63 @@ app.http('updateProfile', {
   },
 });
 
+// PUT /api/me/terms — an existing teacher re-accepts an updated Terms/Privacy version (the
+// RequireTeacher interstitial's "I agree" button). Unlike onboarding's acceptedTermsVersion (which
+// tolerates absence for old clients), this endpoint's whole job is recording acceptance — so a
+// missing or stale version is always rejected, never silently accepted.
+app.http('updateTerms', {
+  methods: ['PUT'],
+  authLevel: 'anonymous',
+  route: 'me/terms',
+  handler: async (request, context) => {
+    const start = Date.now();
+    function respond(status, body, teacherId) {
+      logRequest(context, { endpoint: 'me/terms', method: 'PUT', status, durationMs: Date.now() - start, teacherId });
+      return { status, jsonBody: body };
+    }
+
+    try {
+      const auth = await authenticateTeacher(request);
+      if (auth.error) return respond(auth.status, { error: auth.error });
+      const teacherId = auth.teacherId;
+
+      const ip = getClientIp(request);
+      if (!rateLimit(`me-terms:${ip}`, 10, 60000)) {
+        return respond(429, { error: 'Too many requests. Please try again later.' }, teacherId);
+      }
+
+      const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+      if (contentLength > 1024) {
+        return respond(413, { error: 'Request body too large.' }, teacherId);
+      }
+
+      const body = await request.json();
+      if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        return respond(400, { error: 'Request body must be a JSON object' }, teacherId);
+      }
+
+      if (versionState(body.version, TERMS_VERSION) !== 'current') {
+        return respond(400, { error: 'Please reload the page and try again.' }, teacherId);
+      }
+
+      const teacher = await getTeacher(teacherId);
+      if (!teacher) return respond(404, { error: 'Not found' }, teacherId);
+
+      const now = new Date().toISOString();
+      await teachers.item(teacherId, teacherId).patch([
+        { op: 'set', path: '/termsAcceptedVersion', value: TERMS_VERSION },
+        { op: 'set', path: '/termsAcceptedAt', value: now },
+      ]);
+
+      return respond(200, { termsCurrent: true, termsAcceptedAt: now }, teacherId);
+    } catch (err) {
+      context.error('updateTerms error:', err.message);
+      logRequest(context, { endpoint: 'me/terms', method: 'PUT', status: 500, durationMs: Date.now() - start });
+      return { status: 500, jsonBody: { error: 'An unexpected error occurred' } };
+    }
+  },
+});
+
 // POST /api/onboarding — first-login: creates an unvalidated school (free-text name) and the
 // teacher document, denormalising schoolId + schoolStatus onto the teacher. One school per
 // teacher account (Security limits table).
@@ -231,12 +292,20 @@ app.http('onboarding', {
         return respond(400, { error: 'role cannot be set here' }, teacherId);
       }
 
-      const { schoolName } = body;
+      const { schoolName, acceptedTermsVersion } = body;
       if (typeof schoolName !== 'string' || !schoolName.trim()) {
         return respond(400, { error: 'schoolName is required and must be a string' }, teacherId);
       }
       if (schoolName.trim().length > SCHOOL_NAME_MAX) {
         return respond(400, { error: `schoolName must be ${SCHOOL_NAME_MAX} characters or fewer` }, teacherId);
+      }
+
+      // R3 Task 5 — acceptedTermsVersion is optional (D3.7: an old cached client that doesn't send
+      // it stores null, never a 400) but when PRESENT it must be the current version, so a stale
+      // client can't record acceptance of terms it never actually showed.
+      const termsState = versionState(acceptedTermsVersion, TERMS_VERSION);
+      if (termsState === 'stale') {
+        return respond(400, { error: 'Please reload the page and try again.' }, teacherId);
       }
 
       // One school per teacher — if already onboarded, return the existing record (idempotent).
@@ -274,6 +343,9 @@ app.http('onboarding', {
         idp: claims.idp || 'local',
         role: 'teacher',
         tier: 'free', // subscription tier — orthogonal to role; set by hand until billing exists
+        // R3 — null when absent (D3.7); server time, never trusting a client timestamp.
+        termsAcceptedVersion: termsState === 'current' ? acceptedTermsVersion : null,
+        termsAcceptedAt: termsState === 'current' ? now : null,
         createdAt: now,
       };
       await teachers.items.create(teacher);

@@ -25,6 +25,9 @@ const ALLOWED_PREFIXES = [
   '/join',
   '/quiz',
   '/student/class',
+  '/privacy',
+  '/collection-notice',
+  '/terms',
   '/teacher/pending-requests',
   '/teacher/roster',
 ];

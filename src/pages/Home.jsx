@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { loginRequest, signUpRequest } from '../authConfig'
 import InstallButton from '../components/InstallButton'
 import PricingTiers from '../components/PricingTiers'
+import LegalFooter from '../components/LegalFooter'
 
 // Brand accents for the public landing.
 const BRAND = '#534AB7'
@@ -147,6 +148,8 @@ export default function Home() {
 
       {/* Add-to-phone — secondary weight, centered, below the two cards. */}
       <InstallButton align="center" />
+
+      <LegalFooter />
 
       {/* hidden: Plans section
       <div style={{ marginTop: '72px', paddingTop: '48px', borderTop: '1px solid var(--border)' }}>

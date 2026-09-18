@@ -537,6 +537,73 @@ of clicking through `admin/src/pages/Erasure.jsx` — every status code, gate an
 real production code path, only the admin UI's own click-through is unexercised. All services
 stopped immediately after the run.
 
+---
+
+# v4.12.0 — R3 Notice, consent and minimisation
+
+Report: `tests/reports/v4.12.0-report.html`. Unit suite **593/593 pass** (33 new across
+`pageView.test.js`, `trafficAggregate.test.js`, `usePageView.test.js`, `createClass.test.js`,
+`legalVersions.test.js`).
+
+**No legal wording was supplied this session.** Every legal string (`src/data/legalContent.js`)
+ships as the literal `"[LEGAL TEXT PENDING]"` marker. Per the sprint gate, this blocks the rc1 tag
+and deploy — `grep -r "LEGAL TEXT PENDING" src/` currently returns matches. Everything else (code,
+tests, wiring) is complete and gated correctly on the placeholder (see the isLegalPending() guard
+in `src/data/legalContent.js`, `LegalPage.jsx`, `Onboarding.jsx`, `TermsUpdate.jsx`, `JoinClass.jsx`,
+`Classes.jsx`, `ClassRoster.jsx` — every accept action is disabled while its document is pending).
+
+`ATTESTATION_REQUIRED_FROM` (D3.4) also has no reviewer-supplied date — `api/shared/legalVersions.js`
+fails OPEN when unset (`attestationCutoffMs()` returns `Infinity`), so no pilot class is blocked
+from accepting joins until the reviewer sets a real cut-off date and pilot teachers are told.
+
+## Unit (offline, pure logic / fake containers)
+
+| # | What is tested | How | Expected | Status |
+|---|---|---|---|---|
+| 1 | No browser fingerprint is stored on any route | `buildPageViewDoc` with full legacy payloads for `/`, `/join`, `/login`, `/quiz`, `/teacher/home` + a consent event | No `referrer`/`language`/`timezone`/`screenWidth`/`screenHeight`/`userAgent` keys on the doc | ✅ PASS |
+| 2 | Coarse buckets are computed | width 390 + Safari UA; width 1440 + Chrome UA | mobile/safari; desktop/chrome | ✅ PASS |
+| 3 | Student/consent routes are never device-classified | `/quiz`, `/student/class`, a consent event, each with real UA+width | device `unknown`, browser `other` | ✅ PASS |
+| 4 | Legacy page views still aggregate | `aggregateTraffic` over a doc with raw fields and no buckets | Device/browser counts identical to the pre-change function | ✅ PASS |
+| 5 | Unique visitors are joined-device only | A null-teacherId view + a real-device view | pageViews 2, uniqueSessions 2, **uniqueVisitors 1** | ✅ PASS |
+| 6 | The beacon never creates an ID | `buildPageViewPayload` mirror, with and without a stored device ID | `teacherId` null and no create call; `teacherId` equals the stored ID | ✅ PASS |
+| 7 | Version validation | `versionState` against absent/stale/current | absent (D3.7); stale; current | ✅ PASS |
+| 8 | Attestation cut-off — fail open (critical) | Unset env var, an unparseable date, a real past date, a real future date | Infinity/never-blocks; Infinity/never-blocks; blocks; doesn't yet block | ✅ PASS |
+| 9 | Class creation requires attestation | `createRealClass`: missing, wrong version, `schoolAuthorised:false`, valid, `skipAttestation` | AttestationError ×3; created with `attestedAt`; shell created un-attested | ✅ PASS |
+| 10 | New routes are allowlisted | Existing route-walk test (`pageViewAllowlist.test.js`) | Passes with `/privacy`, `/collection-notice`, `/terms` | ✅ PASS |
+
+## Integration — `tests/integration/api/v4.12.0-notice-consent.test.js` (8 cases)
+
+Run 2026-09-18 against `func start` + `quizpulse-int-test-db` (`RUN_INTEGRATION=true
+B2C_ALLOW_UNVERIFIED_DEV=true ATTESTATION_REQUIRED_FROM=2020-01-01T00:00:00.000Z`) — the resolved
+`COSMOS_ENDPOINT` was echoed and confirmed pointed at `quizpulse-int-test-db` before any test ran
+(never production, per CLAUDE.md Testing). **8/8 pass.** Host stopped immediately after the run.
+
+| # | What is tested | Expected | Status |
+|---|---|---|---|
+| 1 | Stored page view is minimal | A full legacy `/join` payload → the doc read back via SDK has only `page/eventType/teacherId(null)/sessionId/quizId/device/browser/platform/id/visitedAt` | ✅ PASS |
+| 2 | Device ID from the header | `X-Device-Id` header works; legacy `?deviceId=` still works this release | ✅ PASS |
+| 3 | Join notice version enforced | Stale → 400; current → 201 with `noticeVersion` stored; absent → 201 with `noticeVersion` null | ✅ PASS |
+| 4 | Teacher terms at onboarding | Wrong `acceptedTermsVersion` → 400; correct → teacher doc has it, `GET /api/me` `termsCurrent: true` | ✅ PASS |
+| 5 | Existing teacher re-accepts | No terms fields → `termsCurrent: false`; `PUT /api/me/terms` wrong → 400, correct → 200 + `termsCurrent: true` | ✅ PASS |
+| 6 | Class attestation | Missing → 400; valid → 201 with `attestedAt` | ✅ PASS |
+| 7 | Cut-off blocks un-attested joins (`ATTESTATION_REQUIRED_FROM` set into the past on the func host) | A legacy un-attested class → 409; after `PUT attest` → 201 | ✅ PASS |
+| 8 | Cross-tenant attest denied | Teacher B PUTs Teacher A's class's attest → 404; A's class unchanged | ✅ PASS |
+
+Note: this run used a placeholder past date (`2020-01-01`) for `ATTESTATION_REQUIRED_FROM` purely
+to exercise the cut-off code path — it is NOT the reviewer's real cut-off decision, which is still
+outstanding (see the gate).
+
+## End-to-end — not yet run
+
+Not exercised this session (no live browser/func/Cosmos session). Before tagging rc1, manually
+walk: no `quizpulse_device_id` in localStorage until a join is actually submitted (fresh profile,
+`/` then `/join`); the join form shows the notice above the field, no device id appears until
+submit; no permission prompt fires until "Turn on notifications" is tapped; `/privacy`,
+`/collection-notice`, `/terms` render and the footer links work on every listed screen; a new
+teacher sees the required terms checkbox and an existing legacy teacher sees the one-screen
+interstitial once; creating a class requires the attestation checkbox and an un-attested legacy
+class shows the grouped banner on Classes/ClassRoster.
+
 | # | What is tested | Expected | Status |
 |---|---|---|---|
 | 1 | Student opt-out journey | No push while off; push resumes after turning on; after leaving, the class disappears locally and its status 404s | ✅ PASS — real `<button>`s confirmed; SW registration soft-fails in this sandboxed browser (no crash, expected — can't grant Notification permission headlessly); `window.confirm()` declined correctly blocked the leave (0 network calls) and accepted correctly fired `POST /api/student/leave-class → 200`, page instantly showed "No class found on this device", server `studentCount` confirmed decremented to 0 |
