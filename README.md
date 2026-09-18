@@ -15,7 +15,7 @@ associate a school before accessing the dashboard.
 Operator tooling — school management, merge tool, traffic monitor, audit log, role management.
 Requires a separate admin CIAM account.
 
-**Current version:** v4.12.0 (beta)
+**Current version:** v4.13.0 (beta)
 
 ---
 
@@ -69,6 +69,7 @@ Requires a separate admin CIAM account.
 | Join-form collection notice + button-triggered notification prompt | ⚠️ notice text pending |
 | Teacher terms acceptance + re-accept interstitial | ⚠️ terms text pending |
 | Class school-authorisation attestation (fail-open cut-off) | ⚠️ checkbox text pending |
+| Accessibility WCAG 2.1 AA — contrast, labels, keyboard focus, live regions, skip link | ✅ |
 
 ---
 

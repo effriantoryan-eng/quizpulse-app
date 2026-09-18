@@ -1,16 +1,16 @@
 # Graph Report - quizpulse - PWA  (2026-09-18)
 
 ## Corpus Check
-- 268 files · ~168,900 words
+- 272 files · ~170,069 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1587 nodes · 2732 edges · 137 communities (124 shown, 13 thin omitted)
+- 1600 nodes · 2746 edges · 139 communities (125 shown, 14 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `01455698`
+- Built from commit: `4cba2cba`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -129,6 +129,7 @@
 - [[_COMMUNITY_Community 134|Community 134]]
 - [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 136|Community 136]]
+- [[_COMMUNITY_Community 137|Community 137]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `logRequest()` - 69 edges
@@ -145,22 +146,22 @@
 ## Surprising Connections (you probably didn't know these)
 - `makeOnboardingHandler()` --calls--> `getTeacher()`  [INFERRED]
   tests/unit/api/signup-provisioning.test.js → api/teacher.js
-- `runOnce()` --calls--> `deidentifyResponses()`  [EXTRACTED]
-  tests/unit/api/studentDataCleanup.test.js → api/shared/studentDataCleanup.js
 - `buildPageViewPayload()` --calls--> `getDeviceId()`  [INFERRED]
   tests/unit/usePageView.test.js → src/deviceId.js
 - `buildPageViewPayload()` --calls--> `getTabSessionId()`  [INFERRED]
   tests/unit/usePageView.test.js → src/hooks/usePageView.js
 - `onAppInstalled()` --calls--> `sendPageViewBeacon()`  [INFERRED]
   tests/unit/usePageView.test.js → src/hooks/usePageView.js
+- `respond()` --calls--> `logRequest()`  [EXTRACTED]
+  api/accountDeletion.js → api/logger.js
 
 ## Import Cycles
 - None detected.
 
-## Communities (137 total, 13 thin omitted)
+## Communities (139 total, 14 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.18
+Cohesion: 0.19
 Nodes (14): { EXCLUDE_DEMO_FRAGMENT, andExcludeDemo, isDemoClass }, {
   runSimulation,
   generateSimulatedResponses,
@@ -168,7 +169,7 @@ Nodes (14): { EXCLUDE_DEMO_FRAGMENT, andExcludeDemo, isDemoClass }, {
   pickDistractor,
   pickConfidence,
   pickResponseTimeMs,
-}, { selectDemoStudents, DEMO_NAMES }, crypto, DEMO_NAMES, crypto, generateSimulatedResponses(), getContainers() (+6 more)
+}, { selectDemoStudents, DEMO_NAMES }, andExcludeDemo(), isDemoClass(), crypto, generateSimulatedResponses(), getContainers() (+6 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.13
@@ -180,11 +181,11 @@ Nodes (14): { app }, { authenticateTeacher }, classesContainer, client, { Cosmos
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
-Nodes (37): dependencies, @azure/msal-browser, @azure/msal-react, qrcode-generator, react, react-dom, react-router-dom, devDependencies (+29 more)
+Nodes (38): dependencies, @azure/msal-browser, @azure/msal-react, qrcode-generator, react, react-dom, react-router-dom, devDependencies (+30 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.14
-Nodes (22): LegalFooter(), SWUpdateBanner(), TermsUpdate(), CLASS_ATTESTATION, COLLECTION_NOTICE, isLegalPending(), PRIVACY_POLICY, TERMS (+14 more)
+Cohesion: 0.11
+Nodes (25): SWUpdateBanner(), TermsUpdate(), CLASS_ATTESTATION, COLLECTION_NOTICE, isLegalPending(), JOIN_NOTICE_SHORT, PRIVACY_POLICY, TERMS (+17 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.10
@@ -195,16 +196,16 @@ Cohesion: 0.10
 Nodes (18): { app }, approveRequest(), { assertScope, ScopeError }, { authenticateTeacher }, _bruteForceStore, classesContainer, client, { COLLECTION_NOTICE_VERSION, versionState, attestationRequiredNow } (+10 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.15
-Nodes (13): PricingTiers(), TIERS, AuthContext, AuthProvider(), Home(), isInAppBrowser(), isIosStandalone(), Login() (+5 more)
+Cohesion: 0.09
+Nodes (21): LegalFooter(), PricingTiers(), TIERS, AuthContext, AuthProvider(), Home(), isInAppBrowser(), isIosStandalone() (+13 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.12
-Nodes (17): HintBanner(), StarterSeedCta(), useHint(), Analytics(), OPTION_BORDER, OPTION_COLORS, BuildQuiz(), TOPIC_COLORS (+9 more)
+Cohesion: 0.17
+Nodes (11): HintBanner(), FOUR_CELL, isOutsideSchoolHours(), matchTopics(), useHint(), Analytics(), OPTION_BORDER, OPTION_COLORS (+3 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.06
-Nodes (18): FOUR_CELL, QUESTION_STYLES, useStagedPending(), useWindowWidth(), ANALYTICS_DATA, BAR_COLOURS, C, DAYS (+10 more)
+Nodes (18): QUESTION_STYLES, TOPIC_TAGS, useStagedPending(), useWindowWidth(), ANALYTICS_DATA, BAR_COLOURS, C, DAYS (+10 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.11
@@ -216,7 +217,7 @@ Nodes (20): dependencies, @azure/cosmos, @azure/functions, fuse.js, jsonwebtoken
 
 ### Community 12 - "Community 12"
 Cohesion: 0.10
-Nodes (25): { getCallerScope, assertScope, requireRole, ScopeError, ROLES, READ_ALL_ROLES, MUTATE_ALL_ROLES, PRIVILEGED_ROLES }, { getCallerScope, assertScope, requireRole, ScopeError, ROLES, MUTATE_ALL_ROLES, READ_ALL_ROLES }, guardOwner(), ALLOWED_TOPICS, ALLOWED_VISIBILITY, { app }, { assertScope, getCallerScope, requireRole, ScopeError, ROLES, MUTATE_ALL_ROLES }, { authenticateTeacher } (+17 more)
+Nodes (26): { getCallerScope, assertScope, requireRole, ScopeError, ROLES, READ_ALL_ROLES, MUTATE_ALL_ROLES, PRIVILEGED_ROLES }, { getCallerScope, assertScope, requireRole, ScopeError, ROLES, MUTATE_ALL_ROLES, READ_ALL_ROLES }, guardOwner(), guardAdmin(), ALLOWED_TOPICS, ALLOWED_VISIBILITY, { app }, { assertScope, getCallerScope, requireRole, ScopeError, ROLES, MUTATE_ALL_ROLES } (+18 more)
 
 ### Community 13 - "Community 13"
 Cohesion: 0.10
@@ -227,8 +228,8 @@ Cohesion: 0.10
 Nodes (18): { app }, { authenticateTeacher }, classesContainer, client, computeCounts(), { CosmosClient }, countQuery(), database (+10 more)
 
 ### Community 15 - "Community 15"
-Cohesion: 0.14
-Nodes (14): { app }, { assertScope, ScopeError }, { authenticateTeacher }, classesContainer, client, { CosmosClient }, database, { logRequest } (+6 more)
+Cohesion: 0.13
+Nodes (15): checkRateLimit(), { app }, { assertScope, ScopeError }, { authenticateTeacher }, classesContainer, client, { CosmosClient }, database (+7 more)
 
 ### Community 16 - "Community 16"
 Cohesion: 0.09
@@ -236,11 +237,11 @@ Nodes (20): { app }, { authenticateTeacher }, classesContainer, client, { comput
 
 ### Community 17 - "Community 17"
 Cohesion: 0.11
-Nodes (19): { app }, { authenticateAdmin }, checkRateLimit(), classesContainer, client, { CosmosClient }, database, { getCallerScope, requireRole, ScopeError, ROLES } (+11 more)
+Nodes (17): { app }, { authenticateAdmin }, classesContainer, client, { CosmosClient }, database, { getCallerScope, requireRole, ScopeError, ROLES }, { loadQuizAnalytics, buildQuestionBreakdown } (+9 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.14
-Nodes (10): ALLOWED_EVENT_TYPES, ALLOWED_PLATFORMS, { app }, { classifyDevice, classifyBrowser }, { classifyPage }, CONSENT_EVENT_TYPES, { CosmosClient }, { rateLimit, getClientIp } (+2 more)
+Cohesion: 0.20
+Nodes (8): ALLOWED_EVENT_TYPES, ALLOWED_PLATFORMS, { app }, { classifyDevice, classifyBrowser }, { classifyPage }, CONSENT_EVENT_TYPES, { CosmosClient }, { rateLimit, getClientIp }
 
 ### Community 19 - "Community 19"
 Cohesion: 0.15
@@ -251,28 +252,28 @@ Cohesion: 0.17
 Nodes (11): ALLOWED_ROLES, { app }, { authenticateAdmin }, client, { CosmosClient }, database, { getCallerScope, requireRole, ScopeError, ROLES }, { logRequest } (+3 more)
 
 ### Community 21 - "Community 21"
-Cohesion: 0.13
-Nodes (17): ALLOWED_RANGES, { app }, { authenticateAdmin }, buildRealMetrics(), buildRealTotals(), buildStubbedMetrics(), { computeRangeQuizStats }, { EXCLUDE_DEMO_FRAGMENT } (+9 more)
+Cohesion: 0.14
+Nodes (14): ALLOWED_RANGES, { app }, { authenticateAdmin }, buildRealTotals(), buildStubbedMetrics(), { computeRangeQuizStats }, { EXCLUDE_DEMO_FRAGMENT }, { getCallerScope, requireRole, ScopeError, ROLES } (+6 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.14
-Nodes (13): applyRejection(), { applyRejection }, crypto, { deleteSubscriptions, deleteJoinRequests, deidentifyResponses }, fullAccount(), makeJoinRequests(), makeQuizzes(), makeResponses() (+5 more)
+Cohesion: 0.12
+Nodes (22): applyRejection(), { applyRejection }, crypto, { deleteSubscriptions, deleteJoinRequests, deidentifyResponses }, fullAccount(), makeJoinRequests(), makeQuizzes(), makeResponses() (+14 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.23
 Nodes (8): { buildRollup, CORRECT_WEIGHT }, { TOPIC_TAGS }, { TOPIC_TAGS, isValidTopicTag }, buildRollup(), CORRECT_WEIGHT, { CosmosClient }, { TOPIC_TAGS }, TOPIC_TAGS
 
 ### Community 24 - "Community 24"
-Cohesion: 0.13
-Nodes (13): { andExcludeDemo }, { app }, client, { CosmosClient }, database, { getApprovedJoinRequest }, joinRequestsContainer, { logRequest } (+5 more)
+Cohesion: 0.24
+Nodes (9): FeatureIntroCard(), hasShownIntroThisSession(), ProfileNudge(), pickIntro(), PromoSlot(), StarterSeedCta(), FEATURE_INTRO_CONTENT, BuildQuiz() (+1 more)
 
 ### Community 25 - "Community 25"
-Cohesion: 0.08
-Nodes (27): logRequest(), { app }, { authenticateTeacher }, client, { CosmosClient }, database, { FEATURE_FIRST_RUN }, { logRequest } (+19 more)
+Cohesion: 0.15
+Nodes (12): { app }, client, CONFIDENCE_VALUES, container, { CosmosClient }, crypto, database, joinRequestsContainer (+4 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.09
-Nodes (19): { app }, { assertStepUp, StepUpError }, { authenticateAdmin }, classesContainer, client, containers, { CosmosClient }, database (+11 more)
+Cohesion: 0.12
+Nodes (15): { app }, { assertStepUp, StepUpError }, { authenticateAdmin }, classesContainer, client, containers, { CosmosClient }, database (+7 more)
 
 ### Community 27 - "Community 27"
 Cohesion: 0.18
@@ -291,8 +292,8 @@ Cohesion: 0.20
 Nodes (9): background_color, description, display, icons, name, scope, short_name, start_url (+1 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.40
-Nodes (3): AiBadge(), DEFAULT_SCHEDULE, ReviewDraft()
+Cohesion: 0.13
+Nodes (10): AiBadge(), ALLOWED_TOPICS, BLANK_FORM, QuestionBank(), TOPIC_COLORS, VISIBILITY_COLORS, VISIBILITY_LABELS, YEAR_LEVELS (+2 more)
 
 ### Community 32 - "Community 32"
 Cohesion: 0.14
@@ -347,8 +348,8 @@ Cohesion: 0.67
 Nodes (3): authHeaders(), jwt, mintToken()
 
 ### Community 65 - "Community 65"
-Cohesion: 0.15
-Nodes (12): { app }, { authenticateTeacher }, classesContainer, client, { CosmosClient }, database, { getCallerScope, assertScope, ScopeError }, { logRequest } (+4 more)
+Cohesion: 0.08
+Nodes (26): logRequest(), { app }, { authenticateTeacher }, classesContainer, client, { CosmosClient }, database, { getCallerScope, assertScope, ScopeError } (+18 more)
 
 ### Community 66 - "Community 66"
 Cohesion: 0.26
@@ -375,8 +376,8 @@ Cohesion: 0.60
 Nodes (4): authHeaders(), createQuestionAsA(), jwt, mintToken()
 
 ### Community 72 - "Community 72"
-Cohesion: 0.10
-Nodes (21): DemoNav(), PUBLIC_NAV, showPublicNav(), Sidebar(), useAuth(), AERO_CITATIONS, APST_DEFAULTS, APST_DESCRIPTORS (+13 more)
+Cohesion: 0.15
+Nodes (12): AERO_CITATIONS, APST_DEFAULTS, APST_DESCRIPTORS, AnnualLogPanel(), DOMAINS, Evidence(), ExportPanel(), fieldStyle (+4 more)
 
 ### Community 73 - "Community 73"
 Cohesion: 0.13
@@ -400,7 +401,7 @@ Nodes (11): { generateDraft, selectChunks, INPUT_CHAR_CAP, MissingProviderKeyErr
 
 ### Community 80 - "Community 80"
 Cohesion: 0.06
-Nodes (59): ClassJoinQR(), InstallButton(), IosInstallBanner(), QRCode(), SamsungInstallBanner(), CONFIDENCE_LABELS, confidenceTrend(), tallyConfidence() (+51 more)
+Nodes (58): ClassJoinQR(), InstallButton(), IosInstallBanner(), QRCode(), SamsungInstallBanner(), CONFIDENCE_LABELS, confidenceTrend(), tallyConfidence() (+50 more)
 
 ### Community 81 - "Community 81"
 Cohesion: 0.20
@@ -415,8 +416,8 @@ Cohesion: 0.43
 Nodes (5): authHeaders(), createQuestionAsA(), createSentQuizAsA(), jwt, mintToken()
 
 ### Community 84 - "Community 84"
-Cohesion: 0.23
-Nodes (11): { runFirstRun, firstRunDemoClassId, firstRunQuizId }, selectDemoStudents(), { deterministicId }, firstRunDemoClassId(), firstRunQuizId(), getOrCreateDemoClass(), getOrCreateQuiz(), runFirstRun() (+3 more)
+Cohesion: 0.18
+Nodes (13): { runFirstRun, firstRunDemoClassId, firstRunQuizId }, crypto, DEMO_NAMES, selectDemoStudents(), { deterministicId }, firstRunDemoClassId(), firstRunQuizId(), getOrCreateDemoClass() (+5 more)
 
 ### Community 85 - "Community 85"
 Cohesion: 0.08
@@ -435,8 +436,8 @@ Cohesion: 0.16
 Nodes (9): { computeEligibleIntros }, FEATURE_INTRO_KEYS, isValidIntroKey(), CANDIDATE_KEYS, computeEligibleIntros(), { EXCLUDE_DEMO_FRAGMENT }, { FEATURE_APST_EXPORT, FEATURE_AI_GENERATION }, { FEATURE_INTRO_KEYS } (+1 more)
 
 ### Community 89 - "Community 89"
-Cohesion: 0.09
-Nodes (20): FeatureIntroCard(), hasShownIntroThisSession(), GettingStartedChecklist(), STEP_LABELS, STEP_ROUTES, ProfileNudge(), pickIntro(), PromoSlot() (+12 more)
+Cohesion: 0.13
+Nodes (14): GettingStartedChecklist(), STEP_LABELS, STEP_ROUTES, buildAlsoWaitingCards(), monthGrid(), quizzesOnDay(), sameDay(), startOfWeek() (+6 more)
 
 ### Community 90 - "Community 90"
 Cohesion: 0.39
@@ -451,34 +452,34 @@ Cohesion: 0.25
 Nodes (3): JSZip, jwt, PDFDocument
 
 ### Community 93 - "Community 93"
-Cohesion: 0.13
-Nodes (14): { computeRangeQuizStats }, {
+Cohesion: 0.14
+Nodes (13): { resolveApprovedDeviceIds }, {
   ALLOWED_RANGES,
   getRangeStart,
   aggregateTraffic,
   computeFunnelRates,
   aggregateConsentFunnel,
-}, { app }, { authenticateAdmin }, computeFunnel(), { computeRangeQuizStats }, { getCallerScope, requireRole, ScopeError, ROLES }, { logRequest } (+6 more)
+}, { app }, { authenticateAdmin }, computeFunnel(), { computeRangeQuizStats }, { getCallerScope, requireRole, ScopeError, ROLES }, { logRequest } (+5 more)
 
 ### Community 94 - "Community 94"
 Cohesion: 0.43
 Nodes (6): authHeaders(), buildPdf(), createDraft(), jwt, PDFDocument, uploadSource()
 
 ### Community 95 - "Community 95"
-Cohesion: 0.21
-Nodes (6): isOutsideSchoolHours(), matchTopics(), TOPIC_TAGS, Population(), REFERENCE_DOTS, SendQuiz()
+Cohesion: 0.13
+Nodes (13): DemoNav(), PUBLIC_NAV, showPublicNav(), Sidebar(), useAuth(), RequireAuth(), ATTESTATION_PENDING, Classes() (+5 more)
 
 ### Community 97 - "Community 97"
-Cohesion: 0.10
-Nodes (16): { getApprovedJoinRequest }, { app }, classesContainer, client, { CosmosClient }, database, { getApprovedJoinRequest }, joinRequestsContainer (+8 more)
+Cohesion: 0.06
+Nodes (27): { getApprovedJoinRequest }, { app }, classesContainer, client, { CosmosClient }, database, { getApprovedJoinRequest }, joinRequestsContainer (+19 more)
 
 ### Community 98 - "Community 98"
 Cohesion: 0.38
 Nodes (3): monthGrid(), startOfWeek(), weekDays()
 
 ### Community 99 - "Community 99"
-Cohesion: 0.12
-Nodes (14): { app }, { assertStepUp, StepUpError }, { authenticateTeacher }, client, containers, { CosmosClient }, database, { deleteTeacherAccount } (+6 more)
+Cohesion: 0.15
+Nodes (12): { app }, { assertStepUp, StepUpError }, { authenticateTeacher }, client, containers, { CosmosClient }, database, { deleteTeacherAccount } (+4 more)
 
 ### Community 100 - "Community 100"
 Cohesion: 0.29
@@ -505,20 +506,20 @@ Cohesion: 0.67
 Nodes (3): authHeaders(), createQuestion(), jwt
 
 ### Community 108 - "Community 108"
-Cohesion: 0.18
-Nodes (10): { app }, client, { CosmosClient }, crypto, database, joinRequestsContainer, { logRequest }, { rateLimit } (+2 more)
+Cohesion: 0.17
+Nodes (11): { app }, { authenticateTeacher }, client, { CosmosClient }, database, { FEATURE_FIRST_RUN }, { logRequest }, questionsContainer (+3 more)
 
 ### Community 112 - "Community 112"
 Cohesion: 0.36
 Nodes (6): { validateProfile, isProfileComplete, PROFILE_FIELDS }, isProfileComplete(), PROFILE_FIELDS, REGISTRATION_STATUSES, SUBJECTS, validateProfile()
 
 ### Community 114 - "Community 114"
-Cohesion: 0.36
-Nodes (9): crypto, deidentifyOneResponse(), deidentifyResponses(), deleteJoinRequests(), deleteSubscriptions(), deleteTeacherAccount(), eraseDevice(), removeStudentFromClass() (+1 more)
+Cohesion: 0.25
+Nodes (6): buildRealMetrics(), round2(), { computeRangeQuizStats }, computeRangeQuizStats(), { EXCLUDE_DEMO_FRAGMENT }, getRangeStart()
 
 ### Community 115 - "Community 115"
-Cohesion: 0.19
-Nodes (10): { ATTESTATION_VERSION }, { createRealClass, ClassLimitError, AttestationError, generateJoinCode }, VALID_ATTESTATION, { ATTESTATION_VERSION, versionState }, AttestationError, ClassLimitError, createRealClass(), crypto (+2 more)
+Cohesion: 0.16
+Nodes (12): { ATTESTATION_VERSION }, { createRealClass, ClassLimitError, AttestationError, generateJoinCode }, VALID_ATTESTATION, { ATTESTATION_VERSION, versionState }, AttestationError, ClassLimitError, createRealClass(), crypto (+4 more)
 
 ### Community 116 - "Community 116"
 Cohesion: 0.44
@@ -554,8 +555,8 @@ Cohesion: 0.26
 Nodes (10): cloneIdForQuiz(), crypto, deterministicId(), questionIdForDraft(), quizIdForDraft(), resolveSourceRefLabel(), { deterministicId }, seedStarterQuestions() (+2 more)
 
 ### Community 126 - "Community 126"
-Cohesion: 0.24
-Nodes (6): App(), apiRequest, msalConfig, existing, installAuthenticatedFetch(), msalInstance
+Cohesion: 0.33
+Nodes (4): runErasure(), actor, { runErasure }, writeAudit()
 
 ### Community 127 - "Community 127"
 Cohesion: 0.28
@@ -573,10 +574,6 @@ Nodes (5): ProfileWizardSteps(), REGISTRATION_OPTIONS, SUBJECTS, YEAR_LEVELS, On
 Cohesion: 0.38
 Nodes (5): { ALLOWED_PREFIXES, classifyPage }, fs, path, ALLOWED_PREFIXES, classifyPage()
 
-### Community 131 - "Community 131"
-Cohesion: 0.29
-Nodes (5): TITLES, useDocumentTitle(), usePageView(), usePwaInstallTracking(), AppRoutes()
-
 ### Community 132 - "Community 132"
 Cohesion: 0.47
 Nodes (4): { QUESTION_STYLES, isValidQuestionStyle, stylePromptLine }, isValidQuestionStyle(), QUESTION_STYLES, STYLE_PROMPT
@@ -585,25 +582,29 @@ Nodes (4): { QUESTION_STYLES, isValidQuestionStyle, stylePromptLine }, isValidQu
 Cohesion: 0.50
 Nodes (3): { runFuzzyMatch }, Fuse, runFuzzyMatch()
 
+### Community 135 - "Community 135"
+Cohesion: 0.83
+Nodes (3): contrastRatio(), luminance(), srgbToLinear()
+
 ## Knowledge Gaps
-- **704 isolated node(s):** `{ app }`, `{ CosmosClient }`, `{ rateLimit, getClientIp }`, `{ logRequest }`, `{ authenticateTeacher }` (+699 more)
+- **707 isolated node(s):** `{ app }`, `{ CosmosClient }`, `{ rateLimit, getClientIp }`, `{ logRequest }`, `{ authenticateTeacher }` (+702 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `logRequest()` connect `Community 25` to `Community 1`, `Community 2`, `Community 5`, `Community 6`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 19`, `Community 20`, `Community 21`, `Community 24`, `Community 26`, `Community 27`, `Community 28`, `Community 32`, `Community 65`, `Community 69`, `Community 73`, `Community 77`, `Community 78`, `Community 85`, `Community 87`, `Community 91`, `Community 93`, `Community 97`, `Community 99`, `Community 108`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
-- **Why does `rateLimit()` connect `Community 15` to `Community 1`, `Community 2`, `Community 5`, `Community 6`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 24`, `Community 25`, `Community 26`, `Community 27`, `Community 28`, `Community 32`, `Community 65`, `Community 69`, `Community 73`, `Community 77`, `Community 78`, `Community 85`, `Community 87`, `Community 91`, `Community 93`, `Community 97`, `Community 99`, `Community 108`?**
-  _High betweenness centrality (0.048) - this node is a cross-community bridge._
-- **Why does `getClientIp()` connect `Community 15` to `Community 1`, `Community 2`, `Community 6`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 16`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 24`, `Community 25`, `Community 27`, `Community 28`, `Community 32`, `Community 69`, `Community 78`, `Community 85`, `Community 87`, `Community 91`, `Community 97`, `Community 99`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+- **Why does `logRequest()` connect `Community 65` to `Community 1`, `Community 2`, `Community 5`, `Community 6`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 19`, `Community 20`, `Community 21`, `Community 25`, `Community 26`, `Community 27`, `Community 28`, `Community 32`, `Community 69`, `Community 73`, `Community 77`, `Community 78`, `Community 85`, `Community 87`, `Community 91`, `Community 93`, `Community 97`, `Community 99`, `Community 108`?**
+  _High betweenness centrality (0.059) - this node is a cross-community bridge._
+- **Why does `rateLimit()` connect `Community 15` to `Community 1`, `Community 2`, `Community 5`, `Community 6`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 25`, `Community 26`, `Community 27`, `Community 28`, `Community 32`, `Community 65`, `Community 69`, `Community 73`, `Community 77`, `Community 78`, `Community 85`, `Community 87`, `Community 91`, `Community 93`, `Community 97`, `Community 99`, `Community 108`?**
+  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+- **Why does `getClientIp()` connect `Community 15` to `Community 1`, `Community 2`, `Community 6`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 16`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 25`, `Community 27`, `Community 28`, `Community 32`, `Community 69`, `Community 78`, `Community 85`, `Community 87`, `Community 91`, `Community 97`, `Community 99`, `Community 108`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **What connects `{ app }`, `{ CosmosClient }`, `{ rateLimit, getClientIp }` to the rest of the system?**
-  _704 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _707 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
-  _Cohesion score 0.05263157894736842 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05128205128205128 - nodes in this community are weakly interconnected._

@@ -1,4 +1,18 @@
 
+## v4.13.0 R4 Accessibility — pending manual gate (2026-09-18)
+
+v4.13.0 is tagged and deployed (frontend auto-deployed via SWA GitHub Actions on push to `main`,
+2026-09-18). 603/603 unit tests pass, `npm run build` clean. One gate still open:
+
+- [ ] **Run the axe E2E spec manually** — `npx playwright test tests/e2e/a11y.spec.js` against
+  `npm run dev`. The spec is written (`tests/e2e/a11y.spec.js`, `@axe-core/playwright`, 6 public
+  routes × 2 viewports, WCAG 2.1 AA). Once it passes, update `SPRINT_TEST_CHECKLIST.md`'s
+  v4.13.0 E2E row to ✅ pass. No API changes → no integration tests needed.
+- [ ] **Pop or handle the stash on `release/v4.13-accessibility`** — `git stash pop` to restore
+  `tests/reports/v4.12.0-report.html` (modified) + `docs/TERMINOLOGY_COPY_PASS.md` (untracked)
+  + `docs/audits/` (untracked directory). These were stashed to unblock the merge to `develop`.
+  Decide whether `docs/TERMINOLOGY_COPY_PASS.md` and `docs/audits/` should be committed to `main`.
+
 ## /code coding session — v4.6.0 Tasks 1-8 complete, live-verified (2026-07-27)
 
 Built, unit-tested, AND live-verified Tasks 1-8 of `CC_PROMPTS_v460.md` directly on `main` (no
