@@ -50,8 +50,17 @@ export default function Sidebar() {
   const { pathname } = useLocation()
   const { isAuthenticated, user, login, logout } = useAuth()
   const [open, setOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
   const hamburgerRef = useRef(null)
   const firstNavRef = useRef(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    setIsMobile(mq.matches)
+    const handler = (e) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   // Close drawer on route change
   useEffect(() => { setOpen(false) }, [pathname])
@@ -107,7 +116,7 @@ export default function Sidebar() {
       {/* Sidebar: static column on desktop, fixed overlay drawer on mobile.
           inert when closed (mobile) so keyboard/SR users can't tab into a hidden drawer. */}
       <aside id="sidebar-nav" className={`sidebar sidebar-drawer ${open ? 'drawer-open' : ''}`}
-        {...(!open ? { inert: '' } : {})}>
+        {...(isMobile && !open ? { inert: '' } : {})}>
         <div className="sidebar-brand">
           <Logo onClick={() => go('/')} />
           <span className="sidebar-wordmark">QuizPulse</span>
