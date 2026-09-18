@@ -4,6 +4,7 @@ import API_BASE from '../../api'
 import ENCOURAGEMENTS from '../../data/encouragements'
 import { readSubmitted } from '../../data/submittedAnswers'
 import { CONFIDENCE_LABELS } from '../../data/confidenceTally'
+import LegalFooter from '../../components/LegalFooter'
 
 // Two student-facing modes over the same question display, deliberately kept OUT of TakeQuiz so
 // none of its submit / offline-queue / duplicate-gate machinery is touched:
@@ -228,6 +229,8 @@ export default function QuizReview({ mode }) {
           Done
         </button>
       )}
+
+      <LegalFooter />
     </div>
   )
 }

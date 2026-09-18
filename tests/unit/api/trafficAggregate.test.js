@@ -116,6 +116,57 @@ describe('aggregateTraffic — legacy eventType regression (mandatory)', () => {
   });
 });
 
+describe('aggregateTraffic — device/browser bucket source (R3, mandatory)', () => {
+  // A pre-R3 doc has raw screenWidth/userAgent but NO device/browser bucket — it must classify
+  // exactly as before the change (via the classifyDevice/classifyBrowser fallback).
+  test('a legacy doc with raw fields and no buckets aggregates identically to the pre-change fn', () => {
+    const legacyDoc = {
+      page: '/teacher/home', teacherId: 'd1', sessionId: 's1', visitedAt: '2026-07-14T10:00:00.000Z',
+      screenWidth: 390, userAgent: 'Mozilla/5.0 (iPhone) Version/17.0 Mobile Safari/604.1',
+    };
+    const result = aggregateTraffic([legacyDoc]);
+    expect(result.devices).toEqual({ mobile: 1, desktop: 0, unknown: 0 });
+    expect(result.browsers).toEqual({ chrome: 0, safari: 1, firefox: 0, edge: 0, other: 0 });
+  });
+
+  // A new R3 doc carries precomputed buckets and NO raw fields — counted directly.
+  test('a new R3 doc uses its precomputed device/browser buckets', () => {
+    const newDoc = {
+      page: '/teacher/home', teacherId: 'd1', sessionId: 's1', visitedAt: '2026-07-14T10:00:00.000Z',
+      device: 'desktop', browser: 'chrome',
+    };
+    const result = aggregateTraffic([newDoc]);
+    expect(result.devices).toEqual({ mobile: 0, desktop: 1, unknown: 0 });
+    expect(result.browsers).toEqual({ chrome: 1, safari: 0, firefox: 0, edge: 0, other: 0 });
+  });
+
+  // A minimised R3 doc (student/consent route) carries buckets 'unknown'/'other'.
+  test('a minimised R3 doc (unknown/other buckets) counts into unknown/other', () => {
+    const minDoc = {
+      page: '/quiz', teacherId: 'd1', sessionId: 's1', visitedAt: '2026-07-14T10:00:00.000Z',
+      device: 'unknown', browser: 'other',
+    };
+    const result = aggregateTraffic([minDoc]);
+    expect(result.devices.unknown).toBe(1);
+    expect(result.browsers.other).toBe(1);
+  });
+});
+
+describe('aggregateTraffic — unique visitors are joined-device only (R3)', () => {
+  // Pre-join views send teacherId null (no device id yet) — they count as pageViews and sessions
+  // but NOT as unique visitors (D3.2: visitors = devices that joined a class).
+  test('a null-teacherId (pre-join) view is a session, not a unique visitor', () => {
+    const docs = [
+      { page: '/', teacherId: null, sessionId: 's-anon', visitedAt: '2026-07-15T00:00:00.000Z' },
+      { page: '/teacher/home', teacherId: 'joined-device', sessionId: 's-joined', visitedAt: '2026-07-15T00:01:00.000Z' },
+    ];
+    const result = aggregateTraffic(docs);
+    expect(result.totals.pageViews).toBe(2);
+    expect(result.totals.uniqueSessions).toBe(2);
+    expect(result.totals.uniqueVisitors).toBe(1); // only the joined device
+  });
+});
+
 describe('aggregateTraffic — pwa_install events', () => {
   test('pwa_install events are counted in pwaInstalls, excluded from view totals', () => {
     const docs = [

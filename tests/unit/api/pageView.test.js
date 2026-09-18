@@ -1,12 +1,15 @@
 const { buildPageViewDoc } = require('../../../api/pageView');
 
+// v4.12.0 (R3): buildPageViewDoc no longer stores raw browser-fingerprint fields. A full legacy
+// payload (with all six raw fields) is still ACCEPTED — old cached clients keep working — but the
+// raw fields are discarded and only coarse device/browser buckets are kept.
 function baseBody(overrides = {}) {
   return {
     page: '/teacher/home',
     teacherId: 'device-uuid-1',
     sessionId: 'tab-session-1',
     referrer: 'https://example.com',
-    userAgent: 'Mozilla/5.0 Chrome/100 Safari/537',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0) Chrome/100 Safari/537',
     language: 'en-AU',
     timezone: 'Australia/Sydney',
     screenWidth: 1280,
@@ -14,6 +17,8 @@ function baseBody(overrides = {}) {
     ...overrides,
   };
 }
+
+const FINGERPRINT_KEYS = ['referrer', 'userAgent', 'language', 'timezone', 'screenWidth', 'screenHeight'];
 
 describe('buildPageViewDoc — validation', () => {
   test('rejects a missing page field', () => {
@@ -56,57 +61,104 @@ describe('buildPageViewDoc — page allowlist bucketing', () => {
   });
 });
 
-describe('buildPageViewDoc — student privacy posture (/quiz)', () => {
-  test('strips browser-fingerprint fields even if the client sent them', () => {
-    const { doc } = buildPageViewDoc(baseBody({ page: '/quiz', quizId: 'quiz-abc' }));
-    expect(doc.page).toBe('/quiz');
-    expect(doc.referrer).toBeNull();
-    expect(doc.userAgent).toBeNull();
-    expect(doc.language).toBeNull();
-    expect(doc.timezone).toBeNull();
-    expect(doc.screenWidth).toBeNull();
-    expect(doc.screenHeight).toBeNull();
+describe('buildPageViewDoc — no browser fingerprint is stored on any route (R3)', () => {
+  // Test-contract row: full legacy payloads for /, /join, /login, /quiz, /teacher/home + a
+  // consent event — the stored doc must never carry any raw fingerprint key.
+  const routes = ['/', '/join', '/login', '/quiz', '/teacher/home'];
+  for (const page of routes) {
+    test(`stores no fingerprint keys for a full legacy payload on ${page}`, () => {
+      const { doc } = buildPageViewDoc(baseBody({ page, quizId: 'q1' }));
+      for (const k of FINGERPRINT_KEYS) {
+        expect(doc).not.toHaveProperty(k);
+      }
+    });
+  }
+
+  test('stores no fingerprint keys for a consent event', () => {
+    const { doc } = buildPageViewDoc(baseBody({ page: '/join', eventType: 'push_granted', platform: 'android' }));
+    for (const k of FINGERPRINT_KEYS) {
+      expect(doc).not.toHaveProperty(k);
+    }
+  });
+});
+
+describe('buildPageViewDoc — coarse buckets are computed (R3)', () => {
+  test('width 390 + Safari UA → device mobile / browser safari', () => {
+    const { doc } = buildPageViewDoc(baseBody({
+      page: '/', screenWidth: 390,
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) AppleWebKit/605 Version/17.0 Mobile Safari/604.1',
+    }));
+    expect(doc.device).toBe('mobile');
+    expect(doc.browser).toBe('safari');
   });
 
-  test('keeps teacherId/sessionId/quizId on /quiz', () => {
-    const { doc } = buildPageViewDoc(baseBody({ page: '/quiz', quizId: 'quiz-abc' }));
-    expect(doc.teacherId).toBe('device-uuid-1');
-    expect(doc.sessionId).toBe('tab-session-1');
+  test('width 1440 + Chrome UA → device desktop / browser chrome', () => {
+    const { doc } = buildPageViewDoc(baseBody({
+      page: '/', screenWidth: 1440,
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537 Chrome/120 Safari/537',
+    }));
+    expect(doc.device).toBe('desktop');
+    expect(doc.browser).toBe('chrome');
+  });
+});
+
+describe('buildPageViewDoc — student / consent routes are not device-classified (R3)', () => {
+  test('/quiz gets device unknown / browser other even with real UA + width', () => {
+    const { doc } = buildPageViewDoc(baseBody({ page: '/quiz', quizId: 'quiz-abc', screenWidth: 390 }));
+    expect(doc.page).toBe('/quiz');
+    expect(doc.device).toBe('unknown');
+    expect(doc.browser).toBe('other');
     expect(doc.quizId).toBe('quiz-abc');
+  });
+
+  test('/student/class is not classified', () => {
+    const { doc } = buildPageViewDoc(baseBody({ page: '/student/class', screenWidth: 1440 }));
+    expect(doc.device).toBe('unknown');
+    expect(doc.browser).toBe('other');
+  });
+
+  test('a consent event is not classified regardless of route', () => {
+    const { doc } = buildPageViewDoc(baseBody({ page: '/join', eventType: 'push_prompted', screenWidth: 1440 }));
+    expect(doc.device).toBe('unknown');
+    expect(doc.browser).toBe('other');
   });
 
   test('quizId is null when not sent, and never carried on non-/quiz pages', () => {
     expect(buildPageViewDoc(baseBody({ page: '/quiz' })).doc.quizId).toBeNull();
     expect(buildPageViewDoc(baseBody({ page: '/teacher/home', quizId: 'quiz-abc' })).doc.quizId).toBeNull();
   });
+});
 
-  test('quizId is length-capped', () => {
-    const { doc } = buildPageViewDoc(baseBody({ page: '/quiz', quizId: 'q'.repeat(150) }));
-    expect(doc.quizId).toHaveLength(100);
+describe('buildPageViewDoc — platform (consent events only)', () => {
+  test('a coarse platform is kept on a consent event', () => {
+    const { doc } = buildPageViewDoc(baseBody({ page: '/join', eventType: 'push_denied', platform: 'ios' }));
+    expect(doc.platform).toBe('ios');
   });
 
-  test('non-/quiz pages keep full telemetry', () => {
-    const { doc } = buildPageViewDoc(baseBody({ page: '/teacher/home' }));
-    expect(doc.referrer).toBe('https://example.com');
-    expect(doc.userAgent).toContain('Chrome');
-    expect(doc.screenWidth).toBe(1280);
+  test('platform is null on a plain view even if sent', () => {
+    const { doc } = buildPageViewDoc(baseBody({ page: '/', platform: 'ios' }));
+    expect(doc.platform).toBeNull();
+  });
+
+  test('an unrecognised platform on a consent event is null', () => {
+    const { doc } = buildPageViewDoc(baseBody({ page: '/join', eventType: 'push_granted', platform: 'blackberry' }));
+    expect(doc.platform).toBeNull();
   });
 });
 
-describe('buildPageViewDoc — field truncation and defaults', () => {
-  test('missing teacherId defaults to "anonymous"', () => {
+describe('buildPageViewDoc — identity defaults (R3)', () => {
+  test('missing teacherId is null, not the old "anonymous" sentinel', () => {
     const { doc } = buildPageViewDoc(baseBody({ teacherId: undefined }));
-    expect(doc.teacherId).toBe('anonymous');
+    expect(doc.teacherId).toBeNull();
+  });
+
+  test('a present teacherId is kept and length-capped', () => {
+    expect(buildPageViewDoc(baseBody({ teacherId: 'dev-1' })).doc.teacherId).toBe('dev-1');
+    expect(buildPageViewDoc(baseBody({ teacherId: 'x'.repeat(150) })).doc.teacherId).toHaveLength(100);
   });
 
   test('missing sessionId is null, not a string', () => {
     const { doc } = buildPageViewDoc(baseBody({ sessionId: undefined }));
     expect(doc.sessionId).toBeNull();
-  });
-
-  test('non-number screenWidth/screenHeight are stored as null', () => {
-    const { doc } = buildPageViewDoc(baseBody({ screenWidth: 'wide', screenHeight: null }));
-    expect(doc.screenWidth).toBeNull();
-    expect(doc.screenHeight).toBeNull();
   });
 });

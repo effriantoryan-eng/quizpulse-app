@@ -10,17 +10,11 @@ import {
 import { autoSubscribe, unsubscribeFromClass, unsubscribeBrowserPush, resyncPushSubscription } from '../../pushSubscribe'
 import { submittedKey, gatherSubmittedPayloads } from '../../data/submittedAnswers'
 import { confidenceTrend } from '../../data/confidenceTally'
+import { getDeviceId } from '../../deviceId'
+import LegalFooter from '../../components/LegalFooter'
 
-const DEVICE_ID_KEY = 'quizpulse_device_id'
-
-function getDeviceId() {
-  let id = localStorage.getItem(DEVICE_ID_KEY)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(DEVICE_ID_KEY, id)
-  }
-  return id
-}
+// R3: this page never mints a device id — getDeviceId() reads the id created at join time, or
+// null. A device with no approved class already shows the "No class found" state below.
 
 // Friendly "coming up" date — plain language, no jargon, no raw ISO strings shown to students.
 function friendlyDate(iso) {
@@ -86,6 +80,7 @@ function ClassSection({ cls, navigate, onLeft }) {
   // local off-list. A denied/default device shows "Turn on notifications" — tapping it runs the same
   // soft auto-subscribe as approval (it may prompt, and never throws).
   const permGranted = typeof Notification !== 'undefined' && Notification.permission === 'granted'
+  const permDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied'
   const notifOn = permGranted && !notifOff
 
   async function toggleNotifications() {
@@ -142,7 +137,10 @@ function ClassSection({ cls, navigate, onLeft }) {
     setError(null)
     setQuizzes(null)
     try {
-      const res = await fetch(`${API_BASE}/student/quizzes?deviceId=${encodeURIComponent(getDeviceId())}&classId=${encodeURIComponent(cls.classId)}`)
+      // R3 (audit #9): device id in the X-Device-Id header, not the query string.
+      const res = await fetch(`${API_BASE}/student/quizzes?classId=${encodeURIComponent(cls.classId)}`, {
+        headers: { 'X-Device-Id': getDeviceId() },
+      })
       if (!res.ok) {
         // 403 = not approved / class removed. That's permanent — retrying just 403s again,
         // so show a distinct message with no Retry loop. Everything else is transient.
@@ -221,13 +219,24 @@ function ClassSection({ cls, navigate, onLeft }) {
       )}
 
       {error !== 'unavailable' && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '24px', paddingTop: '16px', borderTop: 'var(--bw) solid var(--border)' }}>
-          <button type="button" onClick={toggleNotifications} disabled={busy} className="btn btn-secondary" style={{ fontSize: '13px' }}>
-            {notifOn ? 'Turn off notifications' : 'Turn on notifications'}
-          </button>
-          <button type="button" onClick={leave} disabled={busy} className="btn btn-secondary" style={{ fontSize: '13px', color: 'var(--danger)' }}>
-            Leave this class
-          </button>
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: 'var(--bw) solid var(--border)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <button type="button" onClick={toggleNotifications} disabled={busy} className="btn btn-secondary" style={{ fontSize: '13px' }}>
+              {notifOn ? 'Turn off notifications' : 'Turn on notifications'}
+            </button>
+            <button type="button" onClick={leave} disabled={busy} className="btn btn-secondary" style={{ fontSize: '13px', color: 'var(--danger)' }}>
+              Leave this class
+            </button>
+          </div>
+          {/* R3 (design review finding 2b) — tapping "Turn on notifications" while the browser has
+              already denied permission does nothing visible; a persistent hint tells the student
+              what to do instead, rather than looking broken. */}
+          {!notifOn && permDenied && (
+            <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '10px', lineHeight: '1.6' }}>
+              Notifications are turned off in your browser. You'll need to allow them in your
+              browser settings — this page will pick it up once you do.
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -294,6 +303,7 @@ function StudentClass() {
         <button onClick={() => navigate('/join')} className="btn btn-primary">
           Join a class
         </button>
+        <LegalFooter />
       </div>
     )
   }
@@ -321,6 +331,7 @@ function StudentClass() {
       <div style={{ marginTop: '8px' }}>
         <InstallButton description="Add QuizPulse to your phone so your teacher's check-ins reach your lock screen." />
       </div>
+      <LegalFooter />
     </div>
   )
 }

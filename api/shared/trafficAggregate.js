@@ -126,8 +126,14 @@ function aggregateTraffic(docs) {
 
     pageCounts.set(doc.page, (pageCounts.get(doc.page) || 0) + 1);
     audience[classifyAudience(doc.page)]++;
-    devices[classifyDevice(doc.screenWidth)]++;
-    browsers[classifyBrowser(doc.userAgent)]++;
+    // v4.12.0 (R3): new docs carry precomputed coarse buckets (doc.device/doc.browser). Legacy
+    // docs (written before R3, still inside the 180-day TTL) have no buckets but do have the raw
+    // screenWidth/userAgent — fall back to classifying those, so a mixed window aggregates
+    // identically to before the change.
+    const deviceBucket  = doc.device  != null ? doc.device  : classifyDevice(doc.screenWidth);
+    const browserBucket = doc.browser != null ? doc.browser : classifyBrowser(doc.userAgent);
+    devices[deviceBucket in devices ? deviceBucket : 'unknown']++;
+    browsers[browserBucket in browsers ? browserBucket : 'other']++;
 
     const date = typeof doc.visitedAt === 'string' ? doc.visitedAt.slice(0, 10) : null;
     if (date) {
