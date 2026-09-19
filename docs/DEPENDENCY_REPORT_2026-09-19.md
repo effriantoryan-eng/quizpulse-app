@@ -3,6 +3,29 @@
 Scope: the three npm roots — root teacher app (`package.json`), API (`api/`), admin portal
 (`admin/`). Data from `npm outdated --long` + `npm audit` run 2026-09-19.
 
+---
+
+## Upgrade sprint outcomes (2026-09-19, branch `chore/dependency-upgrades-2026-09`)
+
+The thorough pass over the major-version jumps `npm audit fix` skipped. Baseline before any
+change: **757/757 unit tests pass**, both frontends build clean. One deliberate commit per
+decision. (Note: root already sat on Vite 8.3.0 / plugin-react 6.0.2 from the earlier `audit fix`
+commit `6bf0055`, so the §2 "root vite 8.0.14→8.3.0" line was already handled.)
+
+| # | Package(s) | Decision | Why |
+|---|---|---|---|
+| 1 | admin `vite` 6→8, `@vitejs/plugin-react` 4→6 | **KEPT** | Aligns admin to root's tooling; clears admin vite/postcss build-time advisories; `admin` build clean on vite 8.3.0. |
+| 2 | api `jwks-rsa` 3→4 | **DEFERRED** | v4 swaps its crypto backend to `jose`, whose `dist/webapi` build is **ESM-only**. The func runtime (Node 22 `require(esm)`) handles it — a live JWKS fetch against the real CIAM keys endpoint passed with the exact `auth.js` call sequence — but the CommonJS jest harness can't parse it, so **7 API test suites fail to load**. No CVE forces v4 (v3 is unflagged by `npm audit`); making it "safe" means adding a babel/`@babel/preset-env` transform purely so jest can swallow an ESM-only transitive dep. Not worth it for a currency bump. **Add when:** the jest harness moves to ESM/babel, or a v3 CVE lands. |
+| 3 | root + admin `react-router-dom` 6→7 | **KEPT** | The only flagged runtime advisory. App uses only the declarative core (`BrowserRouter/Routes/Route/Navigate/Link/NavLink/useNavigate/useLocation/useParams/useSearchParams`) — none of the data-router APIs where RR7's breaking changes live. Both builds clean, **0 vulnerabilities** in both roots after. Nav smoke test (teacher app, live): route matching, `Link` client-side nav, and `useLocation`-driven title updates all work with no router errors. No jest test imports the router. |
+| 4 | root `qrcode-generator` 1→2 | _pending_ | |
+| 5 | api `pdfkit` 0.19→0.20 | _pending_ | |
+| 6 | root `@types/react` / `-dom` 19→18 | _pending_ | |
+
+**Out of scope (untouched, no forcing CVE):** MSAL 3→5 (auth is hard-won/fragile — see
+`reference_admin_portal_auth_gotchas`), React 18→19 (600+ call sites, no payoff).
+
+---
+
 ## TL;DR
 
 - **23 security vulnerabilities across the three roots** (root 11, api 7, admin 6). Most are
