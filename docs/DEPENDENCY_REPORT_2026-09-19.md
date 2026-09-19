@@ -3,6 +3,29 @@
 Scope: the three npm roots — root teacher app (`package.json`), API (`api/`), admin portal
 (`admin/`). Data from `npm outdated --long` + `npm audit` run 2026-09-19.
 
+---
+
+## Upgrade sprint outcomes (2026-09-19, branch `chore/dependency-upgrades-2026-09`)
+
+The thorough pass over the major-version jumps `npm audit fix` skipped. Baseline before any
+change: **757/757 unit tests pass**, both frontends build clean. One deliberate commit per
+decision. (Note: root already sat on Vite 8.3.0 / plugin-react 6.0.2 from the earlier `audit fix`
+commit `6bf0055`, so the §2 "root vite 8.0.14→8.3.0" line was already handled.)
+
+| # | Package(s) | Decision | Why |
+|---|---|---|---|
+| 1 | admin `vite` 6→8, `@vitejs/plugin-react` 4→6 | **KEPT** | Aligns admin to root's tooling; clears admin vite/postcss build-time advisories; `admin` build clean on vite 8.3.0. |
+| 2 | api `jwks-rsa` 3→4 | **DEFERRED** | v4 swaps its crypto backend to `jose`, whose `dist/webapi` build is **ESM-only**. The func runtime (Node 22 `require(esm)`) handles it — a live JWKS fetch against the real CIAM keys endpoint passed with the exact `auth.js` call sequence — but the CommonJS jest harness can't parse it, so **7 API test suites fail to load**. No CVE forces v4 (v3 is unflagged by `npm audit`); making it "safe" means adding a babel/`@babel/preset-env` transform purely so jest can swallow an ESM-only transitive dep. Not worth it for a currency bump. **Add when:** the jest harness moves to ESM/babel, or a v3 CVE lands. |
+| 3 | root + admin `react-router-dom` 6→7 | **KEPT** | The only flagged runtime advisory. App uses only the declarative core (`BrowserRouter/Routes/Route/Navigate/Link/NavLink/useNavigate/useLocation/useParams/useSearchParams`) — none of the data-router APIs where RR7's breaking changes live. Both builds clean, **0 vulnerabilities** in both roots after. Nav smoke test (teacher app, live): route matching, `Link` client-side nav, and `useLocation`-driven title updates all work with no router errors. No jest test imports the router. |
+| 4 | root `qrcode-generator` 1→2 | **KEPT** | Drop-in. v2 keeps the same default-export factory and `qrcode(0,'M').addData().make().getModuleCount()/isDark()` chain `QRCode.jsx` uses (proven with a node parity check → valid 37×37 matrix). Build clean; the real `QRCode` component, imported live through the Vite dev server (bundling v2), renders an `<svg>` with the correct viewBox/aria-label and 442 module `<rect>`s. No code change needed. |
+| 5 | api `pdfkit` 0.19→0.20 | **KEPT** | The specified gate — `tests/unit/api/pdfEvidence.test.js` — is green on 0.20.2 (both builders complete well under the footer-infinite-loop timeout guard). Cross-checked page output with `unpdf`: activity + annual PDFs are **4/4 pages on both 0.19.1 and 0.20.2** (identical — the "2 pages" in the code comments is the intended logical structure, not the actual output; the real content has always overflowed, unchanged by the bump). Lockfile change confined to pdfkit's own dep tree (swaps `browserify-zlib`/`js-md5` → `fflate`). 757/757 unit tests pass. |
+| 6 | root `@types/react` / `-dom` 19→18 | **KEPT** | Pinned back to `^18` (resolves to `@types/react@18.3.31` / `@types/react-dom@18.3.7`) to match the React 18.3.1 runtime, rather than committing to the out-of-scope React 19 upgrade. Plain-JS project (no tsconfig) so these feed editor autocomplete only, not the build — but a full-major-ahead types set hands you APIs that don't exist at runtime. Build clean, 0 vulnerabilities. |
+
+**Out of scope (untouched, no forcing CVE):** MSAL 3→5 (auth is hard-won/fragile — see
+`reference_admin_portal_auth_gotchas`), React 18→19 (600+ call sites, no payoff).
+
+---
+
 ## TL;DR
 
 - **23 security vulnerabilities across the three roots** (root 11, api 7, admin 6). Most are
